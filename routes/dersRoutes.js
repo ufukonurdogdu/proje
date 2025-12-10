@@ -3,9 +3,9 @@ const router = express.Router();
 const dersController = require('../controllers/dersController');
 const yetki = require('../middleware/authMiddleware'); // Middleware'i çağır
 
-router.get('/program', dersController.programSayfasi);
-router.post('/ekle', dersController.dersEkle);
-router.get('/sil/:id', dersController.dersSil);
+router.get('/program', yetki('ders_programi'), dersController.programSayfasi);
+router.post('/ekle', yetki('ders_programi'), dersController.dersEkle);
+router.get('/sil/:id', yetki('ders_programi'), dersController.dersSil);
 
 
 

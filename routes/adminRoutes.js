@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const yetki = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
 
@@ -33,11 +34,11 @@ router.get('/form-ayarlari/sil/:id', adminController.formAlanSil);
 router.post('/form-ayarlari/sirala', adminController.formSiralamaGuncelle);
 
 // BRANŞ & GRUP ROTALARI
-router.get('/branslar', adminController.bransSayfasi);
-router.post('/brans/ekle', adminController.bransEkle);
-router.get('/brans/sil/:id', adminController.bransSil);
-router.post('/grup/ekle', adminController.grupEkle);
-router.get('/grup/sil/:id', adminController.grupSil);
+router.get('/branslar', yetki('brans_grup'), adminController.bransSayfasi);
+router.post('/brans/ekle', yetki('brans_grup'), adminController.bransEkle);
+router.get('/brans/sil/:id', yetki('brans_grup'), adminController.bransSil);
+router.post('/grup/ekle', yetki('brans_grup'), adminController.grupEkle);
+router.get('/grup/sil/:id', yetki('brans_grup'), adminController.grupSil);
 
 // ŞUBE VE KULLANICI
 router.get('/subeler', adminController.subeKullaniciSayfasi);
