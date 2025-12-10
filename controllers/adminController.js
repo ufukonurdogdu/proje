@@ -495,19 +495,32 @@ exports.kullaniciEkle = async (req, res) => {
         const hashSifre = await bcrypt.hash(sifre, 10);
 
         const yetkiler = JSON.stringify({
+            // Genel Erişim
+            dashboard: req.body.perm_dashboard === 'on',
+            ogrenci_liste: req.body.perm_ogrenci_liste === 'on',
+            // Öğrenci İşlemleri
             ogrenci_ekle: req.body.perm_ogrenci_ekle === 'on',
             ogrenci_duzenle: req.body.perm_ogrenci_duzenle === 'on',
             ogrenci_sil: req.body.perm_ogrenci_sil === 'on',
             ogrenci_profil: req.body.perm_ogrenci_profil === 'on',
+            // Akademik & Operasyon
             yoklama: req.body.perm_yoklama === 'on',
             ders_programi: req.body.perm_ders_programi === 'on',
             brans_grup: req.body.perm_brans_grup === 'on',
+            // Finansal İşlemler
             kasa_gor: req.body.perm_kasa_gor === 'on',
-            kasa_islem: req.body.perm_kasa_islem === 'on'
+            kasa_islem: req.body.perm_kasa_islem === 'on',
+            // Envanter Yönetimi
+            envanter_gor: req.body.perm_envanter_gor === 'on',
+            envanter_islem: req.body.perm_envanter_islem === 'on',
+            // Başvuru & İletişim
+            basvuru_gor: req.body.perm_basvuru_gor === 'on',
+            basvuru_islem: req.body.perm_basvuru_islem === 'on',
+            whatsapp: req.body.perm_whatsapp === 'on'
         });
 
         await db.execute(`
-            INSERT INTO kullanicilar (ad_soyad, kullanici_adi, sifre, sube_id, rol, yetkiler, durum) 
+            INSERT INTO kullanicilar (ad_soyad, kullanici_adi, sifre, sube_id, rol, yetkiler, durum)
             VALUES (?, ?, ?, ?, ?, ?, 1)
         `, [ad_soyad, kullanici_adi, hashSifre, sube_id || null, rol, yetkiler]);
 
@@ -527,15 +540,28 @@ exports.kullaniciDuzenle = async (req, res) => {
 
     try {
         const yetkiler = JSON.stringify({
+            // Genel Erişim
+            dashboard: req.body.perm_dashboard === 'on',
+            ogrenci_liste: req.body.perm_ogrenci_liste === 'on',
+            // Öğrenci İşlemleri
             ogrenci_ekle: req.body.perm_ogrenci_ekle === 'on',
             ogrenci_duzenle: req.body.perm_ogrenci_duzenle === 'on',
             ogrenci_sil: req.body.perm_ogrenci_sil === 'on',
             ogrenci_profil: req.body.perm_ogrenci_profil === 'on',
+            // Akademik & Operasyon
             yoklama: req.body.perm_yoklama === 'on',
             ders_programi: req.body.perm_ders_programi === 'on',
             brans_grup: req.body.perm_brans_grup === 'on',
+            // Finansal İşlemler
             kasa_gor: req.body.perm_kasa_gor === 'on',
-            kasa_islem: req.body.perm_kasa_islem === 'on'
+            kasa_islem: req.body.perm_kasa_islem === 'on',
+            // Envanter Yönetimi
+            envanter_gor: req.body.perm_envanter_gor === 'on',
+            envanter_islem: req.body.perm_envanter_islem === 'on',
+            // Başvuru & İletişim
+            basvuru_gor: req.body.perm_basvuru_gor === 'on',
+            basvuru_islem: req.body.perm_basvuru_islem === 'on',
+            whatsapp: req.body.perm_whatsapp === 'on'
         });
 
         let sql = `UPDATE kullanicilar SET ad_soyad=?, kullanici_adi=?, sube_id=?, rol=?, yetkiler=?`;

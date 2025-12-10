@@ -4,6 +4,23 @@ const db = require('../config/db');
 exports.dashboard = async (req, res) => {
     if (!req.session.userID) return res.redirect('/api/auth/login');
 
+    // Personel için dashboard yetkisi kontrolü
+    if (req.session.rol === 'personel') {
+        const yetkiler = req.session.yetkiler || {};
+        if (!yetkiler.dashboard) {
+            return res.status(403).send(`
+                <body style="background:#f3f5f9; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif;">
+                    <div style="background:white; padding:40px; border-radius:20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                        <h1 style="color:#ef4444; font-size:60px; margin:0;">403</h1>
+                        <h3 style="color:#2d3748;">Erişim Yetkiniz Yok</h3>
+                        <p style="color:#64748b;">Dashboard sayfasına erişim yetkiniz bulunmamaktadır.</p>
+                        <a href="/api/ogrenci/liste" style="display:inline-block; margin-top:20px; text-decoration:none; background:#007bff; color:white; padding:10px 20px; border-radius:10px;">Öğrenci Listesine Git</a>
+                    </div>
+                </body>
+            `);
+        }
+    }
+
     try {
         const subeId = req.session.subeId;
         const rol = req.session.rol;

@@ -1070,6 +1070,12 @@
                 </select>
 
                 <div id="yetkiAlaniEkle" class="permissions-box">
+                    <div class="perm-category">Genel Erişim</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Dashboard</span> <label class="switch"><input type="checkbox" name="perm_dashboard" checked><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Öğrenci Listesi</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_liste" checked><span class="slider"></span></label></div>
+                    </div>
+
                     <div class="perm-category">Öğrenci İşlemleri</div>
                     <div class="perm-grid">
                         <div class="toggle-row"><span>Ekleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_ekle" checked><span class="slider"></span></label></div>
@@ -1089,6 +1095,19 @@
                     <div class="perm-grid">
                         <div class="toggle-row"><span>Kasa Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_kasa_gor"><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Kasa İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_kasa_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Envanter Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Envanter Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_envanter_gor"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Envanter İşlem</span> <label class="switch"><input type="checkbox" name="perm_envanter_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Başvuru & İletişim</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Başvuru Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_basvuru_gor"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Başvuru İşlem</span> <label class="switch"><input type="checkbox" name="perm_basvuru_islem"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>WhatsApp Erişimi</span> <label class="switch"><input type="checkbox" name="perm_whatsapp"><span class="slider"></span></label></div>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">Kaydet</button>
@@ -1117,6 +1136,12 @@
                 </select>
 
                 <div id="yetkiAlaniEdit" class="permissions-box">
+                    <div class="perm-category">Genel Erişim</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Dashboard</span> <label class="switch"><input type="checkbox" name="perm_dashboard" id="p_dashboard"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Öğrenci Listesi</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_liste" id="p_ogrenci_liste"><span class="slider"></span></label></div>
+                    </div>
+
                     <div class="perm-category">Öğrenci İşlemleri</div>
                     <div class="perm-grid">
                         <div class="toggle-row"><span>Ekleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_ekle" id="p_ogrenci_ekle"><span class="slider"></span></label></div>
@@ -1136,6 +1161,19 @@
                     <div class="perm-grid">
                         <div class="toggle-row"><span>Kasa Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_kasa_gor" id="p_kasa_gor"><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Kasa İşlem</span> <label class="switch"><input type="checkbox" name="perm_kasa_islem" id="p_kasa_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Envanter Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Envanter Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_envanter_gor" id="p_envanter_gor"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Envanter İşlem</span> <label class="switch"><input type="checkbox" name="perm_envanter_islem" id="p_envanter_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Başvuru & İletişim</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Başvuru Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_basvuru_gor" id="p_basvuru_gor"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Başvuru İşlem</span> <label class="switch"><input type="checkbox" name="perm_basvuru_islem" id="p_basvuru_islem"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>WhatsApp Erişimi</span> <label class="switch"><input type="checkbox" name="perm_whatsapp" id="p_whatsapp"><span class="slider"></span></label></div>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">Güncelle</button>
@@ -1251,16 +1289,29 @@
 
             if (user.yetkiler && user.rol === 'personel') {
                 const y = (typeof user.yetkiler === 'string') ? JSON.parse(user.yetkiler) : user.yetkiler;
+                // Genel Erişim
+                document.getElementById('p_dashboard').checked = !!y.dashboard;
+                document.getElementById('p_ogrenci_liste').checked = !!y.ogrenci_liste;
+                // Öğrenci İşlemleri
                 document.getElementById('p_ogrenci_ekle').checked = !!y.ogrenci_ekle;
                 document.getElementById('p_ogrenci_duzenle').checked = !!y.ogrenci_duzenle;
                 document.getElementById('p_ogrenci_sil').checked = !!y.ogrenci_sil;
                 document.getElementById('p_ogrenci_profil').checked = !!y.ogrenci_profil;
+                // Akademik & Operasyon
                 document.getElementById('p_yoklama').checked = !!y.yoklama;
                 document.getElementById('p_ders_programi').checked = !!y.ders_programi;
                 document.getElementById('p_brans_grup').checked = !!y.brans_grup;
+                // Finansal İşlemler
                 document.getElementById('p_kasa_gor').checked = !!y.kasa_gor;
                 document.getElementById('p_kasa_islem').checked = !!y.kasa_islem;
-                
+                // Envanter Yönetimi
+                document.getElementById('p_envanter_gor').checked = !!y.envanter_gor;
+                document.getElementById('p_envanter_islem').checked = !!y.envanter_islem;
+                // Başvuru & İletişim
+                document.getElementById('p_basvuru_gor').checked = !!y.basvuru_gor;
+                document.getElementById('p_basvuru_islem').checked = !!y.basvuru_islem;
+                document.getElementById('p_whatsapp').checked = !!y.whatsapp;
+
                 document.getElementById('yetkiAlaniEdit').style.display = 'block';
             } else {
                 document.getElementById('yetkiAlaniEdit').style.display = 'none';

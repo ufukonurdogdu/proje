@@ -23,7 +23,7 @@ const upload = multer({ storage: storage });
 router.get('/ara', ogrenciController.ogrenciAra);
 
 // Rotalar
-router.get('/liste', ogrenciController.ogrenciListesi);
+router.get('/liste', yetki('ogrenci_liste'), ogrenciController.ogrenciListesi);
 router.get('/ekle', yetki('ogrenci_ekle'), ogrenciController.ogrenciEkleSayfasi);
 router.post('/ekle', yetki('ogrenci_ekle'), upload.single('profil_foto'), ogrenciController.ogrenciKayitIslemi);
 router.get('/profil/:id', yetki('ogrenci_profil'), ogrenciController.ogrenciProfil);
