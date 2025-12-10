@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | <%= konusma.isim || konusma.telefon %></title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk || '#3b82f6' %>; 
+            --wa-green: #25D366;
+            --wa-dark: #128C7E;
+            --wa-light: #DCF8C6;
+            --wa-bg: #e5ddd5;
+            --bg-body: #f0f2f5; 
+            --dark-text: #1e293b; 
+            --gray-text: #64748b;
+            --radius-xl: 24px; 
+            --radius-md: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body { background-color: var(--bg-body); color: var(--dark-text); display: flex; height: 100vh; overflow: hidden; }
+        
+        .main { 
+            flex: 1; margin: 2vh 2vh 2vh 0; 
+            background: white; border-radius: var(--radius-xl); 
+            display: flex; flex-direction: column; 
+            overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        /* HEADER */
+        .chat-header {
+            background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-dark) 100%);
+            padding: 15px 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.25); }
+
+        .contact-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+        }
+        .contact-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .contact-info h3 { font-size: 16px; font-weight: 700; }
+        .contact-info p { font-size: 12px; opacity: 0.8; }
+
+        .header-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+        }
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .header-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* MESAJ ALANI */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: var(--wa-bg);
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message {
+            max-width: 65%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        .message.received {
+            background: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .message.sent {
+            background: var(--wa-light);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--dark-text);
+            white-space: pre-wrap;
+        }
+        .message-time {
+            font-size: 10px;
+            color: var(--gray-text);
+            text-align: right;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+        .message.sent .message-time i { color: #53bdeb; }
+
+        .message-type-badge {
+            font-size: 11px;
+            color: var(--gray-text);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 5px;
+        }
+        .message-type-badge i { font-size: 14px; }
+
+        /* TARİH AYIRICI */
+        .date-separator {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .date-separator span {
+            background: rgba(255,255,255,0.9);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--gray-text);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* MESAJ GİRİŞ */
+        .message-input-container {
+            padding: 15px 20px;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .message-input {
+            flex: 1;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            font-size: 14px;
+            resize: none;
+            max-height: 100px;
+            min-height: 45px;
+        }
+        .message-input:focus { outline: none; }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--wa-green);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .send-btn:hover { background: var(--wa-dark); transform: scale(1.05); }
+        .send-btn:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+        /* BAĞLANTI YOK UYARISI */
+        .offline-warning {
+            background: #fef3c7;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .offline-warning i { font-size: 16px; }
+
+        /* BOŞ MESAJ */
+        .no-messages {
+            text-align: center;
+            color: var(--gray-text);
+            padding: 40px;
+        }
+        .no-messages i { font-size: 50px; opacity: 0.3; margin-bottom: 15px; }
+
+        /* MOBİL */
+        @media (max-width: 991px) {
+            body { flex-direction: column; height: auto; min-height: 100vh; overflow-y: auto; }
+            .main { margin: 0; border-radius: 0; min-height: 100vh; }
+            .message { max-width: 85%; }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <div class="main">
+        <!-- HEADER -->
+        <div class="chat-header">
+            <a href="/api/whatsapp/chat?sube_id=<%= secilenSubeId %>" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="contact-avatar">
+                <% if (konusma.profil_foto) { %>
+                    <img src="<%= konusma.profil_foto %>" alt="">
+                <% } else { %>
+                    <%= (konusma.isim || konusma.telefon || '?').charAt(0).toUpperCase() %>
+                <% } %>
+            </div>
+            <div class="contact-info">
+                <h3><%= konusma.isim || konusma.telefon %></h3>
+                <p>+<%= konusma.telefon %></p>
+            </div>
+            <div class="header-actions">
+                <button class="header-btn" onclick="arsivle()" title="Arşivle">
+                    <i class="fas fa-archive"></i>
+                </button>
+            </div>
+        </div>
+
+        <% if (!isConnected) { %>
+            <div class="offline-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                WhatsApp bağlantısı yok. Mesaj gönderemezsiniz.
+            </div>
+        <% } %>
+
+        <!-- MESAJLAR -->
+        <div class="messages-container" id="messagesContainer">
+            <% if (mesajlar && mesajlar.length > 0) { %>
+                <% 
+                let lastDate = '';
+                mesajlar.forEach(function(m) { 
+                    const msgDate = new Date(m.created_at).toLocaleDateString('tr-TR');
+                    if (msgDate !== lastDate) {
+                        lastDate = msgDate;
+                %>
+                    <div class="date-separator">
+                        <span><%= msgDate %></span>
+                    </div>
+                <% } %>
+                    <div class="message <%= m.gonderen === 'musteri' ? 'received' : 'sent' %>" data-id="<%= m.id %>">
+                        <% if (m.mesaj_tipi !== 'text') { %>
+                            <div class="message-type-badge">
+                                <i class="fas fa-<%= 
+                                    m.mesaj_tipi === 'image' ? 'image' : 
+                                    m.mesaj_tipi === 'video' ? 'video' : 
+                                    m.mesaj_tipi === 'audio' ? 'microphone' : 
+                                    m.mesaj_tipi === 'document' ? 'file' : 
+                                    m.mesaj_tipi === 'sticker' ? 'sticky-note' : 
+                                    m.mesaj_tipi === 'location' ? 'map-marker-alt' : 
+                                    m.mesaj_tipi === 'contact' ? 'user' : 'comment'
+                                %>"></i>
+                                <%= 
+                                    m.mesaj_tipi === 'image' ? 'Resim' : 
+                                    m.mesaj_tipi === 'video' ? 'Video' : 
+                                    m.mesaj_tipi === 'audio' ? 'Ses' : 
+                                    m.mesaj_tipi === 'document' ? 'Dosya' : 
+                                    m.mesaj_tipi === 'sticker' ? 'Çıkartma' : 
+                                    m.mesaj_tipi === 'location' ? 'Konum' : 
+                                    m.mesaj_tipi === 'contact' ? 'Kişi' : ''
+                                %>
+                            </div>
+                        <% } %>
+                        <div class="message-text"><%= m.mesaj %></div>
+                        <div class="message-time">
+                            <%= new Date(m.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %>
+                            <% if (m.gonderen === 'sistem') { %>
+                                <i class="fas fa-check-double"></i>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-messages">
+                    <i class="fab fa-whatsapp"></i>
+                    <p>Henüz mesaj yok</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- MESAJ GİRİŞ -->
+        <div class="message-input-container">
+            <textarea 
+                id="messageInput" 
+                class="message-input" 
+                placeholder="Mesajınızı yazın..."
+                rows="1"
+                <%= !isConnected ? 'disabled' : '' %>
+                onkeydown="handleKeyDown(event)"
+            ></textarea>
+            <button class="send-btn" id="sendBtn" onclick="sendMessage()" <%= !isConnected ? 'disabled' : '' %>>
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const konusmaId = '<%= konusma.id %>';
+        const subeId = '<%= secilenSubeId %>';
+        const isConnected = <%= isConnected ? 'true' : 'false' %>;
+        let isSending = false;
+
+        // Sayfa yüklendiğinde en alta kaydır
+        document.addEventListener('DOMContentLoaded', () => {
+            scrollToBottom();
+        });
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            if (!isConnected || isSending) return;
+
+            const input = document.getElementById('messageInput');
+            const mesaj = input.value.trim();
+
+            if (!mesaj) return;
+
+            isSending = true;
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const res = await fetch('/api/whatsapp/chat/' + konusmaId + '/gonder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mesaj: mesaj, sube_id: subeId })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Mesajı ekrana ekle
+                    addMessageToUI(mesaj, 'sent');
+                    input.value = '';
+                    scrollToBottom();
+                } else {
+                    alert('Hata: ' + (data.message || 'Mesaj gönderilemedi'));
+                }
+            } catch (err) {
+                alert('Bağlantı hatası');
+            } finally {
+                isSending = false;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+            }
+        }
+
+        function addMessageToUI(text, type) {
+            const container = document.getElementById('messagesContainer');
+            const now = new Date();
+            const time = now.toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'});
+
+            // No messages varsa kaldır
+            const noMsg = container.querySelector('.no-messages');
+            if (noMsg) noMsg.remove();
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + type;
+            msgDiv.innerHTML = `
+                <div class="message-text">${escapeHtml(text)}</div>
+                <div class="message-time">
+                    ${time}
+                    ${type === 'sent' ? '<i class="fas fa-check"></i>' : ''}
+                </div>
+            `;
+
+            container.appendChild(msgDiv);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function arsivle() {
+            if (!confirm('Bu konuşmayı arşivlemek istiyor musunuz?')) return;
+
+            try {
+                const res = await fetch('/api/whatsapp/chat/' + konusmaId + '/arsivle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sube_id: subeId })
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    window.location.href = '/api/whatsapp/chat?sube_id=' + subeId;
+                } else {
+                    alert('Hata: ' + data.message);
+                }
+            } catch (err) {
+                alert('Bağlantı hatası');
+            }
+        }
+
+        // Yeni mesaj kontrolü (3 saniyede bir)
+        async function checkNewMessages() {
+            try {
+                const res = await fetch('/api/whatsapp/chat/' + konusmaId + '/mesajlar?sube_id=' + subeId);
+                const data = await res.json();
+
+                if (data.success && data.mesajlar) {
+                    const container = document.getElementById('messagesContainer');
+                    const currentCount = container.querySelectorAll('.message').length;
+
+                    if (data.mesajlar.length > currentCount) {
+                        // Yeni mesajlar var, sayfayı yenile
+                        location.reload();
+                    }
+                }
+            } catch (err) {
+                console.log('Check error:', err);
+            }
+        }
+
+        // Polling başlat
+        setInterval(checkNewMessages, 3000);
+    </script>
+</body>
+</html>

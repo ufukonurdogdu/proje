@@ -1,0 +1,354 @@
+<!-- --- PROFESYONEL MENÜ SİSTEMİ (MASAÜSTÜ + MOBİL APP) --- -->
+<style>
+    /* --- 1. MASAÜSTÜ SIDEBAR (SOL MENÜ) --- */
+    .sidebar {
+        width: 280px;
+        height: 96vh;
+        margin: 2vh;
+        background: #1a1f37; /* Premium Lacivert */
+        border-radius: 24px;
+        display: flex;
+        flex-direction: column;
+        color: white;
+        position: relative;
+        flex-shrink: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 2000;
+        box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+    }
+
+    /* Marka Alanı */
+    .brand {
+        padding: 30px;
+        font-size: 22px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(to right, #fff, #a0aec0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .menu {
+        padding: 15px;
+        flex: 1;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,0.2) transparent;
+    }
+    .menu::-webkit-scrollbar { width: 4px; }
+    .menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .menu-category {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.4);
+        margin: 25px 15px 10px;
+        font-weight: 700;
+    }
+    
+    .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        margin-bottom: 5px;
+        border-radius: 16px;
+        color: #a0aec0;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+
+    .nav-link:hover {
+        background: rgba(255,255,255,0.08);
+        color: white;
+        transform: translateX(5px);
+    }
+    
+    .nav-link.active {
+        background: linear-gradient(135deg, var(--primary), #4f46e5);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        font-weight: 600;
+        color: white;
+    }
+
+    .nav-link i { width: 24px; font-size: 18px; margin-right: 12px; text-align: center; }
+
+    /* WhatsApp Menü Özel Stilleri */
+    .nav-link.whatsapp-link i { color: #25D366; }
+    .nav-link.whatsapp-link:hover i { color: #20BA5C; }
+    .nav-link.whatsapp-link.active i { color: white; }
+
+    /* netChat Menü Özel Stilleri */
+    .nav-link.netchat-link i { color: #6366f1; }
+    .nav-link.netchat-link:hover i { color: #4f46e5; }
+    .nav-link.netchat-link.active i { color: white; }
+
+    /* Web Site Menü Özel Stilleri */
+    .nav-link.website-link i { color: #3b82f6; }
+    .nav-link.website-link:hover i { color: #2563eb; }
+    .nav-link.website-link.active i { color: white; }
+
+    /* --- 2. MOBİL ALT BAR (BOTTOM NAVIGATION) --- */
+    .mobile-bottom-nav {
+        display: none; /* Masaüstünde gizli */
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: 75px;
+        background: white;
+        border-top: 1px solid #f1f5f9;
+        box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        z-index: 3000; /* En üstte durmalı */
+        justify-content: space-around;
+        align-items: flex-start;
+        padding-top: 10px;
+        padding-bottom: env(safe-area-inset-bottom); /* iPhone X+ uyumu */
+    }
+
+    .mobile-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .mobile-nav-item i { font-size: 24px; margin-bottom: 4px; transition: 0.2s; }
+    .mobile-nav-item.active { color: var(--primary); }
+    .mobile-nav-item.active i { transform: translateY(-2px); }
+
+    /* ORTA BUTON (FLOATING ACTION BUTTON) */
+    .mobile-fab {
+        width: 56px; height: 56px;
+        background: var(--primary);
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 26px;
+        margin-top: -35px; /* Çubuğun üstüne taşır */
+        box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        border: 4px solid white;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+    .mobile-fab:active { transform: scale(0.9); }
+
+    /* --- 3. MOBİL OVERLAY & ÇEKMECE --- */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.6);
+        z-index: 1999;
+        backdrop-filter: blur(3px);
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 991px) {
+        /* Sidebar'ı mobilde gizle ve off-canvas yap */
+        .sidebar {
+            position: fixed;
+            left: -320px; /* Ekran dışına it */
+            top: 0;
+            height: 100vh;
+            margin: 0;
+            border-radius: 0 20px 20px 0;
+        }
+        
+        .sidebar.active { left: 0; } /* JS ile açılacak */
+        .sidebar-overlay.active { display: block; }
+        
+        /* Alt barı göster */
+        .mobile-bottom-nav { display: flex; }
+    }
+</style>
+
+<!-- Mobil İçin Karartma Katmanı -->
+<div class="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+<!-- YAN MENÜ (SIDEBAR) -->
+<div class="sidebar" id="mainSidebar">
+    <div class="brand">
+        <i class="fa-solid fa-shapes" style="color: var(--primary);"></i> 
+        <%= (typeof siteAyarlari !== 'undefined' && siteAyarlari.tesis_adi) ? siteAyarlari.tesis_adi : 'netSPOR' %>
+    </div>
+    
+    <div class="menu">
+        <% const path = locals.originalUrl || '/'; %>
+
+        <div class="menu-category">Genel Bakış</div>
+        <a href="/" class="nav-link <%= path === '/' ? 'active' : '' %>">
+            <i class="fa-solid fa-house"></i> Anasayfa
+        </a>
+        
+        <div class="menu-category">Operasyon</div>
+        
+        <!-- ÖĞRENCİ YETKİSİ -->
+        <% if (user.rol === 'yonetici' || (user.yetkiler && (user.yetkiler.ogrenci_ekle || user.yetkiler.ogrenci_profil))) { %>
+            <% if (user.rol === 'yonetici' || user.yetkiler.ogrenci_ekle) { %>
+                <a href="/api/ogrenci/ekle" class="nav-link <%= path.includes('/ogrenci/ekle') ? 'active' : '' %>">
+                    <i class="fa-solid fa-user-plus"></i> Yeni Öğrenci
+                </a>
+            <% } %>
+            <% if (user.rol === 'yonetici' || user.yetkiler.ogrenci_profil) { %>
+                <a href="/api/ogrenci/liste" class="nav-link <%= path.includes('/ogrenci/liste') ? 'active' : '' %>">
+                    <i class="fa-solid fa-user-graduate"></i> Öğrenci Listesi
+                </a>
+            <% } %>
+            <% if (user.rol === 'yonetici') { %>
+                <a href="/api/admin/basvurular" class="nav-link <%= path.includes('/basvuru') ? 'active' : '' %>">
+                    <i class="fa-solid fa-inbox"></i> Başvurular
+                </a>
+            <% } %>
+        <% } %>
+
+        <!-- YOKLAMA YETKİSİ -->
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.yoklama)) { %>
+            <a href="/api/yoklama" class="nav-link <%= path.includes('/yoklama') ? 'active' : '' %>">
+                <i class="fa-solid fa-clipboard-check"></i> Yoklama Sistemi
+            </a>
+		
+            <a href="/api/ozel-ders-yoklama" class="nav-link <%= path.includes('/ozel-ders-yoklama') ? 'active' : '' %>">
+                <i class="fa-solid fa-graduation-cap"></i> Özel Ders Yoklama
+            </a>
+        <% } %>
+
+        <!-- KASA YETKİSİ -->
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.kasa_gor)) { %>
+            <a href="/api/kasa" class="nav-link <%= path.includes('/kasa') ? 'active' : '' %>">
+                <i class="fa-solid fa-wallet"></i> Kasa & Gelir
+            </a>
+        <% } %>
+
+        <!-- DERS PROGRAMI YETKİSİ -->
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ders_programi)) { %>
+            <a href="/api/ders/program" class="nav-link <%= path.includes('/ders/program') ? 'active' : '' %>">
+                <i class="fa-regular fa-calendar-check"></i> Ders Programı
+            </a>
+        <% } %>
+        
+        <!-- DEPO & ENVANTER -->
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ders_programi)) { %>
+            <a href="/api/envanter" class="nav-link <%= path.includes('/envanter') ? 'active' : '' %>">
+                <i class="fa-solid fa-boxes-stacked"></i> Depo & Envanter
+            </a>
+        <% } %>
+
+        <!-- WHATSAPP VE NETCHAT İŞLEMLERİ (Sadece Yönetici) -->
+        <% if (user.rol === 'yonetici') { %>
+            <div class="menu-category">WhatsApp ve netChat</div>
+            <a href="/api/whatsapp/qr" class="nav-link whatsapp-link <%= path.includes('/whatsapp/qr') ? 'active' : '' %>">
+                <i class="fa-brands fa-whatsapp"></i> QR Okut
+            </a>
+            <a href="/api/whatsapp/chat" class="nav-link whatsapp-link <%= path.includes('/whatsapp/chat') ? 'active' : '' %>">
+                <i class="fa-solid fa-comments"></i> WhatsApp Chat
+            </a>
+            <a href="/api/whatsapp/otomatik-mesajlar" class="nav-link whatsapp-link <%= path.includes('/whatsapp/otomatik-mesajlar') ? 'active' : '' %>">
+                <i class="fa-solid fa-robot"></i> Otomatik Mesajlar
+            </a>
+            <a href="/api/admin/website/canli-destek" class="nav-link netchat-link <%= path.includes('/canli-destek') ? 'active' : '' %>">
+                <i class="fa-solid fa-headset"></i> netChat
+            </a>
+        <% } %>
+
+        <!-- WEB SİTE İŞLEMLERİ (Sadece Yönetici) -->
+        <% if (user.rol === 'yonetici') { %>
+            <div class="menu-category">Web Site İşlemleri</div>
+            <a href="/api/admin/website" class="nav-link website-link <%= path.includes('/admin/website') && !path.includes('/canli-destek') ? 'active' : '' %>">
+                <i class="fa-solid fa-globe"></i> Web Site Yönetimi
+            </a>
+        <% } %>
+
+        <!-- YÖNETİM (Sadece Yönetici) -->
+        <% if (user.rol === 'yonetici') { %>
+            <div class="menu-category">Yönetim</div>
+            <a href="/api/admin/subeler" class="nav-link <%= path.includes('/admin/sube') ? 'active' : '' %>">
+                <i class="fa-solid fa-sitemap"></i> Şube & Personel
+            </a>
+            <a href="/api/admin/branslar" class="nav-link <%= path.includes('/admin/brans') ? 'active' : '' %>">
+                <i class="fa-solid fa-layer-group"></i> Branş & Gruplar
+            </a>
+            <a href="/api/admin/form-ayarlari" class="nav-link <%= path.includes('/admin/form') ? 'active' : '' %>">
+                <i class="fa-solid fa-pen-to-square"></i> Form Oluşturucu
+            </a>
+            <a href="/api/admin/ayarlar" class="nav-link <%= path.includes('/admin/ayarlar') ? 'active' : '' %>">
+                <i class="fa-solid fa-sliders"></i> Sistem Ayarları
+            </a>
+        <% } %>
+
+        <div class="menu-category">Diğer</div>
+        <a href="/api/auth/logout" class="nav-link" style="color: #ff6b6b;" onclick="return confirm('Çıkış yapmak istiyor musunuz?');">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Çıkış Yap
+        </a>
+        <br><br><br> <!-- Alt boşluk -->
+    </div>
+</div>
+
+<!-- MOBİL ALT MENÜ (BOTTOM NAVIGATION BAR) -->
+<div class="mobile-bottom-nav">
+    <!-- 1. ANASAYFA -->
+    <a href="/" class="mobile-nav-item <%= path === '/' ? 'active' : '' %>">
+        <i class="fa-solid fa-house"></i>
+        <span>Anasayfa</span>
+    </a>
+
+    <!-- 2. YOKLAMA -->
+    <a href="/api/yoklama" class="mobile-nav-item <%= path.includes('/yoklama') ? 'active' : '' %>">
+        <i class="fa-solid fa-clipboard-user"></i>
+        <span>Yoklama</span>
+    </a>
+
+    <!-- 3. HIZLI İŞLEM (ORTA) -->
+    <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ogrenci_ekle)) { %>
+        <a href="/api/ogrenci/ekle" class="mobile-fab">
+            <i class="fa-solid fa-plus"></i>
+        </a>
+    <% } else { %>
+        <a href="/api/ogrenci/liste" class="mobile-fab">
+            <i class="fa-solid fa-users"></i>
+        </a>
+    <% } %>
+
+    <!-- 4. KASA veya PROGRAM -->
+    <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.kasa_gor)) { %>
+        <a href="/api/kasa" class="mobile-nav-item <%= path.includes('/kasa') ? 'active' : '' %>">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Kasa</span>
+        </a>
+    <% } else { %>
+        <a href="/api/ders/program" class="mobile-nav-item <%= path.includes('/ders') ? 'active' : '' %>">
+            <i class="fa-regular fa-calendar"></i>
+            <span>Program</span>
+        </a>
+    <% } %>
+
+    <!-- 5. MENÜ (Sidebar Tetikleyici) -->
+    <div class="mobile-nav-item" onclick="toggleMobileMenu()">
+        <i class="fa-solid fa-bars"></i>
+        <span>Menü</span>
+    </div>
+</div>
+
+<script>
+    // Mobil Menü Açma/Kapama Mantığı
+    function toggleMobileMenu() {
+        const sidebar = document.getElementById('mainSidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        
+        if (sidebar.classList.contains('active')) {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        } else {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        }
+    }
+</script>

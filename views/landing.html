@@ -1,0 +1,3086 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="<%= siteAyarlari.ana_renk || '#ff6b35' %>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="<%= siteAyarlari.tesis_adi || 'Sport Academy' %> - Profesyonel spor eğitimi, futbol okulu, basketbol okulu, voleybol okulu. Geleceğin şampiyonlarını yetiştiriyoruz.">
+    <meta name="keywords" content="netspor, spor okulu, spor okulu yazılım, futbol okulu, voleybol okulu, basketbol okulu, cimnastik kulubu, istanbul spor okulu, spor okulu yönetim, öğrenci takip, öğrenci takip sistemi, pispor, mobicoach, öğrenci sistemi, spor sistemi, spor yazılımı, <%= siteAyarlari.tesis_adi || '' %>">
+    <meta name="author" content="<%= siteAyarlari.tesis_adi || 'Sport Academy' %>">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Turkish">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<%= siteAyarlari.site_url || '' %>">
+    <meta property="og:title" content="<%= siteAyarlari.tesis_adi || 'Sport Academy' %> | Profesyonel Spor Akademisi">
+    <meta property="og:description" content="Profesyonel spor eğitimi ile geleceğin şampiyonlarını yetiştiriyoruz. Futbol, basketbol, voleybol ve daha fazlası.">
+    <meta property="og:image" content="<%= siteAyarlari.logo_default ? '/uploads/' + siteAyarlari.logo_default : '/images/og-image.jpg' %>">
+    <meta property="og:locale" content="tr_TR">
+    <meta property="og:site_name" content="<%= siteAyarlari.tesis_adi || 'Sport Academy' %>">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= siteAyarlari.tesis_adi || 'Sport Academy' %> | Profesyonel Spor Akademisi">
+    <meta name="twitter:description" content="Profesyonel spor eğitimi ile geleceğin şampiyonlarını yetiştiriyoruz.">
+    <meta name="twitter:image" content="<%= siteAyarlari.logo_default ? '/uploads/' + siteAyarlari.logo_default : '/images/og-image.jpg' %>">
+
+    <title><%= siteAyarlari.tesis_adi || 'Sport Academy' %> | Spor Akademisi</title>
+
+    <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="<%= siteAyarlari.site_url || '' %>">
+
+    <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- JSON-LD Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SportsActivityLocation",
+        "name": "<%= siteAyarlari.tesis_adi || 'Sport Academy' %>",
+        "description": "Profesyonel spor eğitimi - Futbol, Basketbol, Voleybol okulu",
+        "url": "<%= siteAyarlari.site_url || '' %>",
+        <% if (siteAyarlari.logo_default) { %>
+        "logo": "<%= siteAyarlari.site_url || '' %>/uploads/<%= siteAyarlari.logo_default %>",
+        "image": "<%= siteAyarlari.site_url || '' %>/uploads/<%= siteAyarlari.logo_default %>",
+        <% } %>
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "<%= landingAyarlar.adres || siteAyarlari.adres || '' %>",
+            "addressLocality": "<%= landingAyarlar.ilce || '' %>",
+            "addressRegion": "<%= landingAyarlar.il || 'İstanbul' %>",
+            "postalCode": "<%= landingAyarlar.posta_kodu || '' %>",
+            "addressCountry": "TR"
+        },
+        "telephone": "<%= landingAyarlar.telefon1 || siteAyarlari.telefon || '' %>",
+        "email": "<%= landingAyarlar.email1 || siteAyarlari.email || '' %>"
+    }
+    </script>
+
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#ff6b35' %>;
+            --primary-dark: #e85a2a;
+            --primary-rgb: 255, 107, 53;
+            --secondary: #1a1a2e;
+            --accent: #00d4ff;
+            --dark: #0f0f1a;
+            --light: #ffffff;
+            --gray: #8892a0;
+            --gray-light: #b8c0cc;
+            --success: #25D366;
+            --gradient-primary: linear-gradient(135deg, var(--primary) 0%, #ff8c5a 100%);
+            --gradient-dark: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           NAVBAR - Mobil Uygulama Tarzı
+        ============================================ */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 12px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .navbar.scrolled {
+            background: rgba(15, 15, 26, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 10px 5%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            z-index: 1001;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            overflow: hidden;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .logo-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 2px;
+            color: var(--light);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .nav-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover { color: var(--light); }
+
+        .nav-cta {
+            background: var(--gradient-primary) !important;
+            color: white !important;
+            padding: 10px 22px !important;
+            border-radius: 50px !important;
+            font-weight: 600 !important;
+        }
+
+        /* Mobile Bottom Navigation - App Style */
+        .mobile-bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 26, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 8px 0;
+            padding-bottom: calc(8px + env(safe-area-inset-bottom));
+            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .mobile-nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .mobile-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--gray);
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.3s;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .mobile-nav-item i {
+            font-size: 20px;
+            transition: transform 0.3s;
+        }
+
+        .mobile-nav-item.active,
+        .mobile-nav-item:hover {
+            color: var(--primary);
+        }
+
+        .mobile-nav-item.active i {
+            transform: scale(1.1);
+        }
+
+        .mobile-nav-item.cta-item {
+            background: var(--gradient-primary);
+            color: white;
+            margin-top: -25px;
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0 5px 20px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .mobile-nav-item.cta-item i {
+            font-size: 22px;
+        }
+
+        .mobile-nav-item.cta-item span {
+            display: none;
+        }
+
+        /* ============================================
+           HERO SLIDER
+        ============================================ */
+        .hero-slider {
+            position: relative;
+            height: 100vh;
+            min-height: 600px;
+            overflow: hidden;
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.8s ease;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-dark);
+        }
+
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(var(--primary-rgb), 0.15) 0%, transparent 60%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .floating-shapes {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.08;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape-1 { width: 400px; height: 400px; background: var(--primary); top: 10%; right: 10%; }
+        .shape-2 { width: 200px; height: 200px; background: var(--accent); bottom: 20%; left: 5%; animation-delay: -5s; }
+        .shape-3 { width: 150px; height: 150px; background: var(--primary); top: 60%; right: 30%; animation-delay: -10s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -30px) rotate(5deg); }
+            50% { transform: translate(-20px, 20px) rotate(-5deg); }
+            75% { transform: translate(20px, 30px) rotate(3deg); }
+        }
+
+        /* Hero Grid Layout */
+        .hero-grid {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 5%;
+            height: 100%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Hero Image */
+        .hero-image {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInRight 1s ease 0.4s backwards;
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .hero-image-inner {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .hero-image-inner img {
+            width: 100%;
+            height: auto;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            object-fit: cover;
+        }
+
+        .hero-image-frame {
+            position: absolute;
+            inset: -15px;
+            border: 3px solid rgba(var(--primary-rgb), 0.3);
+            border-radius: 30px;
+            z-index: -1;
+        }
+
+        .hero-image-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120%;
+            height: 120%;
+            background: radial-gradient(circle, rgba(var(--primary-rgb), 0.2) 0%, transparent 70%);
+            z-index: -2;
+            filter: blur(40px);
+        }
+
+        /* Hero Image Placeholder (resim yoksa) */
+        .hero-image-placeholder {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 4/3;
+            background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.2) 0%, rgba(var(--primary-rgb), 0.1) 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(var(--primary-rgb), 0.3);
+        }
+
+        .hero-image-placeholder i {
+            font-size: 80px;
+            color: rgba(var(--primary-rgb), 0.3);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(var(--primary-rgb), 0.15);
+            border: 1px solid rgba(var(--primary-rgb), 0.3);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 25px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .hero-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(50px, 10vw, 100px);
+            line-height: 0.95;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            animation: fadeInUp 1s ease 0.2s backwards;
+        }
+
+        .hero-title span {
+            display: block;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 17px;
+            color: var(--gray);
+            margin-bottom: 30px;
+            line-height: 1.8;
+            max-width: 500px;
+            animation: fadeInUp 1s ease 0.4s backwards;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Slider Controls */
+        .slider-nav {
+            position: absolute;
+            bottom: 100px;
+            left: 5%;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .slider-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .slider-dot.active {
+            background: var(--primary);
+            width: 35px;
+            border-radius: 6px;
+        }
+
+        .slider-arrows {
+            position: absolute;
+            bottom: 100px;
+            right: 5%;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+        }
+
+        .slider-arrow {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .slider-arrow:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.4s;
+            box-shadow: 0 15px 40px rgba(var(--primary-rgb), 0.35);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 50px rgba(var(--primary-rgb), 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--light);
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* ============================================
+           STATS SECTION
+        ============================================ */
+        .stats {
+            padding: 60px 5%;
+            background: var(--secondary);
+            position: relative;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(var(--primary-rgb), 0.5), transparent);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .stat-number {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 52px;
+            letter-spacing: 2px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        /* ============================================
+           SECTION COMMON
+        ============================================ */
+        .section { padding: 80px 5%; position: relative; }
+        .section-dark { background: var(--secondary); }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 50px;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(32px, 5vw, 52px);
+            letter-spacing: 3px;
+            margin-bottom: 12px;
+        }
+
+        .section-desc {
+            font-size: 15px;
+            color: var(--gray);
+            line-height: 1.8;
+        }
+
+        /* ============================================
+           ABOUT / HAKKIMIZDA SECTION
+        ============================================ */
+        .about-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-image {
+            position: relative;
+        }
+
+        .about-image-inner {
+            background: var(--gradient-primary);
+            border-radius: 24px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+            color: rgba(255,255,255,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-image-inner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .about-badge {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            background: var(--secondary);
+            border: 3px solid var(--primary);
+            border-radius: 16px;
+            padding: 20px 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .about-badge .badge-number {
+            display: block;
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 42px;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .about-badge .badge-text {
+            font-size: 12px;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .about-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(36px, 5vw, 52px);
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .about-desc {
+            color: var(--gray-light);
+            font-size: 16px;
+            line-height: 1.9;
+            margin-bottom: 15px;
+        }
+
+        .about-desc strong {
+            color: var(--primary);
+        }
+
+        .about-desc-secondary {
+            color: var(--gray);
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .about-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .about-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .about-feature:hover {
+            background: rgba(var(--primary-rgb), 0.1);
+            border-color: rgba(var(--primary-rgb), 0.3);
+            transform: translateY(-3px);
+        }
+
+        .about-feature .feature-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(var(--primary-rgb), 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .about-feature .feature-text strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .about-feature .feature-text span {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        @media (max-width: 1024px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .about-image-inner {
+                height: 300px;
+                font-size: 80px;
+            }
+
+            .about-badge {
+                right: 20px;
+                bottom: -15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .about-features {
+                grid-template-columns: 1fr;
+            }
+
+            .about-image-inner {
+                height: 250px;
+            }
+
+            .about-badge {
+                padding: 15px 20px;
+            }
+
+            .about-badge .badge-number {
+                font-size: 32px;
+            }
+        }
+
+        /* ============================================
+           PROGRAMS SECTION
+        ============================================ */
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .program-card {
+            background: var(--dark);
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s;
+        }
+
+        .program-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(var(--primary-rgb), 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .program-image {
+            height: 160px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            position: relative;
+        }
+
+        .program-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .program-content { padding: 22px; }
+
+        .program-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .program-desc {
+            color: var(--gray);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .program-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .program-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .program-meta i { color: var(--primary); }
+
+        /* ============================================
+           COACHES SECTION - Kaydırılabilir
+        ============================================ */
+        .coaches-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .coaches-container {
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 20px 0;
+        }
+
+        .coaches-container::-webkit-scrollbar { display: none; }
+
+        .coaches-grid {
+            display: flex;
+            gap: 25px;
+            width: max-content;
+        }
+
+        .coach-card {
+            width: 280px;
+            flex-shrink: 0;
+            scroll-snap-align: start;
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.6), rgba(15, 15, 26, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.4s;
+        }
+
+        .coach-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(var(--primary-rgb), 0.3);
+        }
+
+        .coach-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            border: 3px solid rgba(var(--primary-rgb), 0.3);
+            overflow: hidden;
+        }
+
+        .coach-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .coach-name { font-size: 18px; font-weight: 700; margin-bottom: 5px; }
+        .coach-title { color: var(--primary); font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+        .coach-desc { color: var(--gray); font-size: 13px; line-height: 1.5; }
+
+        .scroll-hint {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--gray);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .scroll-hint i { animation: bounceX 1.5s infinite; }
+
+        @keyframes bounceX {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(5px); }
+        }
+
+        /* ============================================
+           GALLERY SECTION
+        ============================================ */
+        .gallery-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .gallery-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .gallery-tab.active, .gallery-tab:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            background: var(--secondary);
+            cursor: pointer;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .gallery-item:hover img { transform: scale(1.1); }
+
+        .gallery-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .gallery-item:hover .gallery-overlay { opacity: 1; }
+        .gallery-overlay i { font-size: 35px; color: white; }
+
+        .photo-gallery, .video-gallery { display: none; }
+        .photo-gallery.active, .video-gallery.active { display: grid; }
+
+        .video-play {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        /* ============================================
+           TESTIMONIALS
+        ============================================ */
+        .testimonials-container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .testimonials-slider { overflow: hidden; }
+
+        .testimonials-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+
+        .testimonial-card {
+            min-width: 100%;
+            padding: 0 15px;
+        }
+
+        .testimonial-inner {
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.8), rgba(15, 15, 26, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .testimonial-inner::before {
+            content: '"';
+            font-family: Georgia, serif;
+            font-size: 100px;
+            color: var(--primary);
+            opacity: 0.15;
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            line-height: 1;
+        }
+
+        .testimonial-stars { margin-bottom: 15px; color: #ffc107; font-size: 16px; }
+        .testimonial-text { font-size: 18px; line-height: 1.8; margin-bottom: 25px; position: relative; z-index: 1; }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            overflow: hidden;
+        }
+
+        .author-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .author-info h4 { font-size: 16px; margin-bottom: 2px; }
+        .author-info span { font-size: 12px; color: var(--gray); }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .slider-btn {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .slider-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+        .slider-dots { display: flex; gap: 8px; }
+
+        .testi-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .testi-dot.active { background: var(--primary); width: 25px; border-radius: 4px; }
+
+        /* ============================================
+           E-BÜLTEN
+        ============================================ */
+        .newsletter {
+            padding: 60px 5%;
+            background: var(--gradient-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .newsletter::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 60%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(15deg);
+        }
+
+        .newsletter-content {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .newsletter h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 36px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .newsletter p {
+            font-size: 15px;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 10px;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+
+        .newsletter-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            font-size: 15px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .newsletter-input::placeholder { color: rgba(255,255,255,0.7); }
+        .newsletter-input:focus { outline: none; border-color: white; background: rgba(255,255,255,0.2); }
+
+        .newsletter-btn {
+            padding: 15px 30px;
+            background: white;
+            color: var(--primary);
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .newsletter-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        /* ============================================
+           CONTACT SECTION
+        ============================================ */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .contact-info h3 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 38px;
+            margin-bottom: 15px;
+        }
+
+        .contact-info p { color: var(--gray); margin-bottom: 25px; }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .contact-item i {
+            width: 45px;
+            height: 45px;
+            background: rgba(var(--primary-rgb), 0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .contact-item-text span { display: block; font-size: 12px; color: var(--gray); margin-bottom: 2px; }
+        .contact-item-text strong { font-size: 15px; }
+
+        .contact-form {
+            background: linear-gradient(145deg, rgba(26, 26, 46, 0.6), rgba(15, 15, 26, 0.8));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 35px;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--gray-light); }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--light);
+            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus { outline: none; border-color: var(--primary); }
+        .form-control::placeholder { color: var(--gray); }
+        textarea.form-control { min-height: 100px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover { transform: translateY(-2px); }
+
+        /* ============================================
+           MAP
+        ============================================ */
+        .map-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 350px;
+            border: none;
+            filter: grayscale(100%) invert(92%) contrast(83%);
+        }
+
+        /* ============================================
+           FOOTER
+        ============================================ */
+        .footer {
+            background: var(--secondary);
+            padding: 60px 5% 30px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+
+        .footer-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .footer-desc { color: var(--gray); font-size: 13px; line-height: 1.7; margin-bottom: 15px; }
+
+        .footer-social { display: flex; gap: 8px; }
+
+        .footer-social a {
+            width: 38px;
+            height: 38px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .footer-social a:hover { background: var(--primary); color: white; }
+
+        .footer-title { font-size: 14px; font-weight: 700; margin-bottom: 18px; text-transform: uppercase; letter-spacing: 1px; }
+        .footer-links { list-style: none; }
+        .footer-links li { margin-bottom: 10px; }
+
+        .footer-links a {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover { color: var(--primary); }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            color: var(--gray);
+            font-size: 12px;
+        }
+
+        .footer-bottom a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+        /* ============================================
+           LIVE CHAT WIDGET
+        ============================================ */
+        .live-chat {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 999;
+        }
+
+        .chat-bubble {
+            width: 60px;
+            height: 60px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(37, 211, 102, 0.4);
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .chat-bubble:hover { transform: scale(1.1); }
+
+        .chat-bubble .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: #ef4444;
+            border-radius: 50%;
+            font-size: 11px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-bubble .badge.show { display: flex; }
+
+        .online-status { color: #25D366; }
+
+        .chat-window {
+            position: absolute;
+            bottom: 75px;
+            right: 0;
+            width: 350px;
+            max-height: 500px;
+            background: var(--secondary);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .chat-window.open { display: flex; }
+
+        .chat-header {
+            padding: 18px;
+            background: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header-info { display: flex; align-items: center; gap: 12px; }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .chat-header-text h4 { font-size: 14px; font-weight: 600; }
+        .chat-header-text span { font-size: 11px; opacity: 0.8; }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-message {
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .chat-message.received {
+            background: rgba(255,255,255,0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .chat-message.sent {
+            background: var(--success);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .chat-message .time {
+            font-size: 10px;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-input-area {
+            padding: 12px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .chat-input:focus { outline: none; border-color: var(--success); }
+
+        .chat-send {
+            width: 42px;
+            height: 42px;
+            background: var(--success);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .chat-send:hover { transform: scale(1.1); }
+
+        /* Chat Start Form */
+        .chat-start-form {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-start-form h4 {
+            font-size: 16px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .chat-start-form p {
+            font-size: 12px;
+            color: var(--gray);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .chat-form-input {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .chat-form-input:focus { outline: none; border-color: var(--success); }
+
+        .chat-start-btn {
+            padding: 12px;
+            background: var(--success);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .chat-start-btn:hover { transform: translateY(-2px); }
+
+        /* ============================================
+           MODALS
+        ============================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.active { display: flex; opacity: 1; }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 25px;
+            font-size: 35px;
+            color: white;
+            cursor: pointer;
+            z-index: 10;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover { color: var(--primary); }
+
+        /* Program Modal */
+        .program-modal {
+            background: var(--secondary);
+            border-radius: 24px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .program-modal-header {
+            height: 200px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            position: relative;
+        }
+
+        .program-modal-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .program-modal-body { padding: 30px; }
+        .program-modal-body h2 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; margin-bottom: 15px; }
+        .program-modal-body p { color: var(--gray); line-height: 1.8; margin-bottom: 20px; }
+
+        .program-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .program-feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .program-feature i {
+            width: 35px;
+            height: 35px;
+            background: rgba(var(--primary-rgb), 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+
+        .program-feature span { font-size: 13px; font-weight: 500; }
+
+        /* Gallery Modal */
+        .gallery-modal-content {
+            max-width: 90%;
+            max-height: 85vh;
+        }
+
+        .gallery-modal-content img {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 10px;
+        }
+
+        .gallery-modal-content video {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 10px;
+        }
+
+        .gallery-modal-content iframe {
+            width: 800px;
+            max-width: 100%;
+            height: 450px;
+            border-radius: 10px;
+        }
+
+        /* ============================================
+           TOAST
+        ============================================ */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            padding: 14px 22px;
+            border-radius: 10px;
+            background: var(--secondary);
+            color: white;
+            font-weight: 600;
+            font-size: 13px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 3000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s;
+        }
+
+        .toast.success { background: var(--success); }
+        .toast.error { background: #ef4444; }
+        .toast.show { display: flex; }
+
+        @keyframes slideIn {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 1024px) {
+            .hero-content { max-width: 100%; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 10px 5%; }
+            .nav-links { display: none; }
+            .mobile-bottom-nav { display: block; }
+
+            body { padding-bottom: 80px; }
+
+            .hero-slider { min-height: 100vh; }
+            
+            /* Hero Grid Mobil */
+            .hero-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+                padding-top: 100px;
+                padding-bottom: 120px;
+            }
+
+            .hero-content {
+                text-align: center;
+            }
+
+            .hero-badge {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-desc {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-image {
+                order: -1;
+            }
+
+            .hero-image-inner {
+                max-width: 300px;
+                margin: 0 auto;
+            }
+
+            .hero-image-placeholder {
+                max-width: 280px;
+                margin: 0 auto;
+            }
+
+            .hero-image-placeholder i {
+                font-size: 50px;
+            }
+
+            .hero-title { font-size: clamp(40px, 12vw, 70px); }
+            .hero-buttons { flex-direction: column; width: 100%; }
+            .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+
+            .slider-nav { bottom: 80px; }
+            .slider-arrows { display: none; }
+
+            .section { padding: 60px 5%; }
+
+            .stats-grid { gap: 15px; }
+            .stat-number { font-size: 38px; }
+            .stat-label { font-size: 10px; }
+
+            .program-features { grid-template-columns: 1fr; }
+
+            .gallery-tabs { flex-wrap: wrap; }
+
+            .testimonial-inner { padding: 25px 18px; }
+            .testimonial-text { font-size: 15px; }
+
+            .newsletter-form { flex-direction: column; }
+            .newsletter-btn { width: 100%; }
+
+            .form-row { grid-template-columns: 1fr; }
+
+            .footer-grid { grid-template-columns: 1fr; gap: 25px; }
+            .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+
+            .live-chat { bottom: 90px; right: 15px; }
+            .chat-bubble { width: 55px; height: 55px; font-size: 22px; }
+            .chat-window { width: calc(100vw - 30px); right: -10px; bottom: 70px; }
+
+            .modal-overlay { padding: 10px; }
+            .program-modal-header { height: 150px; font-size: 60px; }
+        }
+
+        /* Animation on scroll */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <a href="#" class="logo">
+            <div class="logo-icon">
+                <% if (siteAyarlari.logo_default) { %>
+                    <img src="/uploads/<%= siteAyarlari.logo_default %>" alt="<%= siteAyarlari.tesis_adi || 'Logo' %>">
+                <% } else { %>
+                    <i class="fas fa-trophy"></i>
+                <% } %>
+            </div>
+            <span class="logo-text"><%= siteAyarlari.tesis_adi || 'SPORT ACADEMY' %></span>
+        </a>
+
+        <div class="nav-links">
+            <a href="#home">Ana Sayfa</a>
+            <a href="#about">Hakkımızda</a>
+            <a href="#programs">Programlar</a>
+            <a href="#coaches">Eğitmenler</a>
+            <a href="#gallery">Galeri</a>
+            <a href="#contact">İletişim</a>
+            <a href="/api/auth/login" class="nav-cta">Giriş Yap</a>
+        </div>
+    </nav>
+
+    <!-- MOBILE BOTTOM NAVIGATION - App Style -->
+    <nav class="mobile-bottom-nav">
+        <div class="mobile-nav-items">
+            <a href="#home" class="mobile-nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="#programs" class="mobile-nav-item">
+                <i class="fas fa-futbol"></i>
+                <span>Programlar</span>
+            </a>
+            <a href="/basvuru" class="mobile-nav-item cta-item">
+                <i class="fas fa-plus"></i>
+                <span>Başvur</span>
+            </a>
+            <a href="#gallery" class="mobile-nav-item">
+                <i class="fas fa-images"></i>
+                <span>Galeri</span>
+            </a>
+            <a href="/api/auth/login" class="mobile-nav-item">
+                <i class="fas fa-user"></i>
+                <span>Giriş</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO SLIDER -->
+    <section class="hero-slider" id="home">
+        <div class="floating-shapes">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+        </div>
+
+        <% if (sliderlar && sliderlar.length > 0) { %>
+            <% sliderlar.forEach((slide, index) => { %>
+                <div class="hero-slide <%= index === 0 ? 'active' : '' %>">
+                    <div class="hero-bg">
+                        <% if (slide.arkaplan_resim) { %>
+                            <img src="/images/slider/<%= slide.arkaplan_resim %>" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0.3;">
+                        <% } %>
+                    </div>
+                    <div class="hero-grid">
+                        <div class="hero-content">
+                            <div class="hero-badge">
+                                <i class="fas fa-star"></i>
+                                <%= siteAyarlari.tesis_adi || 'Profesyonel Spor Eğitimi' %>
+                            </div>
+                            <h1 class="hero-title">
+                                <%= slide.baslik %>
+                                <span><%= slide.alt_baslik %></span>
+                            </h1>
+                            <p class="hero-desc"><%= slide.aciklama %></p>
+                            <div class="hero-buttons">
+                                <a href="<%= slide.buton_link || '/basvuru' %>" class="btn-primary">
+                                    <%= slide.buton_yazi || 'Hemen Başvur' %> <i class="fas fa-arrow-right"></i>
+                                </a>
+                                <a href="#programs" class="btn-secondary">
+                                    <i class="fas fa-play-circle"></i> Programları İncele
+                                </a>
+                            </div>
+                        </div>
+                        <div class="hero-image">
+                            <% if (slide.resim) { %>
+                                <div class="hero-image-inner">
+                                    <div class="hero-image-glow"></div>
+                                    <div class="hero-image-frame"></div>
+                                    <img src="/images/slider/<%= slide.resim %>" alt="<%= slide.baslik %>">
+                                </div>
+                            <% } else { %>
+                                <div class="hero-image-placeholder">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="hero-slide active">
+                <div class="hero-bg"></div>
+                <div class="hero-grid">
+                    <div class="hero-content">
+                        <div class="hero-badge">
+                            <i class="fas fa-star"></i>
+                            <%= siteAyarlari.tesis_adi || 'Profesyonel Spor Eğitimi' %>
+                        </div>
+                        <h1 class="hero-title">
+                            GELECEĞİN
+                            <span>ŞAMPİYONLARI BURADA YETİŞİR</span>
+                        </h1>
+                        <p class="hero-desc">Profesyonel antrenör kadromuz ve modern tesislerimizle çocuğunuzun sporcu potansiyelini keşfedin.</p>
+                        <div class="hero-buttons">
+                            <a href="/basvuru" class="btn-primary">Hemen Başvur <i class="fas fa-arrow-right"></i></a>
+                            <a href="#programs" class="btn-secondary"><i class="fas fa-play-circle"></i> Programları İncele</a>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <div class="hero-image-placeholder">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Slider Navigation -->
+        <div class="slider-nav" id="sliderNav">
+            <% const slideCount = (sliderlar && sliderlar.length) || 1; %>
+            <% for(let i = 0; i < slideCount; i++) { %>
+                <div class="slider-dot <%= i === 0 ? 'active' : '' %>" data-index="<%= i %>"></div>
+            <% } %>
+        </div>
+
+        <div class="slider-arrows">
+            <div class="slider-arrow" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></div>
+            <div class="slider-arrow" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-number" data-count="<%= landingAyarlar.stat_sporcu || 500 %>">0</div>
+                <div class="stat-label">Aktif Sporcu</div>
+            </div>
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-number" data-count="<%= landingAyarlar.stat_antrenor || 25 %>">0</div>
+                <div class="stat-label">Profesyonel Antrenör</div>
+            </div>
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-number" data-count="<%= landingAyarlar.stat_tecrube || 15 %>">0</div>
+                <div class="stat-label">Yıllık Tecrübe</div>
+            </div>
+            <div class="stat-item animate-on-scroll">
+                <div class="stat-number" data-count="<%= landingAyarlar.stat_memnuniyet || 98 %>">0</div>
+                <div class="stat-label">% Memnuniyet</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT / HAKKIMIZDA -->
+    <section class="section" id="about">
+        <div class="about-container">
+            <div class="about-grid">
+                <div class="about-image animate-on-scroll">
+                    <div class="about-image-inner">
+                        <% if (hakkimizda && hakkimizda.resim) { %>
+                            <img src="/images/hakkimizda/<%= hakkimizda.resim %>" alt="Hakkımızda" style="width:100%;height:100%;object-fit:cover;">
+                        <% } else { %>
+                            <i class="fas fa-medal"></i>
+                        <% } %>
+                    </div>
+                    <div class="about-badge">
+                        <span class="badge-number"><%= hakkimizda.deneyim_yili || landingAyarlar.stat_tecrube || 15 %>+</span>
+                        <span class="badge-text">Yıllık Deneyim</span>
+                    </div>
+                </div>
+                <div class="about-content animate-on-scroll">
+                    <div class="section-badge"><i class="fas fa-info-circle"></i> Hakkımızda</div>
+                    <h2 class="about-title"><%= hakkimizda.baslik || 'BİZ KİMİZ?' %></h2>
+                    <p class="about-desc">
+                        <%= hakkimizda.aciklama || `<strong>${siteAyarlari.tesis_adi || 'Sport Academy'}</strong>, yılların deneyimi ve modern yaklaşımıyla sporcularımıza en iyi eğitimi sunmayı hedefleyen profesyonel bir spor akademisidir.` %>
+                    </p>
+                    <p class="about-desc-secondary">
+                        <%= hakkimizda.aciklama_2 || 'Amacımız sadece sporcu yetiştirmek değil, aynı zamanda disiplinli, özgüvenli ve takım ruhuna sahip bireyler kazandırmaktır.' %>
+                    </p>
+                    <div class="about-features">
+                        <div class="about-feature">
+                            <div class="feature-icon"><i class="fas fa-<%= hakkimizda.ozellik_1_ikon || 'certificate' %>"></i></div>
+                            <div class="feature-text">
+                                <strong><%= hakkimizda.ozellik_1_baslik || 'Lisanslı Eğitim' %></strong>
+                                <span><%= hakkimizda.ozellik_1_aciklama || 'Sertifikalı antrenörler' %></span>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="feature-icon"><i class="fas fa-<%= hakkimizda.ozellik_2_ikon || 'users' %>"></i></div>
+                            <div class="feature-text">
+                                <strong><%= hakkimizda.ozellik_2_baslik || 'Yaşa Özel' %></strong>
+                                <span><%= hakkimizda.ozellik_2_aciklama || 'Her yaş grubuna program' %></span>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="feature-icon"><i class="fas fa-<%= hakkimizda.ozellik_3_ikon || 'chart-line' %>"></i></div>
+                            <div class="feature-text">
+                                <strong><%= hakkimizda.ozellik_3_baslik || 'Gelişim Takibi' %></strong>
+                                <span><%= hakkimizda.ozellik_3_aciklama || 'Düzenli raporlama' %></span>
+                            </div>
+                        </div>
+                        <div class="about-feature">
+                            <div class="feature-icon"><i class="fas fa-<%= hakkimizda.ozellik_4_ikon || 'shield-alt' %>"></i></div>
+                            <div class="feature-text">
+                                <strong><%= hakkimizda.ozellik_4_baslik || 'Güvenli Ortam' %></strong>
+                                <span><%= hakkimizda.ozellik_4_aciklama || 'Sigortalı eğitim' %></span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/basvuru" class="btn-primary" style="margin-top: 25px;">
+                        <i class="fas fa-rocket"></i> Bize Katılın
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROGRAMS -->
+    <section class="section section-dark" id="programs">
+        <div class="section-header animate-on-scroll">
+            <div class="section-badge"><i class="fas fa-futbol"></i> Programlarımız</div>
+            <h2 class="section-title">SPOR DALLARI</h2>
+            <p class="section-desc">Profesyonel eğitim programlarımızla potansiyelinizi keşfedin</p>
+        </div>
+
+        <div class="programs-grid">
+            <% if (programlar && programlar.length > 0) { %>
+                <% programlar.forEach((program, index) => { %>
+                    <div class="program-card animate-on-scroll" onclick="openProgramModal(<%= index %>)">
+                        <div class="program-image">
+                            <% if (program.resim) { %>
+                                <img src="/images/programlar/<%= program.resim %>" alt="<%= program.program_adi %>">
+                            <% } else { %>
+                                <i class="fas fa-<%= program.ikon || 'trophy' %>"></i>
+                            <% } %>
+                        </div>
+                        <div class="program-content">
+                            <h3 class="program-title"><%= program.program_adi %></h3>
+                            <p class="program-desc"><%= program.kisa_aciklama || 'Profesyonel eğitim programı ile sporcu yetiştiriyoruz.' %></p>
+                            <div class="program-meta">
+                                <span><i class="fas fa-users"></i> <%= program.yas_grubu || '6-18 yaş' %></span>
+                                <span><i class="fas fa-clock"></i> <%= program.ders_suresi || '60 dk' %></span>
+                            </div>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="program-card animate-on-scroll">
+                    <div class="program-image"><i class="fas fa-futbol"></i></div>
+                    <div class="program-content">
+                        <h3 class="program-title">Futbol</h3>
+                        <p class="program-desc">Profesyonel futbol eğitimi ile geleceğin yıldızlarını yetiştiriyoruz.</p>
+                        <div class="program-meta">
+                            <span><i class="fas fa-users"></i> 6-18 yaş</span>
+                            <span><i class="fas fa-clock"></i> 60 dk</span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </section>
+
+    <!-- COACHES -->
+    <section class="section" id="coaches">
+        <div class="section-header animate-on-scroll">
+            <div class="section-badge"><i class="fas fa-user-tie"></i> Eğitmenlerimiz</div>
+            <h2 class="section-title">UZMAN KADROMUZ</h2>
+            <p class="section-desc">Alanında uzman, lisanslı ve deneyimli antrenör kadromuz</p>
+        </div>
+
+        <div class="coaches-wrapper">
+            <div class="coaches-container">
+                <div class="coaches-grid">
+                    <% if (egitmenler && egitmenler.length > 0) { %>
+                        <% egitmenler.forEach(egitmen => { %>
+                            <div class="coach-card">
+                                <div class="coach-photo">
+                                    <% if (egitmen.foto && egitmen.foto !== 'default-coach.png') { %>
+                                        <img src="/images/egitmenler/<%= egitmen.foto %>" alt="<%= egitmen.ad_soyad %>">
+                                    <% } else { %>
+                                        <i class="fas fa-user"></i>
+                                    <% } %>
+                                </div>
+                                <h3 class="coach-name"><%= egitmen.ad_soyad %></h3>
+                                <div class="coach-title"><%= egitmen.unvan || 'Antrenör' %></div>
+                                <p class="coach-desc"><%= egitmen.aciklama || '' %></p>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="coach-card">
+                            <div class="coach-photo"><i class="fas fa-user"></i></div>
+                            <h3 class="coach-name">Ahmet Yılmaz</h3>
+                            <div class="coach-title">Baş Antrenör</div>
+                            <p class="coach-desc">15 yıllık deneyim</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+            <% if (egitmenler && egitmenler.length > 3) { %>
+                <div class="scroll-hint">
+                    <span>Kaydırarak diğer eğitmenleri görün</span>
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+            <% } %>
+        </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="section section-dark" id="gallery">
+        <div class="section-header animate-on-scroll">
+            <div class="section-badge"><i class="fas fa-images"></i> Galeri</div>
+            <h2 class="section-title">FOTOĞRAF & VİDEO</h2>
+        </div>
+
+        <div class="gallery-tabs">
+            <button class="gallery-tab active" onclick="switchGallery('photo', this)">
+                <i class="fas fa-images"></i> Fotoğraflar
+            </button>
+            <button class="gallery-tab" onclick="switchGallery('video', this)">
+                <i class="fas fa-video"></i> Videolar
+            </button>
+        </div>
+
+        <div class="gallery-grid photo-gallery active" id="photoGallery">
+            <% if (galeri && galeri.filter(g => g.tur === 'foto' && g.durum == 1).length > 0) { %>
+                <% galeri.filter(g => g.tur === 'foto' && g.durum == 1).forEach(item => { %>
+                    <div class="gallery-item" onclick="openGalleryModal('/uploads/galeri/<%= item.dosya %>', 'image')">
+                        <img src="/uploads/galeri/<%= item.dosya %>" alt="<%= item.baslik || '' %>" loading="lazy">
+                        <div class="gallery-overlay"><i class="fas fa-search-plus"></i></div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="gallery-item" style="background: var(--gradient-primary); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-image" style="font-size: 50px; opacity: 0.4;"></i>
+                </div>
+            <% } %>
+        </div>
+
+        <div class="gallery-grid video-gallery" id="videoGallery">
+            <% if (galeri && galeri.filter(g => g.tur === 'video' && g.durum == 1).length > 0) { %>
+                <% galeri.filter(g => g.tur === 'video' && g.durum == 1).forEach(item => { %>
+                    <%
+                        let videoId = '';
+                        let thumbUrl = '';
+                        if (item.video_url) {
+                            const match = item.video_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
+                            if (match) {
+                                videoId = match[1];
+                                thumbUrl = 'https://img.youtube.com/vi/' + videoId + '/hqdefault.jpg';
+                            }
+                        }
+                    %>
+                    <div class="gallery-item" onclick="openGalleryModal('<%= item.video_url %>', 'video')">
+                        <% if (thumbUrl) { %>
+                            <img src="<%= thumbUrl %>" alt="<%= item.baslik || 'Video' %>" loading="lazy">
+                        <% } else { %>
+                            <div style="width:100%;height:100%;background:var(--secondary);"></div>
+                        <% } %>
+                        <div class="video-play"><i class="fas fa-play"></i></div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <div class="gallery-item" style="background: var(--secondary); display: flex; align-items: center; justify-content: center;">
+                    <div class="video-play"><i class="fas fa-play"></i></div>
+                </div>
+            <% } %>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section" id="testimonials">
+        <div class="section-header animate-on-scroll">
+            <div class="section-badge"><i class="fas fa-heart"></i> Yorumlar</div>
+            <h2 class="section-title">MUTLU AİLELER</h2>
+        </div>
+
+        <div class="testimonials-container">
+            <div class="testimonials-slider">
+                <div class="testimonials-track" id="testimonialsTrack">
+                    <% if (yorumlar && yorumlar.length > 0) { %>
+                        <% yorumlar.forEach(yorum => { %>
+                            <div class="testimonial-card">
+                                <div class="testimonial-inner">
+                                    <div class="testimonial-stars">
+                                        <% for(let i = 0; i < (yorum.puan || 5); i++) { %><i class="fas fa-star"></i><% } %>
+                                    </div>
+                                    <p class="testimonial-text">"<%= yorum.yorum %>"</p>
+                                    <div class="testimonial-author">
+                                        <div class="author-avatar">
+                                            <%= yorum.ad_soyad.split(' ').map(n => n[0]).join('').substring(0,2) %>
+                                        </div>
+                                        <div class="author-info">
+                                            <h4><%= yorum.ad_soyad %></h4>
+                                            <span><%= yorum.rol || 'Veli' %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="testimonial-card">
+                            <div class="testimonial-inner">
+                                <div class="testimonial-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                                <p class="testimonial-text">"Oğlum 2 yıldır bu akademide eğitim alıyor. Gelişimi inanılmaz!"</p>
+                                <div class="testimonial-author">
+                                    <div class="author-avatar">AY</div>
+                                    <div class="author-info"><h4>Ayşe Yılmaz</h4><span>Veli</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <div class="slider-controls">
+                <button class="slider-btn" onclick="prevTestimonial()"><i class="fas fa-chevron-left"></i></button>
+                <div class="slider-dots" id="testiDots"></div>
+                <button class="slider-btn" onclick="nextTestimonial()"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h3>KAMPANYALARDAN HABERDAR OLUN</h3>
+            <p>Telefon numaranızı bırakın, fırsatları kaçırmayın!</p>
+            <form class="newsletter-form" onsubmit="submitNewsletter(event)">
+                <input type="tel" class="newsletter-input" id="newsletterPhone" placeholder="05XX XXX XX XX" required>
+                <button type="submit" class="newsletter-btn">Kayıt Ol</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="section section-dark" id="contact">
+        <div class="contact-grid">
+            <div class="contact-info animate-on-scroll">
+                <div class="section-badge"><i class="fas fa-envelope"></i> İletişim</div>
+                <h3>BİZE ULAŞIN</h3>
+                <p>Sorularınız için bize ulaşın.</p>
+
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="contact-item-text">
+                        <span>Adres</span>
+                        <strong><%= landingAyarlar.adres || siteAyarlari.adres || 'İstanbul, Türkiye' %></strong>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-phone-alt"></i>
+                    <div class="contact-item-text">
+                        <span>Telefon</span>
+                        <strong><%= landingAyarlar.telefon1 || siteAyarlari.telefon || '0850 XXX XX XX' %></strong>
+                    </div>
+                </div>
+                <% if (landingAyarlar.telefon2) { %>
+                <div class="contact-item">
+                    <i class="fas fa-mobile-alt"></i>
+                    <div class="contact-item-text">
+                        <span>Telefon 2</span>
+                        <strong><%= landingAyarlar.telefon2 %></strong>
+                    </div>
+                </div>
+                <% } %>
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <div class="contact-item-text">
+                        <span>E-posta</span>
+                        <strong><%= landingAyarlar.email1 || siteAyarlari.email || 'info@example.com' %></strong>
+                    </div>
+                </div>
+                <% if (landingAyarlar.calisma_saatleri) { %>
+                <div class="contact-item">
+                    <i class="fas fa-clock"></i>
+                    <div class="contact-item-text">
+                        <span>Çalışma Saatleri</span>
+                        <strong><%= landingAyarlar.calisma_saatleri.split('\n')[0] %></strong>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+
+            <div class="contact-form animate-on-scroll">
+                <form onsubmit="submitContact(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ad Soyad *</label>
+                            <input type="text" name="ad_soyad" class="form-control" placeholder="Adınız" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Telefon *</label>
+                            <input type="tel" name="telefon" class="form-control" placeholder="05XX XXX XX XX" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>E-posta</label>
+                        <input type="email" name="email" class="form-control" placeholder="ornek@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Mesajınız</label>
+                        <textarea name="mesaj" class="form-control" placeholder="Mesajınızı yazın..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Gönder</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAP -->
+    <% if (landingAyarlar.google_maps_embed) { %>
+    <section class="section">
+        <div class="section-header animate-on-scroll">
+            <div class="section-badge"><i class="fas fa-map-marker-alt"></i> Konum</div>
+            <h2 class="section-title">BİZİ ZİYARET EDİN</h2>
+        </div>
+        <div class="map-container animate-on-scroll">
+            <%- landingAyarlar.google_maps_embed %>
+        </div>
+    </section>
+    <% } %>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div>
+                <div class="footer-logo">
+                    <div class="logo-icon">
+                        <% if (siteAyarlari.logo_default) { %>
+                            <img src="/uploads/<%= siteAyarlari.logo_default %>" alt="<%= siteAyarlari.tesis_adi || 'Logo' %>">
+                        <% } else { %>
+                            <i class="fas fa-trophy"></i>
+                        <% } %>
+                    </div>
+                    <span class="logo-text"><%= siteAyarlari.tesis_adi || 'SPORT ACADEMY' %></span>
+                </div>
+                <p class="footer-desc">Geleceğin şampiyonlarını yetiştiriyoruz.</p>
+                <div class="footer-social">
+                    <% if (landingAyarlar.facebook_url) { %>
+                        <a href="<%= landingAyarlar.facebook_url %>" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i></a>
+                    <% } %>
+                    <% if (landingAyarlar.instagram_url) { %>
+                        <a href="<%= landingAyarlar.instagram_url %>" target="_blank" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                    <% } %>
+                    <% if (landingAyarlar.youtube_url) { %>
+                        <a href="<%= landingAyarlar.youtube_url %>" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i></a>
+                    <% } %>
+                    <% if (landingAyarlar.twitter_url) { %>
+                        <a href="<%= landingAyarlar.twitter_url %>" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                    <% } %>
+                    <% if (landingAyarlar.tiktok_url) { %>
+                        <a href="<%= landingAyarlar.tiktok_url %>" target="_blank" rel="noopener noreferrer"><i class="fab fa-tiktok"></i></a>
+                    <% } %>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="footer-title">Hızlı Linkler</h4>
+                <ul class="footer-links">
+                    <li><a href="#home">Ana Sayfa</a></li>
+                    <li><a href="#programs">Programlar</a></li>
+                    <li><a href="#coaches">Eğitmenler</a></li>
+                    <li><a href="#contact">İletişim</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="footer-title">Programlar</h4>
+                <ul class="footer-links">
+                    <% if (programlar && programlar.length > 0) { %>
+                        <% programlar.slice(0, 4).forEach(program => { %>
+                            <li><a href="#programs"><%= program.program_adi %></a></li>
+                        <% }) %>
+                    <% } %>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="footer-title">İletişim</h4>
+                <ul class="footer-links">
+                    <% if (landingAyarlar.telefon1 || siteAyarlari.telefon) { %>
+                        <li><a href="tel:<%= (landingAyarlar.telefon1 || siteAyarlari.telefon).replace(/\s/g, '') %>"><i class="fas fa-phone"></i> <%= landingAyarlar.telefon1 || siteAyarlari.telefon %></a></li>
+                    <% } %>
+                    <% if (landingAyarlar.telefon2) { %>
+                        <li><a href="tel:<%= landingAyarlar.telefon2.replace(/\s/g, '') %>"><i class="fas fa-mobile-alt"></i> <%= landingAyarlar.telefon2 %></a></li>
+                    <% } %>
+                    <% if (landingAyarlar.email1 || siteAyarlari.email) { %>
+                        <li><a href="mailto:<%= landingAyarlar.email1 || siteAyarlari.email %>"><i class="fas fa-envelope"></i> <%= landingAyarlar.email1 || siteAyarlari.email %></a></li>
+                    <% } %>
+                    <% if (landingAyarlar.adres) { %>
+                        <li><a href="<%= landingAyarlar.google_maps_link || '#contact' %>" target="_blank"><i class="fas fa-map-marker-alt"></i> <%= landingAyarlar.ilce && landingAyarlar.il ? landingAyarlar.ilce + ', ' + landingAyarlar.il : 'Haritada Gör' %></a></li>
+                    <% } %>
+                </ul>
+                <% if (landingAyarlar.calisma_saatleri) { %>
+                    <div style="margin-top: 15px; font-size: 13px; color: var(--gray);">
+                        <i class="fas fa-clock" style="margin-right: 8px;"></i>
+                        <% landingAyarlar.calisma_saatleri.split('\n').slice(0, 2).forEach(saat => { %>
+                            <div><%= saat %></div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© <%= new Date().getFullYear() %> <%= siteAyarlari.tesis_adi || 'Sport Academy' %>. Tüm hakları saklıdır.</p>
+            <p>Powered by <a href="https://netqr.tr" target="_blank" rel="noopener noreferrer">netSPOR</a></p>
+        </div>
+    </footer>
+
+    <!-- LIVE CHAT WIDGET (netChat) -->
+    <% if (landingAyarlar.chat_aktif == 1) { %>
+    <div class="live-chat">
+        <div class="chat-bubble" onclick="toggleChat()">
+            <i class="fas fa-comments"></i>
+            <span class="badge" id="chatBadge">1</span>
+        </div>
+
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar"><i class="fas fa-headset"></i></div>
+                    <div class="chat-header-text">
+                        <h4>netChat</h4>
+                        <span id="chatStatus" class="online-status">Çevrimiçi</span>
+                    </div>
+                </div>
+                <button class="chat-close" onclick="toggleChat()"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Chat Start Form -->
+            <div class="chat-start-form" id="chatStartForm">
+                <h4>Hoş Geldiniz! 👋</h4>
+                <p>Görüşmeye başlamak için bilgilerinizi girin</p>
+                <input type="text" class="chat-form-input" id="chatName" placeholder="Ad Soyad *" required>
+                <input type="tel" class="chat-form-input" id="chatPhone" placeholder="Telefon *" required>
+                <button class="chat-start-btn" onclick="startChat()">
+                    <i class="fas fa-comments"></i> Görüşmeyi Başlat
+                </button>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div class="chat-messages" id="chatMessages" style="display: none;">
+                <div class="chat-message received">
+                    <%= landingAyarlar.chat_karsilama || 'Merhaba! Size nasıl yardımcı olabilirim?' %>
+                    <span class="time">Şimdi</span>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-area" id="chatInputArea" style="display: none;">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Mesajınızı yazın..." onkeypress="handleChatKeypress(event)">
+                <button class="chat-send" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- PROGRAM MODAL -->
+    <div class="modal-overlay" id="programModal">
+        <span class="modal-close" onclick="closeModal('programModal')">&times;</span>
+        <div class="program-modal">
+            <div class="program-modal-header" id="programModalHeader">
+                <i class="fas fa-futbol"></i>
+            </div>
+            <div class="program-modal-body">
+                <h2 id="programModalTitle">Program Adı</h2>
+                <p id="programModalDesc">Program açıklaması...</p>
+                <div class="program-features" id="programModalFeatures"></div>
+                <a href="/basvuru" class="btn-primary" style="width:100%; justify-content:center;">
+                    <i class="fas fa-check"></i> Hemen Başvur
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- GALLERY MODAL -->
+    <div class="modal-overlay" id="galleryModal" onclick="closeModal('galleryModal')">
+        <span class="modal-close">&times;</span>
+        <div class="gallery-modal-content" id="galleryModalContent"></div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle" id="toastIcon"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <!-- DATA FOR JS -->
+    <script>
+        const programlarData = <%- JSON.stringify(programlar || []) %>;
+        const tesisAdi = '<%= siteAyarlari.tesis_adi || "Sport Academy" %>';
+    </script>
+
+    <script>
+        // =====================================================
+        // ZİYARETÇİ TAKİP
+        // =====================================================
+        (function() {
+            fetch('/api/landing/track-visit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sayfa: window.location.pathname,
+                    referrer: document.referrer || ''
+                })
+            }).catch(() => {});
+        })();
+
+        // =====================================================
+        // NAVBAR SCROLL
+        // =====================================================
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // =====================================================
+        // HERO SLIDER
+        // =====================================================
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.slider-dot');
+        const totalSlides = slides.length;
+
+        function goToSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            dots[currentSlide].classList.remove('active');
+            currentSlide = index;
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            goToSlide((currentSlide + 1) % totalSlides);
+        }
+
+        function prevSlide() {
+            goToSlide((currentSlide - 1 + totalSlides) % totalSlides);
+        }
+
+        dots.forEach((dot, i) => dot.addEventListener('click', () => goToSlide(i)));
+
+        if (totalSlides > 1) {
+            setInterval(nextSlide, 6000);
+        }
+
+        // =====================================================
+        // TESTIMONIALS SLIDER
+        // =====================================================
+        let currentTesti = 0;
+        const testiTrack = document.getElementById('testimonialsTrack');
+        const testiCards = testiTrack ? testiTrack.children : [];
+        const totalTesti = testiCards.length;
+        const testiDotsContainer = document.getElementById('testiDots');
+
+        if (testiDotsContainer && totalTesti > 0) {
+            for (let i = 0; i < totalTesti; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'testi-dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToTesti(i);
+                testiDotsContainer.appendChild(dot);
+            }
+        }
+
+        function updateTesti() {
+            if (testiTrack) {
+                testiTrack.style.transform = `translateX(-${currentTesti * 100}%)`;
+                document.querySelectorAll('.testi-dot').forEach((d, i) => d.classList.toggle('active', i === currentTesti));
+            }
+        }
+
+        function nextTestimonial() { currentTesti = (currentTesti + 1) % totalTesti; updateTesti(); }
+        function prevTestimonial() { currentTesti = (currentTesti - 1 + totalTesti) % totalTesti; updateTesti(); }
+        function goToTesti(i) { currentTesti = i; updateTesti(); }
+
+        if (totalTesti > 1) setInterval(nextTestimonial, 5000);
+
+        // =====================================================
+        // GALLERY
+        // =====================================================
+        function switchGallery(type, btn) {
+            document.querySelectorAll('.gallery-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('photoGallery').classList.toggle('active', type === 'photo');
+            document.getElementById('videoGallery').classList.toggle('active', type === 'video');
+        }
+
+        function openGalleryModal(src, type) {
+            const modal = document.getElementById('galleryModal');
+            const content = document.getElementById('galleryModalContent');
+
+            if (type === 'image') {
+                content.innerHTML = `<img src="${src}" alt="">`;
+            } else {
+                if (src.includes('youtube.com') || src.includes('youtu.be')) {
+                    const videoId = src.includes('youtu.be') ? src.split('/').pop() : new URLSearchParams(new URL(src).search).get('v');
+                    content.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+                } else {
+                    content.innerHTML = `<video src="${src}" controls autoplay></video>`;
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // =====================================================
+        // PROGRAM MODAL
+        // =====================================================
+        function openProgramModal(index) {
+            const program = programlarData[index];
+            if (!program) return;
+
+            document.getElementById('programModalTitle').textContent = program.program_adi;
+            document.getElementById('programModalDesc').textContent = program.uzun_aciklama || program.kisa_aciklama || 'Profesyonel eğitim programımızla sporcu yetiştiriyoruz.';
+
+            const header = document.getElementById('programModalHeader');
+            if (program.resim) {
+                header.innerHTML = `<img src="/images/programlar/${program.resim}" alt="">`;
+            } else {
+                header.innerHTML = `<i class="fas fa-${program.ikon || 'trophy'}"></i>`;
+            }
+
+            const features = document.getElementById('programModalFeatures');
+            features.innerHTML = `
+                <div class="program-feature"><i class="fas fa-users"></i><span>Yaş Grubu: ${program.yas_grubu || '6-18 yaş'}</span></div>
+                <div class="program-feature"><i class="fas fa-clock"></i><span>Ders Süresi: ${program.ders_suresi || '60 dk'}</span></div>
+                ${program.ozellik_1 ? `<div class="program-feature"><i class="fas fa-check"></i><span>${program.ozellik_1}</span></div>` : '<div class="program-feature"><i class="fas fa-certificate"></i><span>Sertifikalı Eğitim</span></div>'}
+                ${program.ozellik_2 ? `<div class="program-feature"><i class="fas fa-check"></i><span>${program.ozellik_2}</span></div>` : '<div class="program-feature"><i class="fas fa-chalkboard-teacher"></i><span>Uzman Kadro</span></div>'}
+                ${program.ozellik_3 ? `<div class="program-feature"><i class="fas fa-check"></i><span>${program.ozellik_3}</span></div>` : ''}
+                ${program.ozellik_4 ? `<div class="program-feature"><i class="fas fa-check"></i><span>${program.ozellik_4}</span></div>` : ''}
+            `;
+
+            document.getElementById('programModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = '';
+
+            const content = document.getElementById('galleryModalContent');
+            if (content) content.innerHTML = '';
+        }
+
+        // =====================================================
+        // COUNTER ANIMATION
+        // =====================================================
+        const counters = document.querySelectorAll('.stat-number');
+        const countObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counter = entry.target;
+                    const target = parseInt(counter.getAttribute('data-count'));
+                    let current = 0;
+                    const step = target / 100;
+                    const timer = setInterval(() => {
+                        current += step;
+                        if (current >= target) {
+                            counter.textContent = target + (target >= 100 ? '+' : '');
+                            clearInterval(timer);
+                        } else {
+                            counter.textContent = Math.floor(current);
+                        }
+                    }, 20);
+                    countObserver.unobserve(counter);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        counters.forEach(c => countObserver.observe(c));
+
+        // =====================================================
+        // SCROLL ANIMATIONS
+        // =====================================================
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        // =====================================================
+        // LIVE CHAT
+        // =====================================================
+        let chatStarted = false;
+        let chatSessionId = null;
+        let lastMessageId = 0;
+
+        function initChat() {
+            const savedSession = sessionStorage.getItem('chatSession');
+            if (savedSession) {
+                try {
+                    const session = JSON.parse(savedSession);
+                    chatSessionId = session.sessionId;
+                    chatStarted = true;
+                    lastMessageId = session.lastMessageId || 0;
+                    
+                    document.getElementById('chatStartForm').style.display = 'none';
+                    document.getElementById('chatMessages').style.display = 'flex';
+                    document.getElementById('chatInputArea').style.display = 'flex';
+                    document.getElementById('chatBadge').classList.remove('show');
+                    
+                    loadChatHistory();
+                } catch (e) {
+                    sessionStorage.removeItem('chatSession');
+                }
+            }
+        }
+
+        async function loadChatHistory() {
+            if (!chatSessionId) return;
+            
+            try {
+                const res = await fetch('/api/landing/get-chat-history?sessionId=' + chatSessionId);
+                const data = await res.json();
+                
+                if (data.success && data.mesajlar && data.mesajlar.length > 0) {
+                    const messagesContainer = document.getElementById('chatMessages');
+                    messagesContainer.innerHTML = '';
+                    
+                    data.mesajlar.forEach(function(msg) {
+                        const type = msg.gonderen === 'musteri' ? 'sent' : 'received';
+                        addChatMessage(type, msg.mesaj, msg.created_at, false);
+                        lastMessageId = Math.max(lastMessageId, msg.id);
+                    });
+                    
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    updateChatSession();
+                } else if (!data.success) {
+                    sessionStorage.removeItem('chatSession');
+                    chatSessionId = null;
+                    chatStarted = false;
+                    
+                    document.getElementById('chatStartForm').style.display = 'block';
+                    document.getElementById('chatMessages').style.display = 'none';
+                    document.getElementById('chatInputArea').style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Chat geçmişi yüklenemedi:', err);
+            }
+        }
+
+        function updateChatSession() {
+            if (chatSessionId) {
+                sessionStorage.setItem('chatSession', JSON.stringify({
+                    sessionId: chatSessionId,
+                    lastMessageId: lastMessageId
+                }));
+            }
+        }
+
+        function toggleChat() {
+            document.getElementById('chatWindow').classList.toggle('open');
+        }
+
+        async function startChat() {
+            const name = document.getElementById('chatName').value.trim();
+            const phone = document.getElementById('chatPhone').value.trim();
+
+            if (!name || !phone) {
+                showToast('Lütfen tüm alanları doldurun', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/landing/start-chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ad_soyad: name, telefon: phone, tesis_adi: tesisAdi })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    chatSessionId = data.sessionId;
+                    chatStarted = true;
+                    
+                    updateChatSession();
+                    
+                    document.getElementById('chatStartForm').style.display = 'none';
+                    document.getElementById('chatMessages').style.display = 'flex';
+                    document.getElementById('chatInputArea').style.display = 'flex';
+                    document.getElementById('chatBadge').classList.remove('show');
+
+                    document.getElementById('chatMessages').innerHTML = '';
+                    addChatMessage('received', 'Merhaba ' + name + '! Size nasıl yardımcı olabilirim?');
+                } else {
+                    showToast(data.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message || !chatSessionId) return;
+
+            addChatMessage('sent', message);
+            input.value = '';
+
+            try {
+                const res = await fetch('/api/landing/send-message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: chatSessionId, mesaj: message })
+                });
+                const data = await res.json();
+                
+                if (data.success && data.messageId) {
+                    lastMessageId = Math.max(lastMessageId, data.messageId);
+                    updateChatSession();
+                }
+            } catch (err) {
+                console.error('Mesaj gönderilemedi');
+            }
+        }
+
+        function addChatMessage(type, text, timestamp, scroll) {
+            if (scroll === undefined) scroll = true;
+            
+            const messages = document.getElementById('chatMessages');
+            var timeStr;
+            
+            if (timestamp) {
+                const date = new Date(timestamp);
+                timeStr = date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                timeStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+            }
+            
+            const msg = document.createElement('div');
+            msg.className = 'chat-message ' + type;
+            msg.innerHTML = text + '<span class="time">' + timeStr + '</span>';
+            messages.appendChild(msg);
+            
+            if (scroll) {
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+
+        function handleChatKeypress(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function pollMessages() {
+            if (!chatSessionId || !chatStarted) return;
+
+            fetch('/api/landing/get-messages?sessionId=' + chatSessionId + '&lastId=' + lastMessageId)
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success && data.mesajlar && data.mesajlar.length > 0) {
+                        data.mesajlar.forEach(function(msg) {
+                            addChatMessage('received', msg.mesaj);
+                            lastMessageId = Math.max(lastMessageId, msg.id);
+                        });
+                        updateChatSession();
+                    }
+                })
+                .catch(function() {});
+        }
+
+        setInterval(pollMessages, 3000);
+        initChat();
+
+        // =====================================================
+        // NEWSLETTER
+        // =====================================================
+        async function submitNewsletter(e) {
+            e.preventDefault();
+            const phone = document.getElementById('newsletterPhone').value;
+
+            try {
+                const res = await fetch('/api/landing/newsletter', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telefon: phone })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('Kayıt başarılı! Teşekkürler.', 'success');
+                    document.getElementById('newsletterPhone').value = '';
+                } else {
+                    showToast(data.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        // =====================================================
+        // CONTACT FORM
+        // =====================================================
+        async function submitContact(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('/api/landing/contact', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('Mesajınız gönderildi!', 'success');
+                    form.reset();
+                } else {
+                    showToast(data.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        // =====================================================
+        // TOAST
+        // =====================================================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            document.getElementById('toastIcon').className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // =====================================================
+        // MOBILE NAV ACTIVE STATE
+        // =====================================================
+        const mobileNavItems = document.querySelectorAll('.mobile-nav-item:not(.cta-item)');
+
+        window.addEventListener('scroll', () => {
+            const sections = ['home', 'programs', 'gallery', 'contact'];
+            let current = '';
+
+            sections.forEach(id => {
+                const section = document.getElementById(id);
+                if (section && window.scrollY >= section.offsetTop - 200) {
+                    current = id;
+                }
+            });
+
+            mobileNavItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === '#' + current) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) target.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // PWA Install
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+    </script>
+</body>
+</html>

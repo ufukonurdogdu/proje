@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | WhatsApp Mesaj Ayarları</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk || '#3b82f6' %>; 
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk || '#3b82f6' %> 85%, #000);
+            --wa-green: #25D366;
+            --wa-dark: #128C7E;
+            --wa-bg: #dcfce7;
+            --bg-body: #f8fafc; 
+            --dark-text: #1e293b; 
+            --gray-text: #64748b;
+            --radius-xl: 24px; 
+            --radius-md: 16px; 
+            --border-color: #e2e8f0;
+            --nav-height: 70px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background-color: var(--bg-body); color: var(--dark-text); display: flex; height: 100vh; overflow: hidden; }
+        
+        .main { 
+            flex: 1; 
+            margin: 2vh 2vh 2vh 0; 
+            background: white; 
+            border-radius: var(--radius-xl); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            height: calc(100vh - 4vh);
+        }
+
+        #settingsForm {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        /* HEADER */
+        header { 
+            padding: 20px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--border-color); 
+            background: rgba(255,255,255,0.95);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .header-left h1 { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .header-left p { font-size: 13px; color: var(--gray-text); margin-left: 38px; margin-top: 4px; }
+        
+        .status-badge {
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .status-connected { background: var(--wa-bg); color: #166534; }
+        .status-disconnected { background: #fee2e2; color: #991b1b; }
+
+        /* CONTENT & SCROLL */
+        .content-scroll { 
+            padding: 30px; 
+            overflow-y: auto;
+            flex: 1; 
+            background: #f8fafc; 
+            padding-bottom: 120px; 
+            min-height: 0;
+        }
+
+        /* BRANCH SELECTOR */
+        .branch-selector-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100%; text-align: center;
+        }
+        .branch-card {
+            background: white; border: 1px solid var(--border-color); border-radius: 16px;
+            padding: 20px; width: 100%; max-width: 400px; text-align: left;
+            margin-bottom: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between;
+            text-decoration: none; color: var(--dark-text); font-weight: 600;
+        }
+        .branch-card:hover {
+            border-color: var(--primary); transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .branch-header-actions select {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color);
+            font-size: 13px; color: var(--dark-text); outline: none; cursor: pointer;
+        }
+
+        /* TABS */
+        .tabs { 
+            display: flex; 
+            gap: 5px; 
+            border-bottom: 2px solid #e2e8f0; 
+            background: white; 
+            padding: 15px 30px 0; 
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+        .tab-btn { 
+            padding: 12px 24px; border-radius: 12px 12px 0 0; font-weight: 600; font-size: 14px;
+            border: none; cursor: pointer; background: transparent; color: var(--gray-text);
+            transition: all 0.2s; display: flex; align-items: center; gap: 8px; position: relative; bottom: -2px;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn:hover { color: var(--primary); background: #f0f9ff; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #f8fafc; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* KARTLAR */
+        .settings-card {
+            background: white; border-radius: var(--radius-md); 
+            border: 1px solid var(--border-color); padding: 25px; margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.01);
+        }
+        .card-header { 
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed var(--border-color);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .card-title { font-size: 16px; font-weight: 700; color: var(--dark-text); }
+        .card-icon { 
+            width: 36px; height: 36px; background: #eff6ff; color: var(--primary); 
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+        }
+
+        /* FORM GRİD */
+        .msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 25px; }
+        
+        .msg-item { 
+            background: #f8fafc; border: 1px solid var(--border-color); 
+            border-radius: 14px; padding: 20px; transition: all 0.2s;
+        }
+        .msg-item:focus-within { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59,130,246,0.1); background: white; }
+
+        .item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .item-label { font-weight: 700; font-size: 14px; color: var(--dark-text); }
+
+        /* SWITCH TOGGLE */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        input:checked + .slider { background-color: var(--wa-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* TEXTAREA */
+        .msg-input {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px;
+            font-size: 13px; resize: vertical; min-height: 100px; margin-bottom: 12px;
+            font-family: 'Plus Jakarta Sans', sans-serif; line-height: 1.6; color: var(--dark-text);
+            background: white;
+        }
+        .msg-input:focus { outline: none; border-color: var(--primary); }
+
+        /* VARIABLES TAGS */
+        .var-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .var-tag {
+            background: white; border: 1px solid var(--border-color); color: var(--gray-text);
+            padding: 5px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: 600;
+            transition: all 0.2s; user-select: none; display: flex; align-items: center; gap: 5px;
+        }
+        .var-tag:hover { background: #eff6ff; color: var(--primary); border-color: var(--primary); transform: translateY(-1px); }
+        .var-tag i { font-size: 10px; opacity: 0.7; }
+
+        /* OPTIONS ROW (Checkbox & Inputs) */
+        .options-row { 
+            display: flex; gap: 15px; margin-top: 15px; padding-top: 15px; 
+            border-top: 1px dashed #e2e8f0; align-items: center; flex-wrap: wrap;
+        }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; cursor: pointer; font-weight: 600; color: var(--dark-text); }
+        .checkbox-label input { accent-color: var(--wa-dark); width: 16px; height: 16px; border-radius: 4px; cursor: pointer; }
+        .day-input { width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 8px; text-align: center; font-weight: 700; outline: none; }
+        .day-input:focus { border-color: var(--primary); }
+
+        /* FOOTER */
+        .page-footer {
+            position: fixed; bottom: 0; left: 0; right: 0; background: white;
+            padding: 20px 30px; border-top: 1px solid var(--border-color);
+            display: flex; justify-content: flex-end; align-items: center; gap: 15px;
+            z-index: 100; box-shadow: 0 -5px 25px rgba(0,0,0,0.05);
+        }
+        .btn-save {
+            background: linear-gradient(135deg, var(--wa-green), var(--wa-dark)); color: white; border: none; padding: 14px 40px;
+            border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 10px;
+            transition: all 0.2s; font-size: 14px; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); }
+
+        /* TOAST */
+        .toast {
+            position: fixed; bottom: 100px; right: 30px; padding: 16px 24px; border-radius: 12px;
+            background: #1e293b; color: white; font-weight: 600; display: none; align-items: center; gap: 12px; z-index: 6000;
+            animation: slideIn 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .toast.success { background: var(--wa-green); }
+        .toast.error { background: #ef4444; }
+        .toast.show { display: flex; }
+        @keyframes slideIn { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* INFO BOX */
+        .info-box {
+            background: #fef3c7; border: 1px solid #fcd34d; border-radius: 10px;
+            padding: 12px 15px; margin-bottom: 15px; font-size: 12px; color: #92400e;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .info-box i { margin-top: 2px; }
+
+        /* Mobile Header - Default Hidden */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            }
+
+            body { 
+                flex-direction: column; 
+                overflow-y: auto; 
+                height: auto; 
+                background: var(--m-bg-primary) !important;
+                padding-bottom: var(--nav-height);
+            }
+            
+            
+            .main { 
+                margin: 0; 
+                border-radius: 0; 
+                overflow: visible; 
+                height: auto; 
+                display: block;
+                background: var(--m-bg-primary) !important;
+                box-shadow: none;
+            }
+            
+            #settingsForm { 
+                display: block; 
+                height: auto; 
+                overflow: visible; 
+            }
+
+            /* Mobil Header */
+            .mobile-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg) !important;
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: inherit;
+                z-index: -1;
+            }
+
+            .mobile-header-left h1 {
+                font-size: 18px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                color: white;
+            }
+
+            .mobile-header-left h1 i {
+                font-size: 20px;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+                align-items: center;
+            }
+
+            .btn-header-icon {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .header-status {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+
+            .header-status.connected {
+                background: rgba(255,255,255,0.2);
+                color: white;
+            }
+
+            .header-status.disconnected {
+                background: rgba(239, 68, 68, 0.3);
+                color: #fecaca;
+            }
+
+            /* Desktop header gizle */
+            header { display: none !important; }
+
+            /* Mobil Şube Seçici */
+            .mobile-branch-selector {
+                padding: 15px 20px;
+                background: var(--m-bg-secondary);
+                border-bottom: 1px solid var(--m-border-color);
+            }
+
+            .mobile-branch-selector select {
+                width: 100%;
+                padding: 12px 15px;
+                border-radius: 12px;
+                border: 1px solid var(--m-border-color);
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+                font-size: 14px;
+                font-weight: 600;
+                outline: none;
+                -webkit-appearance: none;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 15px center;
+            }
+
+            /* Tabs Mobil */
+            .tabs { 
+                overflow-x: auto; 
+                padding: 10px 15px 0;
+                background: var(--m-bg-secondary) !important;
+                border-bottom: 1px solid var(--m-border-color);
+                gap: 5px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                border-radius: 0;
+            }
+
+            .tabs::-webkit-scrollbar { display: none; }
+
+            .tab-btn { 
+                white-space: nowrap;
+                padding: 10px 16px;
+                font-size: 13px;
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-muted);
+                border-radius: 10px 10px 0 0;
+                flex-shrink: 0;
+            }
+
+            .tab-btn.active {
+                background: var(--m-bg-primary);
+                color: var(--wa-green);
+                border-bottom-color: var(--wa-green);
+            }
+
+            .tab-btn i { display: none; }
+
+            /* Content Scroll */
+            .content-scroll { 
+                padding: 15px; 
+                overflow: visible; 
+                height: auto;
+                background: var(--m-bg-primary) !important;
+                padding-bottom: calc(var(--nav-height) + 100px);
+            }
+
+            /* Settings Card */
+            .settings-card {
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+                padding: 15px;
+                margin-bottom: 15px;
+                border-radius: 16px;
+            }
+
+            .card-header {
+                padding-bottom: 12px;
+                margin-bottom: 15px;
+                border-bottom-color: var(--m-border-color);
+            }
+
+            .card-title {
+                color: var(--m-text-primary);
+                font-size: 15px;
+            }
+
+            .card-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            [data-theme="dark"] .card-icon {
+                background: var(--m-bg-tertiary);
+            }
+
+            /* Message Grid */
+            .msg-grid { 
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            /* Message Item */
+            .msg-item {
+                background: var(--m-bg-tertiary);
+                border-color: var(--m-border-color);
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .msg-item:focus-within {
+                background: var(--m-bg-secondary);
+                border-color: var(--wa-green);
+                box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+            }
+
+            .item-label {
+                color: var(--m-text-primary);
+                font-size: 13px;
+            }
+
+            /* Textarea */
+            .msg-input {
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-primary);
+                font-size: 14px;
+                min-height: 120px;
+                border-radius: 12px;
+            }
+
+            .msg-input:focus {
+                border-color: var(--wa-green);
+                background: var(--m-bg-secondary);
+            }
+
+            .msg-input::placeholder {
+                color: var(--m-text-muted);
+            }
+
+            /* Variable Tags */
+            .var-tag {
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-muted);
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+
+            .var-tag:hover, .var-tag:active {
+                background: rgba(37, 211, 102, 0.1);
+                color: var(--wa-green);
+                border-color: var(--wa-green);
+            }
+
+            /* Options Row */
+            .options-row {
+                border-top-color: var(--m-border-color);
+                gap: 10px;
+            }
+
+            .options-row > span {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+
+            .checkbox-label {
+                color: var(--m-text-primary);
+                font-size: 11px;
+            }
+
+            .checkbox-label input {
+                accent-color: var(--wa-green);
+            }
+
+            /* Info Box */
+            .info-box {
+                font-size: 11px;
+                padding: 10px 12px;
+                border-radius: 10px;
+            }
+
+            [data-theme="dark"] .info-box {
+                background: rgba(251, 191, 36, 0.1);
+                border-color: rgba(251, 191, 36, 0.3);
+                color: #fbbf24;
+            }
+
+            /* Branch Selector Container */
+            .branch-selector-container {
+                padding: 20px;
+                min-height: calc(100vh - 200px);
+            }
+
+            .branch-selector-container > div:first-child {
+                width: 60px;
+                height: 60px;
+            }
+
+            .branch-selector-container > div:first-child i {
+                font-size: 28px;
+            }
+
+            [data-theme="dark"] .branch-selector-container > div:first-child {
+                background: var(--m-bg-tertiary);
+            }
+
+            .branch-selector-container h2 {
+                color: var(--m-text-primary);
+                font-size: 20px;
+            }
+
+            .branch-selector-container p {
+                color: var(--m-text-muted);
+                font-size: 13px;
+            }
+
+            .branch-card {
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-primary);
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .branch-card:hover, .branch-card:active {
+                border-color: var(--wa-green);
+                background: var(--m-bg-tertiary);
+            }
+
+            .branch-card i:first-child {
+                color: var(--wa-green) !important;
+            }
+
+            .branch-card i:last-child {
+                color: var(--m-text-muted) !important;
+            }
+
+            /* Page Footer */
+            .page-footer {
+                position: fixed;
+                bottom: var(--nav-height);
+                left: 0;
+                right: 0;
+                padding: 12px 15px;
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                justify-content: center;
+                z-index: 99;
+            }
+
+            .btn-save {
+                width: 100%;
+                justify-content: center;
+                padding: 14px 20px;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+
+            /* Toast */
+            .toast {
+                bottom: calc(var(--nav-height) + 80px);
+                left: 15px;
+                right: 15px;
+                border-radius: 12px;
+            }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+            }
+
+            .nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 8px 12px;
+                color: var(--m-text-muted);
+                text-decoration: none;
+                font-size: 10px;
+                font-weight: 600;
+                transition: all 0.2s;
+                border-radius: 12px;
+                min-width: 64px;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+                margin-bottom: 4px;
+                transition: all 0.2s;
+            }
+
+            .nav-item.active {
+                color: var(--wa-green);
+            }
+
+            .nav-item.active i {
+                transform: scale(1.1);
+            }
+
+            .nav-item:active {
+                transform: scale(0.95);
+                background: var(--m-bg-tertiary);
+            }
+
+            /* Switch Dark Mode */
+            [data-theme="dark"] .slider {
+                background-color: var(--m-bg-tertiary);
+            }
+
+            /* Stok uyarı kartı */
+            .settings-card[style*="border: 1px solid #fecaca"] {
+                border-color: rgba(239, 68, 68, 0.3) !important;
+            }
+
+            [data-theme="dark"] .settings-card[style*="border: 1px solid #fecaca"] {
+                background: rgba(239, 68, 68, 0.05);
+            }
+
+            .card-header[style*="background: #fef2f2"] {
+                background: rgba(239, 68, 68, 0.1) !important;
+                border-bottom-color: rgba(239, 68, 68, 0.2) !important;
+            }
+
+            .msg-item[style*="border-color: #fecaca"] {
+                border-color: rgba(239, 68, 68, 0.3) !important;
+            }
+
+            [data-theme="dark"] .msg-item[style*="border-color: #fecaca"] {
+                background: rgba(239, 68, 68, 0.05);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <!-- MOBİL HEADER -->
+    <header class="mobile-header">
+        <div class="mobile-header-left">
+            <h1><i class="fab fa-whatsapp"></i> Mesaj Ayarları</h1>
+        </div>
+        <div class="mobile-header-actions">
+            <% if (isConnected) { %>
+                <span class="header-status connected">
+                    <i class="fas fa-check-circle"></i> Aktif
+                </span>
+            <% } else { %>
+                <span class="header-status disconnected">
+                    <i class="fas fa-times-circle"></i> Bağlı Değil
+                </span>
+            <% } %>
+            <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
+            <a href="/api/dashboard" class="btn-header-icon" title="Ana Sayfa">
+                <i class="fa-solid fa-house"></i>
+            </a>
+        </div>
+    </header>
+
+    <div class="main">
+        <!-- HEADER -->
+        <header>
+            <div class="header-left">
+                <h1><i class="fab fa-whatsapp" style="color: var(--wa-green);"></i> Otomatik Mesaj Ayarları</h1>
+                <p>Müşteri bildirimleri, ders programı ve stok uyarılarını yapılandırın.</p>
+            </div>
+            
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <% if (user.rol === 'yonetici' && !subeSecimGerekli && subeler && subeler.length > 0) { %>
+                    <div class="branch-header-actions">
+                        <select onchange="window.location.href='?sube_id=' + this.value">
+                            <% subeler.forEach(sube => { %>
+                                <option value="<%= sube.id %>" <%= secilenSubeId == sube.id ? 'selected' : '' %>>
+                                    <%= sube.sube_adi %>
+                                </option>
+                            <% }) %>
+                        </select>
+                    </div>
+                <% } %>
+
+                <% if (isConnected) { %>
+                    <div class="status-badge status-connected">
+                        <i class="fas fa-check-circle"></i> WhatsApp Aktif
+                    </div>
+                <% } else { %>
+                    <div class="status-badge status-disconnected">
+                        <i class="fas fa-exclamation-triangle"></i> Bağlantı Yok
+                    </div>
+                <% } %>
+            </div>
+        </header>
+
+        <!-- İÇERİK KONTROLÜ (ŞUBE SEÇİMİ ZORUNLU MU?) -->
+        <% if (typeof subeSecimGerekli !== 'undefined' && subeSecimGerekli) { %>
+            
+            <div class="content-scroll">
+                <div class="branch-selector-container">
+                    <div style="background: #eff6ff; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                        <i class="fas fa-store" style="font-size: 36px; color: var(--primary);"></i>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 800; color: var(--dark-text); margin-bottom: 10px;">Şube Seçiniz</h2>
+                    <p style="color: var(--gray-text); margin-bottom: 30px; max-width: 400px;">
+                        WhatsApp otomatik mesaj ayarlarını yapılandırmak istediğiniz şubeyi aşağıdan seçerek devam ediniz.
+                    </p>
+                    
+                    <% if (subeler && subeler.length > 0) { %>
+                        <% subeler.forEach(sube => { %>
+                            <a href="?sube_id=<%= sube.id %>" class="branch-card">
+                                <span><i class="fas fa-building" style="margin-right: 10px; color: var(--primary);"></i> <%= sube.sube_adi %></span>
+                                <i class="fas fa-chevron-right" style="color: var(--gray-text); font-size: 14px;"></i>
+                            </a>
+                        <% }) %>
+                    <% } else { %>
+                        <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px;">
+                            Sistemde kayıtlı şube bulunamadı.
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+        <% } else { %>
+
+            <!-- MOBİL ŞUBE SEÇİCİ -->
+            <% if (user.rol === 'yonetici' && subeler && subeler.length > 0) { %>
+                <div class="mobile-branch-selector">
+                    <select onchange="window.location.href='?sube_id=' + this.value">
+                        <% subeler.forEach(sube => { %>
+                            <option value="<%= sube.id %>" <%= secilenSubeId == sube.id ? 'selected' : '' %>>
+                                <i class="fas fa-building"></i> <%= sube.sube_adi %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+            <% } %>
+
+            <!-- AYAR FORMU (ŞUBE SEÇİLİ) -->
+            <form id="settingsForm" onsubmit="saveSettings(event)">
+                <input type="hidden" name="sube_id" value="<%= secilenSubeId %>">
+
+                <!-- SEKME BUTONLARI -->
+                <div class="tabs">
+                    <button type="button" class="tab-btn active" onclick="openTab('student', this)">
+                        <i class="fas fa-user-graduate"></i> Öğrenci İşlemleri
+                    </button>
+                    <button type="button" class="tab-btn" onclick="openTab('sales', this)">
+                        <i class="fas fa-wallet"></i> Satış ve Aidat
+                    </button>
+                    <button type="button" class="tab-btn" onclick="openTab('products', this)">
+                        <i class="fas fa-shopping-bag"></i> Ürün Satışı
+                    </button>
+                </div>
+
+                <div class="content-scroll">
+                    
+                    <% 
+                    // Ortak Render Fonksiyonu
+                    const renderMsg = (key, title, vars, defaultMsg) => { 
+                        const val = (ayarlar && ayarlar[key + '_mesaj']) ? ayarlar[key + '_mesaj'] : defaultMsg;
+                        const active = (ayarlar && ayarlar[key + '_aktif']) ? 1 : 0;
+                    %>
+                    <div class="msg-item">
+                        <div class="item-header">
+                            <span class="item-label"><%= title %></span>
+                            <label class="switch">
+                                <input type="checkbox" name="<%= key %>_aktif" <%= active ? 'checked' : '' %>>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <textarea name="<%= key %>_mesaj" class="msg-input" placeholder="Mesaj içeriği..."><%= val %></textarea>
+                        <div class="var-container">
+                            <% vars.forEach(v => { %>
+                                <span class="var-tag" onclick="insertVar(this, '<%= v %>')"><i class="fas fa-tag"></i> <%= v %></span>
+                            <% }) %>
+                        </div>
+                    </div>
+                    <% } 
+                    
+                    const stdVars = ['{ad_soyad}', '{veli_adi}', '{tc_no}', '{telefon}', '{tesis_adi}'];
+                    %>
+
+                    <!-- TAB 1: ÖĞRENCİ İŞLEMLERİ -->
+                    <div id="student" class="tab-content active">
+                        
+                        <!-- DERS PROGRAMI -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-calendar-alt"></i></div>
+                                <h3 class="card-title">Ders Programı Bildirimleri</h3>
+                            </div>
+                            <div class="msg-grid">
+                                <% const dersVars = ['{ad_soyad}', '{gun}', '{baslangic}', '{bitis}', '{ders_adi}', '{tarih}']; %>
+                                <%= renderMsg('ders_programi_yeni', 'Yeni Ders Atandığında', dersVars, `Sayın Veli,\n📅 {ad_soyad} için yeni ders programı oluşturulmuştur.\n📌 Ders: {ders_adi}\n🗓 Gün: {gun}\n⏰ Saat: {baslangic} - {bitis}\nİyi dersler dileriz.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ders_programi_iptal', 'Ders İptal Edildiğinde', dersVars, `⚠️ Bilgilendirme:\n{tarih} tarihli {ders_adi} dersimiz teknik sebeplerden dolayı iptal edilmiştir.\nTelafi dersi için bilgilendirme yapılacaktır.\nAnlayışınız için teşekkür ederiz.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                        <!-- Kayıt ve Durum -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-user-plus"></i></div>
+                                <h3 class="card-title">Kayıt & Durum İşlemleri</h3>
+                            </div>
+                            <div class="msg-grid">
+                                <%= renderMsg('ogrenci_ekle', 'Öğrenci Eklendiğinde', ['{ad_soyad}', '{kullanici_adi}', '{sifre}', '{tesis_adi}'], `Sayın Veli,\n👧👦 {ad_soyad} kaydı başarıyla oluşturulmuştur.\n\n🔑 Kullanıcı Adı: {kullanici_adi}\n🔒 Şifre: {sifre}\n\nBu bilgilerle veli paneline giriş yapabilirsiniz.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ogrenci_duzenle', 'Bilgiler Güncellendiğinde', stdVars, `Sayın Veli,\nℹ️ {ad_soyad} öğrencimizin profil bilgileri güncellenmiştir.\nBilginize sunarız.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ogrenci_aktif', 'Öğrenci Aktif Yapıldığında', stdVars, `Merhaba,\n{ad_soyad} öğrencimizin kaydı tekrar AKTİF duruma getirilmiştir.\nİyi dersler dileriz.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ogrenci_pasif', 'Öğrenci Pasif Yapıldığında', stdVars, `Merhaba,\n{ad_soyad} öğrencimizin kaydı PASİF duruma alınmıştır.\nTekrar görüşmek dileğiyle.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ogrenci_dondurulmus', 'Üyelik Dondurulduğunda', stdVars, `Sayın Veli,\n{ad_soyad} öğrencimizin üyeliği talebiniz üzerine dondurulmuştur.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                        <!-- Başvurular ve Diğer -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-envelope-open-text"></i></div>
+                                <h3 class="card-title">Başvuru & İletişim</h3>
+                            </div>
+                            <div class="msg-grid">
+                                <%= renderMsg('basvuru_gonderme', 'Başvuru Onay Mesajı', stdVars, `Merhaba {ad_soyad},\n✅ Başvurunuz tarafımıza ulaşmıştır ve onaylanmıştır. Sizi aramızda görmekten mutluluk duyarız!\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('basvuru_veli', 'Başvuru Formu Paylaşma', ['{link}', '{tesis_adi}'], `Merhaba,\n\n📋 Online başvuru formumuza aşağıdaki linkten ulaşabilirsiniz:\n\n🔗 {link}\n\nSizi aramızda görmekten mutluluk duyarız!\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('basvuru_yonetici', 'Web Başvuru (Yöneticiye)', ['{ad_soyad}', '{telefon}', '{bolum}'], `🔔 YENİ BAŞVURU!\nAd Soyad: {ad_soyad}\nTel: {telefon}\nBölüm: {bolum}\nPanelden kontrol ediniz.`) %>
+                                <%= renderMsg('dogum_gunu', 'Doğum Günü Kutlaması', stdVars, `🎉 İyi ki doğdun {ad_soyad}!\n🎂 {tesis_adi} ailesi olarak yeni yaşını kutlar, sağlık ve başarı dolu bir yıl dileriz.`) %>
+                            </div>
+                        </div>
+
+                        <!-- Yoklama -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-clipboard-check"></i></div>
+                                <h3 class="card-title">Yoklama Bildirimleri</h3>
+                            </div>
+                            <div class="msg-grid">
+                                <% const yoklamaVars = ['{ad_soyad}', '{tarih}', '{ders_adi}', '{saat}']; %>
+                                <%= renderMsg('yoklama_katildi', 'Yoklama: Katıldı', yoklamaVars, `Sayın Veli,\n✅ {ad_soyad}, {tarih} tarihli {ders_adi} antrenmanına katılmıştır.\nİyi günler dileriz.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('yoklama_katilmadi', 'Yoklama: Katılmadı', yoklamaVars, `Sayın Veli,\n❌ {ad_soyad}, {tarih} tarihli {ders_adi} antrenmanına KATILMAMIŞTIR.\nBilginize sunarız.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('yoklama_izinli', 'Yoklama: İzinli', yoklamaVars, `Sayın Veli,\nℹ️ {ad_soyad}, {tarih} tarihli antrenman için İZİNLİ olarak işaretlenmiştir.\n✨ {tesis_adi}`) %>
+                                
+                                <% const ozelDersYoklamaVars = ['{ad_soyad}', '{paket_adi}', '{toplam_saat}', '{kullanilan_saat}', '{kalan_saat}', '{tesis_adi}']; %>
+                                <%= renderMsg('ozel_yoklama_katildi', 'Özel Ders: Katıldı', ozelDersYoklamaVars, `Sayın Veli,\n✅ {ad_soyad}, {paket_adi} özel dersine katılım sağlamıştır.\n\n📊 Ders Durumu:\n• Toplam: {toplam_saat} saat\n• Kullanılan: {kullanilan_saat} saat\n• Kalan: {kalan_saat} saat\n\nİyi günler.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ozel_yoklama_katilmadi', 'Özel Ders: Katılmadı', ozelDersYoklamaVars, `Sayın Veli,\n❌ {ad_soyad}, {paket_adi} özel dersine KATILMAMIŞTIR.\n\n📊 Ders Durumu:\n• Toplam: {toplam_saat} saat\n• Kullanılan: {kullanilan_saat} saat\n• Kalan: {kalan_saat} saat\n\n⚠️ Ders hakkı düşülmemiştir.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ozel_yoklama_izinli', 'Özel Ders: İzinli', ozelDersYoklamaVars, `Sayın Veli,\nℹ️ {ad_soyad}, {paket_adi} dersi için izinli sayılmıştır.\n\n📊 Ders Durumu:\n• Toplam: {toplam_saat} saat\n• Kullanılan: {kullanilan_saat} saat\n• Kalan: {kalan_saat} saat\n\n✅ Ders hakkı saklıdır.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                        <!-- Analiz -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-chart-line"></i></div>
+                                <h3 class="card-title">Analiz & Ölçüm Bildirimleri</h3>
+                            </div>
+                            <div class="info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Analiz Değişkenleri:</strong> Tüm puan ve açıklama alanlarını mesajınızda kullanabilirsiniz. 
+                                    Örn: Teknik Puan: {teknik_puan}/10, Açıklama: {teknik_aciklama}
+                                </div>
+                            </div>
+                            <div class="msg-grid">
+                                <% const analizVars = [
+                                    '{ad_soyad}', '{brans}', '{genel_puan}', '{analiz_tarihi}', '{analiz_linki}',
+                                    '{teknik_puan}', '{teknik_aciklama}',
+                                    '{fiziksel_puan}', '{fiziksel_aciklama}',
+                                    '{taktik_puan}', '{taktik_aciklama}',
+                                    '{mental_puan}', '{mental_aciklama}',
+                                    '{disiplin_puan}', '{disiplin_aciklama}',
+                                    '{takim_puan}', '{takim_aciklama}',
+                                    '{genel_degerlendirme}', '{oneriler}',
+                                    '{kisa_vadeli_hedef}', '{uzun_vadeli_hedef}',
+                                    '{tesis_adi}'
+                                ]; %>
+                                <%= renderMsg('analiz_eklendi', 'Yeni Analiz/Ölçüm Eklendi', analizVars, `📊 *GELİŞİM ANALİZİ*\n\nSayın Veli,\n{ad_soyad} için yeni bir gelişim analizi yapılmıştır.\n\n📅 Tarih: {analiz_tarihi}\n🏅 Branş: {brans}\n⭐ Genel Puan: {genel_puan}/10\n\n📈 *DETAYLI PUANLAMA*\n🎯 Teknik: {teknik_puan}/10\n💪 Fiziksel: {fiziksel_puan}/10\n🧠 Taktik: {taktik_puan}/10\n🧘 Mental: {mental_puan}/10\n📋 Disiplin: {disiplin_puan}/10\n🤝 Takım Oyunu: {takim_puan}/10\n\n📝 *DEĞERLENDİRME*\n{genel_degerlendirme}\n\n💡 *ÖNERİLER*\n{oneriler}\n\n🎯 *HEDEFLER*\nKısa Vadeli: {kisa_vadeli_hedef}\nUzun Vadeli: {uzun_vadeli_hedef}\n\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: SATIŞ VE AİDAT -->
+                    <div id="sales" class="tab-content">
+                        
+                        <!-- Aidat -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                                <h3 class="card-title">Aidat İşlemleri</h3>
+                            </div>
+                            <div class="msg-grid">
+                                <% const aidatVars = ['{ogrenci_adi}', '{tutar}', '{ay}', '{yil}', '{kalan_tutar}', '{odenen_tutar}', '{kalan_bilgi}', '{tesis_adi}']; %>
+
+                                <%= renderMsg('aidat_odendi', 'Aidat Ödendi (Makbuz)', aidatVars, `💰 Sayın Veli,\n👧👦 {ogrenci_adi} öğrencimizin {ay} {yil} ayı aidat ödemesi başarıyla alınmıştır.\n💵 Ödenen Tutar: {odenen_tutar} TL\n📉 Kalan Tutar: {kalan_tutar} TL\nℹ️ Bilgi: {kalan_bilgi}\nTeşekkür eder, sağlıklı günler dileriz.\n✨ {tesis_adi}`) %>
+
+                                <%= renderMsg('aidat_hatirlatma', 'Aidat Hatırlatma (Ödeme Öncesi)', aidatVars, `⏰ Sayın Veli,\n👧👦 {ogrenci_adi} öğrencimizin {ay} {yil} ayı aidat ödemesini hatırlatmak isteriz.\n💰 Tutar: {tutar} TL\nLütfen ödemenizi zamanında gerçekleştiriniz.\n✨ {tesis_adi}`) %>
+
+                                <%= renderMsg('aidat_gecmis', 'Gecikmiş Aidat Bildirimi', aidatVars, `⚠️ Sayın Veli,\n{ogrenci_adi} öğrencimizin {ay} {yil} aidat ödemesi gecikmiştir.\nLütfen en kısa sürede ödeme yapınız.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                        <!-- Paket Satış -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-box-open"></i></div>
+                                <h3 class="card-title">Paket Satışı</h3>
+                            </div>
+                            <div class="info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>İpucu:</strong> Peşin ve taksitli satışlar için aynı şablon kullanılır. 
+                                    Taksitli satışlarda {taksit_sayisi}, {pesinat}, {taksit_tutari} değişkenleri dolu gelir; peşin satışlarda "-" olarak görünür.
+                                </div>
+                            </div>
+                            <div class="msg-grid">
+                                <% const paketSatisVars = [
+                                    '{ad_soyad}', '{paket_adi}', '{tutar}', 
+                                    '{baslangic}', '{bitis}', '{baslangic_ay}', '{bitis_ay}',
+                                    '{odeme_turu}', '{taksit_sayisi}', '{pesinat}', '{taksit_tutari}',
+                                    '{kalan_gun}', '{tesis_adi}'
+                                ]; %>
+
+                                <%= renderMsg('paket_satis', 'Paket Satışı Yapıldığında', paketSatisVars, `🎉 Tebrikler!\n{ad_soyad} için {paket_adi} tanımlanmıştır.\n\n📅 Başlangıç: {baslangic} {baslangic_ay}\n📅 Bitiş: {bitis} {bitis_ay}\n💰 Paket Fiyatı: {tutar}\n💳 Ödeme Şekli: {odeme_turu}\n📊 Taksit Sayısı: {taksit_sayisi}\n💵 Peşinat: {pesinat}\n💸 Taksit Tutarı: {taksit_tutari}\n\nİyi dersler dileriz.\n✨ {tesis_adi}`) %>
+
+                                <!-- Paket Bitim -->
+                                <div class="msg-item">
+                                    <div class="item-header">
+                                        <span class="item-label">Paket Süresi Dolarken</span>
+                                        <label class="switch">
+                                            <input type="checkbox" name="paket_bitim_aktif" <%= (ayarlar && ayarlar.paket_bitim_aktif) ? 'checked' : '' %>>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <textarea name="paket_bitim_mesaj" class="msg-input"><%= (ayarlar && ayarlar.paket_bitim_mesaj) ? ayarlar.paket_bitim_mesaj : `⏳ Sayın Veli,\n{ad_soyad} öğrencimizin {paket_adi} süresinin bitmesine {kalan_gun} gün kalmıştır.\nYenileme işlemleri için ofise bekleriz.\n✨ {tesis_adi}` %></textarea>
+                                    <div class="var-container">
+                                        <% paketSatisVars.forEach(v => { %> <span class="var-tag" onclick="insertVar(this, '<%= v %>')"><i class="fas fa-tag"></i> <%= v %></span> <% }) %>
+                                    </div>
+                                    <div class="options-row">
+                                        <span style="font-size:12px; font-weight:700; color:var(--wa-green);">Gönderim Zamanları:</span>
+                                        <label class="checkbox-label"><input type="checkbox" name="paket_bitim_7gun" <%= (ayarlar && ayarlar.paket_bitim_7gun) ? 'checked' : '' %>> 7 Gün Kala</label>
+                                        <label class="checkbox-label"><input type="checkbox" name="paket_bitim_3gun" <%= (ayarlar && ayarlar.paket_bitim_3gun) ? 'checked' : '' %>> 3 Gün Kala</label>
+                                        <label class="checkbox-label"><input type="checkbox" name="paket_bitim_1gun" <%= (ayarlar && ayarlar.paket_bitim_1gun) ? 'checked' : '' %>> Son Gün</label>
+                                    </div>
+                                </div>
+
+                                <%= renderMsg('paket_taksit', 'Paket Taksit Makbuzu', ['{ad_soyad}', '{tutar}', '{taksit_no}', '{paket_adi}', '{kalan}', '{kalan_taksit}', '{tesis_adi}'], `💰 Sayın Veli,\n{ad_soyad} için {paket_adi} paketinin {taksit_no}. taksit ödemesi alınmıştır.\n💵 Ödenen: {tutar}\n📉 {kalan_taksit}\nTeşekkür ederiz.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('paket_taksit_hatirlatma', 'Paket Taksit Hatırlatma', ['{ad_soyad}', '{paket_adi}', '{tutar}', '{bitis}', '{tesis_adi}'], `⏰ Hatırlatma:\n{ad_soyad} için {paket_adi} taksit ödemeniz yaklaşmıştır.\n💰 Tutar: {tutar}\n📅 Son Ödeme: {bitis}\nLütfen geciktirmeyiniz.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                        <!-- Özel Ders Satış -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+                                <h3 class="card-title">Özel Ders Satışı</h3>
+                            </div>
+                            <div class="info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>İpucu:</strong> Özel ders satışlarında {toplam_saat} ve {gecerlilik_gun} değişkenleri kullanılabilir.
+                                    Taksitli satışlarda ödeme detayları da eklenir.
+                                </div>
+                            </div>
+                            <div class="msg-grid">
+                                <% const ozelDersSatisVars = [
+                                    '{ad_soyad}', '{paket_adi}', '{toplam_saat}', '{gecerlilik_gun}',
+                                    '{tutar}', '{odeme_turu}', '{taksit_sayisi}', '{pesinat}', '{taksit_tutari}',
+                                    '{tesis_adi}'
+                                ]; %>
+
+                                <%= renderMsg('ozel_ders_satis', 'Özel Ders Satışı Yapıldığında', ozelDersSatisVars, `🎉 Tebrikler!\n{ad_soyad} için {toplam_saat} Derslik {paket_adi} tanımlanmıştır.\n\n📅 Geçerlilik Süresi: {gecerlilik_gun} Gün\n💰 Özel Ders Fiyatı: {tutar}\n💳 Ödeme Şekli: {odeme_turu}\n📊 Taksit Sayısı: {taksit_sayisi}\n💵 Peşinat: {pesinat}\n💸 Taksit Tutarı: {taksit_tutari}\n\nİyi dersler dileriz.\n✨ {tesis_adi}`) %>
+
+                                <!-- Özel Ders Bitim -->
+                                <div class="msg-item">
+                                    <div class="item-header">
+                                        <span class="item-label">Özel Ders Süresi Dolarken</span>
+                                        <label class="switch">
+                                            <input type="checkbox" name="ozel_ders_bitim_aktif" <%= (ayarlar && ayarlar.ozel_ders_bitim_aktif) ? 'checked' : '' %>>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <textarea name="ozel_ders_bitim_mesaj" class="msg-input"><%= (ayarlar && ayarlar.ozel_ders_bitim_mesaj) ? ayarlar.ozel_ders_bitim_mesaj : `⏳ Sayın Veli,\n{ad_soyad} öğrencimizin {paket_adi} özel ders paketinin süresi dolmak üzeredir.\n📅 Kalan Gün: {kalan_gun}\nYenileme için ofise bekleriz.\n✨ {tesis_adi}` %></textarea>
+                                    <div class="var-container">
+                                        <% ozelDersSatisVars.forEach(v => { %> <span class="var-tag" onclick="insertVar(this, '<%= v %>')"><i class="fas fa-tag"></i> <%= v %></span> <% }) %>
+                                        <span class="var-tag" onclick="insertVar(this, '{kalan_gun}')"><i class="fas fa-tag"></i> {kalan_gun}</span>
+                                    </div>
+                                    <div class="options-row">
+                                        <span style="font-size:12px; font-weight:700; color:var(--wa-green);">Gönderim Zamanları:</span>
+                                        <label class="checkbox-label"><input type="checkbox" name="ozel_ders_bitim_7gun" <%= (ayarlar && ayarlar.ozel_ders_bitim_7gun) ? 'checked' : '' %>> 7 Gün</label>
+                                        <label class="checkbox-label"><input type="checkbox" name="ozel_ders_bitim_3gun" <%= (ayarlar && ayarlar.ozel_ders_bitim_3gun) ? 'checked' : '' %>> 3 Gün</label>
+                                        <label class="checkbox-label"><input type="checkbox" name="ozel_ders_bitim_1gun" <%= (ayarlar && ayarlar.ozel_ders_bitim_1gun) ? 'checked' : '' %>> 1 Gün</label>
+                                    </div>
+                                </div>
+
+                                <%= renderMsg('ozel_taksit', 'Özel Ders Taksit Makbuzu', ['{ad_soyad}', '{tutar}', '{taksit_no}', '{paket_adi}', '{kalan}', '{kalan_taksit}', '{tesis_adi}'], `💰 Sayın Veli,\n{ad_soyad} için {paket_adi} özel ders paketinin {taksit_no}. taksit ödemesi alınmıştır.\n💵 Ödenen: {tutar}\n📉 {kalan_taksit}\nTeşekkür ederiz.\n✨ {tesis_adi}`) %>
+                                <%= renderMsg('ozel_taksit_hatirlatma', 'Özel Ders Taksit Hatırlatma', ['{ad_soyad}', '{paket_adi}', '{tutar}', '{tesis_adi}'], `⏰ Hatırlatma:\n{ad_soyad} için {paket_adi} özel ders taksit ödemeniz yaklaşmıştır.\n💰 Tutar: {tutar}\nLütfen ödeme yapınız.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- TAB 3: ÜRÜN SATIŞI -->
+                    <div id="products" class="tab-content">
+                        
+                        <!-- Ürün Satış -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <div class="card-icon" style="background: #fef3c7; color: #d97706;"><i class="fas fa-shopping-cart"></i></div>
+                                <h3 class="card-title">Ürün Satış Bildirimleri</h3>
+                            </div>
+                            <div class="info-box">
+                                <i class="fas fa-info-circle"></i>
+                                <div>
+                                    <strong>Bilgi:</strong> Ürün satışı yapıldığında veliye otomatik bildirim gönderilir.
+                                    Tüm satış detayları (ürün adı, beden, adet, tutar, ödeme şekli) mesajda yer alır.
+                                </div>
+                            </div>
+                            <div class="msg-grid">
+                                <% const urunSatisVars = [
+                                    '{ad_soyad}', '{urun_adi}', '{beden}', '{adet}',
+                                    '{birim_fiyat}', '{toplam_tutar}', '{odeme_tipi}',
+                                    '{tarih}', '{saat}', '{tesis_adi}'
+                                ]; %>
+
+                                <%= renderMsg('urun_satis', 'Ürün Satışı Yapıldığında', urunSatisVars, `🛍️ *ÜRÜN SATIŞ MAKBUZU*\n\nSayın Veli,\n{ad_soyad} adına ürün satışı gerçekleştirilmiştir.\n\n📦 Ürün: {urun_adi}\n📏 Beden: {beden}\n🔢 Adet: {adet}\n💵 Birim Fiyat: {birim_fiyat}\n💰 Toplam Tutar: {toplam_tutar}\n💳 Ödeme Şekli: {odeme_tipi}\n\n📅 Tarih: {tarih}\n⏰ Saat: {saat}\n\nTeşekkür ederiz.\n✨ {tesis_adi}`) %>
+                            </div>
+                        </div>
+
+                        <!-- Stok Uyarıları (Yönetici) -->
+                        <div class="settings-card" style="border: 1px solid #fecaca;">
+                            <div class="card-header" style="background: #fef2f2; border-bottom: 1px dashed #fecaca;">
+                                <div class="card-icon" style="color: #dc2626; background: #fee2e2;"><i class="fas fa-exclamation-triangle"></i></div>
+                                <h3 class="card-title" style="color: #b91c1c;">Yönetici Stok Bildirimleri</h3>
+                            </div>
+                            <div class="msg-grid">
+                                <% const stokVars = ['{urun_adi}', '{kalan_stok}', '{beden}', '{kritik_esik}', '{tesis_adi}']; %>
+                                
+                                <div class="msg-item" style="border-color: #fecaca;">
+                                    <div class="item-header">
+                                        <span class="item-label" style="color: #b91c1b;">Ürün Stok Kritik Seviyede</span>
+                                        <label class="switch">
+                                            <input type="checkbox" name="urun_stok_az_aktif" <%= (ayarlar && ayarlar.urun_stok_az_aktif) ? 'checked' : '' %>>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                    <textarea name="urun_stok_az_mesaj" class="msg-input"><%= (ayarlar && ayarlar.urun_stok_az_mesaj) ? ayarlar.urun_stok_az_mesaj : `🚨 *STOK UYARISI!*\n\n📦 Ürün: {urun_adi}\n📏 Beden: {beden}\n📉 Kalan Stok: {kalan_stok} adet\n⚠️ Kritik Eşik: {kritik_esik} adet\n\nLütfen tedarik sağlayınız.\n✨ {tesis_adi}` %></textarea>
+                                    <div class="var-container">
+                                        <% stokVars.forEach(v => { %> <span class="var-tag" onclick="insertVar(this, '<%= v %>')"><i class="fas fa-tag"></i> <%= v %></span> <% }) %>
+                                    </div>
+                                    <p style="font-size: 11px; color: #dc2626; margin-top: 10px; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-info-circle"></i> Bu mesaj sadece sistem yöneticisinin telefonuna gönderilir.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- FOOTER -->
+                <div class="page-footer">
+                    <button type="submit" class="btn-save" id="saveBtn">
+                        <i class="fas fa-save"></i> Ayarları Kaydet
+                    </button>
+                </div>
+            </form>
+
+        <% } %>
+    </div>
+
+    <!-- BOTTOM NAVİGATION -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/whatsapp/chat" class="nav-item active">
+            <i class="fab fa-whatsapp"></i>
+            <span>WhatsApp</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle" id="toastIcon"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // TEMA YÖNETİMİ
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // TAB DEĞİŞTİRME
+        function openTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // DEĞİŞKEN EKLEME
+        function insertVar(element, text) {
+            const wrapper = element.closest('.msg-item');
+            const textarea = wrapper.querySelector('textarea');
+            
+            if (textarea) {
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const value = textarea.value;
+                
+                textarea.value = value.substring(0, start) + text + value.substring(end);
+                textarea.selectionStart = textarea.selectionEnd = start + text.length;
+                textarea.focus();
+            }
+        }
+
+        // TOAST GÖSTERME
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toast.className = 'toast show ' + type;
+            toastMsg.textContent = message;
+            toastIcon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // KAYDETME İŞLEMİ
+        async function saveSettings(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            // Tüm form verilerini al
+            formData.forEach((value, key) => { data[key] = value; });
+            
+            // Checkboxları manuel kontrol et (işaretli değilse 'off' olarak gönder)
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if(!data[cb.name]) data[cb.name] = cb.checked ? 'on' : 'off';
+            });
+
+            try {
+                const res = await fetch('/api/whatsapp/settings/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+
+                if(result.success) {
+                    showToast('Ayarlar başarıyla kaydedildi!', 'success');
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Sunucu bağlantı hatası', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
+            }
+        }
+    </script>
+</body>
+</html>

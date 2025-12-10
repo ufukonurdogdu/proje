@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | Form Yapılandırıcı</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { --primary: <%= siteAyarlari.ana_renk %>; --bg-body: #f3f5f9; --dark-text: #2d3748; --radius-xl: 24px; --radius-md: 16px; --shadow-soft: 0 8px 30px rgba(0,0,0,0.04); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: none; list-style: none; outline: none; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        .sidebar { width: 280px; height: 96vh; margin: 2vh 0 2vh 2vh; background: #1a1f37; border-radius: var(--radius-xl); display: flex; flex-direction: column; color: white; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); z-index: 100; }
+        .sidebar::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%); pointer-events: none; }
+        .brand { padding: 30px; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; background: linear-gradient(to right, #fff, #a0aec0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .menu { padding: 10px 20px; flex: 1; overflow-y: auto; }
+        .menu-category { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); margin: 20px 10px 10px 10px; font-weight: 700; }
+        .nav-link { display: flex; align-items: center; padding: 14px 20px; margin-bottom: 8px; border-radius: 14px; color: #a0aec0; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(10px); }
+        .nav-link.active i { color: #38b2ac; } .nav-link i { width: 24px; font-size: 18px; margin-right: 12px; }
+        .main { flex: 1; margin: 2vh; background: white; border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-soft); }
+        header { padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .content-scroll { padding: 40px; overflow-y: auto; flex: 1; }
+
+        .builder-grid { display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
+        .add-card { background: #fff; padding: 25px; border-radius: 16px; border: 1px solid #e2e8f0; height: fit-content; position: sticky; top: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; transition: 0.3s; background: #fff; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,123,255,0.1); }
+        .btn-add { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-add:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .fields-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .field-item { background: white; padding: 20px; border-radius: 14px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; position: relative; overflow: hidden; cursor: move; }
+        .field-item:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-color: var(--primary); }
+        .sortable-ghost { opacity: 0.4; background: #e2e8f0; border: 2px dashed #94a3b8; }
+        .field-icon { width: 40px; height: 40px; background: #f1f5f9; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--primary); margin-bottom: 15px; pointer-events: none; }
+        .field-info h4 { font-size: 16px; font-weight: 700; color: var(--dark-text); margin-bottom: 5px; pointer-events: none; }
+        .field-info p { font-size: 12px; color: #94a3b8; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; pointer-events: none; }
+        .field-actions { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: flex-end; }
+        .btn-delete { color: #ef4444; background: #fef2f2; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
+        .btn-delete:hover { background: #fee2e2; }
+        .badge-req { position: absolute; top: 20px; right: 20px; font-size: 10px; background: #e2e8f0; padding: 4px 8px; border-radius: 6px; color: #64748b; font-weight: 700; pointer-events: none; }
+        .badge-req.active { background: #dcfce7; color: #166534; }
+
+        /* Result Modal */
+        .result-modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 10001; align-items: center; justify-content: center; padding: 20px; }
+        .result-modal-overlay.show { display: flex; }
+        .result-modal { background: white; border-radius: 20px; width: 100%; max-width: 340px; text-align: center; padding: 30px; animation: popUp 0.3s ease; }
+        @keyframes popUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .result-icon { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
+        .result-icon.success { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .result-icon.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .result-icon.confirm { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .result-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--dark-text); }
+        .result-message { font-size: 14px; color: #64748b; margin-bottom: 25px; line-height: 1.5; }
+        .result-buttons { display: flex; gap: 12px; }
+        .result-btn { flex: 1; padding: 14px 24px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .result-btn.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .result-btn.error { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .result-btn.cancel { background: #e2e8f0; color: #475569; }
+        .result-btn.confirm-delete { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .result-btn:active { transform: scale(0.98); }
+        .result-btn.full-width { width: 100%; }
+
+        .mobile-header { display: none !important; }
+        .bottom-nav { display: none !important; }
+        .mobile-stats { display: none !important; }
+        .mobile-fields-list { display: none !important; }
+        .fab-add { display: none !important; }
+        .add-modal { display: none; }
+        .mobile-info-box { display: none !important; }
+
+        @media (max-width: 991px) {
+            [data-theme="light"] { --m-bg-primary: #f8fafc; --m-bg-secondary: #ffffff; --m-bg-tertiary: #f1f5f9; --m-text-primary: #0f172a; --m-text-secondary: #475569; --m-text-muted: #94a3b8; --m-border-color: #e2e8f0; --m-header-bg: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+            [data-theme="dark"] { --m-bg-primary: #0f172a; --m-bg-secondary: #1e293b; --m-bg-tertiary: #334155; --m-text-primary: #f1f5f9; --m-text-secondary: #cbd5e1; --m-text-muted: #94a3b8; --m-border-color: #334155; --m-header-bg: linear-gradient(135deg, #059669 0%, #047857 100%); --bg-body: #0f172a; --dark-text: #f1f5f9; }
+            :root { --nav-height: 70px; }
+            body { background: var(--m-bg-primary); height: auto; min-height: 100vh; overflow: auto; display: block; }
+            .sidebar { display: none !important; }
+            .main { display: none !important; }
+            .mobile-header { display: flex !important; }
+            .mobile-stats { display: grid !important; }
+            .mobile-info-box { display: flex !important; }
+            .mobile-fields-list { display: flex !important; }
+            .fab-add { display: flex !important; }
+            .bottom-nav { display: flex !important; }
+
+            .mobile-header { display: flex; align-items: center; gap: 12px; padding: 15px 20px; padding-top: max(env(safe-area-inset-top), 15px); background: var(--m-header-bg); color: white; position: sticky; top: 0; z-index: 100; }
+            .mobile-header-title { flex: 1; }
+            .mobile-header-title h1 { font-size: 17px; font-weight: 700; }
+            .mobile-header-title span { font-size: 12px; opacity: 0.8; }
+            .mobile-header-actions { display: flex; gap: 8px; }
+            .mobile-header-actions button { width: 38px; height: 38px; border: none; border-radius: 12px; background: rgba(255,255,255,0.15); color: white; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+            .mobile-header-actions button:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+
+            .mobile-stats { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; }
+            .mobile-stat-card { background: var(--m-bg-secondary); border-radius: 14px; padding: 14px 10px; text-align: center; border: 1px solid var(--m-border-color); }
+            .mobile-stat-card .stat-num { font-size: 22px; font-weight: 700; color: var(--m-text-primary); }
+            .mobile-stat-card .stat-num.green { color: #10b981; }
+            .mobile-stat-card .stat-num.orange { color: #f59e0b; }
+            .mobile-stat-card .stat-num.blue { color: #3b82f6; }
+            .mobile-stat-card .stat-label { font-size: 11px; color: var(--m-text-muted); margin-top: 4px; }
+
+            .mobile-info-box { margin: 0 15px 15px; padding: 14px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; gap: 12px; }
+            .mobile-info-box i { font-size: 20px; color: #10b981; }
+            .mobile-info-box p { font-size: 12px; color: var(--m-text-secondary); line-height: 1.4; }
+
+            .mobile-fields-list { display: flex !important; flex-direction: column; gap: 12px; padding: 0 15px; padding-bottom: calc(var(--nav-height) + 100px); }
+            .mobile-field-card { background: var(--m-bg-secondary); border-radius: 14px; padding: 16px; border: 1px solid var(--m-border-color); display: flex; align-items: center; gap: 14px; cursor: move; touch-action: manipulation; }
+            .mobile-field-card:active { transform: scale(0.98); }
+            .mobile-field-card.sortable-ghost { opacity: 0.4; background: var(--m-bg-tertiary); border: 2px dashed var(--m-text-muted); }
+            .mobile-drag-handle { width: 24px; display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--m-text-muted); }
+            .mobile-drag-handle span { width: 16px; height: 2px; background: var(--m-text-muted); border-radius: 1px; }
+            .mobile-field-icon { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1)); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #10b981; flex-shrink: 0; }
+            .mobile-field-info { flex: 1; min-width: 0; }
+            .mobile-field-name { font-size: 15px; font-weight: 600; color: var(--m-text-primary); margin-bottom: 4px; }
+            .mobile-field-type { font-size: 11px; color: var(--m-text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+            .mobile-field-badge { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+            .mobile-field-badge.required { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+            .mobile-field-badge.optional { background: var(--m-bg-tertiary); color: var(--m-text-muted); }
+            .mobile-field-delete { width: 38px; height: 38px; border: none; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #ef4444; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+            .mobile-field-delete:active { transform: scale(0.9); }
+
+            .mobile-empty-state { text-align: center; padding: 60px 20px; background: var(--m-bg-secondary); border-radius: 14px; border: 1px solid var(--m-border-color); }
+            .mobile-empty-state i { font-size: 50px; color: var(--m-text-muted); opacity: 0.5; margin-bottom: 15px; }
+            .mobile-empty-state h4 { font-size: 16px; color: var(--m-text-primary); margin-bottom: 8px; }
+            .mobile-empty-state p { font-size: 13px; color: var(--m-text-muted); }
+
+            .fab-add { display: flex; position: fixed; bottom: calc(var(--nav-height) + 20px); right: 20px; width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; font-size: 22px; cursor: pointer; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); z-index: 99; }
+            .fab-add:active { transform: scale(0.95); }
+
+            .add-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 9999; align-items: flex-end; justify-content: center; }
+            .add-modal.show { display: flex !important; }
+            .add-modal-content { background: var(--m-bg-secondary); width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; overflow-y: auto; animation: slideUp 0.3s ease; }
+            @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+            .add-modal-header { padding: 20px; position: sticky; top: 0; background: var(--m-bg-secondary); z-index: 10; border-bottom: 1px solid var(--m-border-color); display: flex; justify-content: space-between; align-items: center; }
+            .add-modal-header h3 { font-size: 16px; font-weight: 700; color: var(--m-text-primary); display: flex; align-items: center; gap: 10px; }
+            .add-modal-header h3 i { color: #10b981; }
+            .add-modal-close { width: 36px; height: 36px; border: none; background: var(--m-bg-tertiary); border-radius: 50%; cursor: pointer; font-size: 18px; color: var(--m-text-muted); display: flex; align-items: center; justify-content: center; }
+            .add-modal-close:active { transform: scale(0.95); }
+            .add-modal-body { padding: 20px; padding-bottom: 100px; }
+            .add-modal .form-group { margin-bottom: 16px; }
+            .add-modal .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--m-text-secondary); margin-bottom: 8px; }
+            .add-modal .form-control { width: 100%; padding: 14px 16px; border: 1px solid var(--m-border-color); border-radius: 12px; font-size: 16px; background: var(--m-bg-tertiary); color: var(--m-text-primary); }
+            .add-modal .form-control:focus { outline: none; background: var(--m-bg-secondary); border-color: #10b981; }
+            .add-modal .form-control::placeholder { color: var(--m-text-muted); }
+            .add-modal .checkbox-group { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--m-bg-tertiary); border-radius: 12px; cursor: pointer; }
+            .add-modal .checkbox-group input { width: 22px; height: 22px; accent-color: #10b981; }
+            .add-modal .checkbox-group span { font-size: 14px; font-weight: 500; color: var(--m-text-primary); }
+            .add-modal-footer { position: fixed; bottom: 0; left: 0; right: 0; background: var(--m-bg-secondary); padding: 15px 20px; padding-bottom: max(env(safe-area-inset-bottom), 15px); border-top: 1px solid var(--m-border-color); display: flex; gap: 12px; }
+            .add-modal-footer .btn-cancel { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; background: var(--m-bg-tertiary); color: var(--m-text-primary); }
+            .add-modal-footer .btn-submit { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #10b981, #059669); color: white; display: flex; align-items: center; justify-content: center; gap: 8px; }
+            .add-modal-footer .btn-cancel:active, .add-modal-footer .btn-submit:active { transform: scale(0.98); }
+
+            .result-modal-overlay { padding: 20px; }
+            .result-modal { background: var(--m-bg-secondary); max-width: 320px; }
+            .result-title { color: var(--m-text-primary); }
+            .result-message { color: var(--m-text-secondary); }
+            .result-btn.cancel { background: var(--m-bg-tertiary); color: var(--m-text-primary); }
+
+            .bottom-nav { display: flex; position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: var(--m-bg-secondary); border-top: 1px solid var(--m-border-color); padding-bottom: env(safe-area-inset-bottom); z-index: 1000; }
+            .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; color: var(--m-text-muted); font-size: 10px; font-weight: 500; }
+            .nav-item i { font-size: 20px; }
+            .nav-item.active { color: #10b981; }
+            .nav-item:active { opacity: 0.7; }
+        }
+
+        @media(max-width: 900px) and (min-width: 992px) { .builder-grid { grid-template-columns: 1fr; } .add-card { position: relative; } }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <header class="mobile-header">
+        <div class="mobile-header-title">
+            <h1>Form Yapılandırıcı</h1>
+            <span>Kayıt formu alanları</span>
+        </div>
+        <div class="mobile-header-actions">
+            <button id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <% 
+        const zorunluAlanlar = alanlar.filter(a => a.zorunlu_mu).length;
+        const opsiyonelAlanlar = alanlar.filter(a => !a.zorunlu_mu).length;
+    %>
+
+    <div class="mobile-stats">
+        <div class="mobile-stat-card">
+            <div class="stat-num blue"><%= alanlar.length %></div>
+            <div class="stat-label">Toplam Alan</div>
+        </div>
+        <div class="mobile-stat-card">
+            <div class="stat-num green"><%= zorunluAlanlar %></div>
+            <div class="stat-label">Zorunlu</div>
+        </div>
+        <div class="mobile-stat-card">
+            <div class="stat-num orange"><%= opsiyonelAlanlar %></div>
+            <div class="stat-label">Opsiyonel</div>
+        </div>
+    </div>
+
+    <div class="mobile-info-box">
+        <i class="fas fa-arrows-up-down"></i>
+        <p>Alanları sürükleyerek sıralayabilirsiniz. Değişiklikler otomatik kaydedilir.</p>
+    </div>
+
+    <div class="mobile-fields-list" id="mobile-sortable-list">
+        <% if (alanlar && alanlar.length > 0) { %>
+            <% alanlar.forEach(function(alan) { %>
+                <div class="mobile-field-card" data-id="<%= alan.id %>" data-name="<%= alan.alan_adi %>">
+                    <div class="mobile-drag-handle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="mobile-field-icon">
+                        <% if(alan.alan_tipi == 'text') { %><i class="fa-solid fa-font"></i><% } %>
+                        <% if(alan.alan_tipi == 'number') { %><i class="fa-solid fa-hashtag"></i><% } %>
+                        <% if(alan.alan_tipi == 'tel') { %><i class="fa-solid fa-phone"></i><% } %>
+                        <% if(alan.alan_tipi == 'textarea') { %><i class="fa-solid fa-align-left"></i><% } %>
+                        <% if(alan.alan_tipi == 'date') { %><i class="fa-solid fa-calendar"></i><% } %>
+                    </div>
+                    <div class="mobile-field-info">
+                        <div class="mobile-field-name"><%= alan.alan_adi %></div>
+                        <div class="mobile-field-type"><%= alan.alan_tipi.toUpperCase() %></div>
+                    </div>
+                    <% if (alan.zorunlu_mu) { %>
+                        <span class="mobile-field-badge required">Zorunlu</span>
+                    <% } else { %>
+                        <span class="mobile-field-badge optional">Opsiyonel</span>
+                    <% } %>
+                    <button class="mobile-field-delete btn-sil" data-id="<%= alan.id %>" data-name="<%= alan.alan_adi %>">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="mobile-empty-state">
+                <i class="fas fa-puzzle-piece"></i>
+                <h4>Ekstra alan yok</h4>
+                <p>+ butonuna tıklayarak özel form alanları ekleyin</p>
+            </div>
+        <% } %>
+    </div>
+
+    <button class="fab-add" id="fabAdd">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/kasa" class="nav-item">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Kasa</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item active">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <div class="add-modal" id="addModal">
+        <div class="add-modal-content">
+            <div class="add-modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Yeni Alan Ekle</h3>
+                <button class="add-modal-close" id="closeAddModal">&times;</button>
+            </div>
+            <form action="/api/admin/form-ayarlari/ekle" method="POST">
+                <div class="add-modal-body">
+                    <div class="form-group">
+                        <label>Alan Adı</label>
+                        <input type="text" name="alan_adi" class="form-control" placeholder="Örn: Kan Grubu" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Veri Tipi</label>
+                        <select name="alan_tipi" class="form-control">
+                            <option value="text">Kısa Yazı</option>
+                            <option value="number">Sayı</option>
+                            <option value="tel">Telefon</option>
+                            <option value="date">Tarih</option>
+                            <option value="textarea">Uzun Yazı</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-group">
+                            <input type="checkbox" name="zorunlu_mu">
+                            <span>Zorunlu Alan</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="add-modal-footer">
+                    <button type="button" class="btn-cancel" id="cancelAddModal">İptal</button>
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="page-title">
+                <h1>Form Yapılandırıcı</h1>
+                <p>Alanları sürükleyip bırakarak form sırasını değiştirebilirsiniz.</p>
+            </div>
+            <div style="font-weight: 600;"><%= user.ad_soyad %></div>
+        </header>
+
+        <div class="content-scroll">
+            <div class="builder-grid">
+                <div class="add-card">
+                    <h3 style="margin-bottom: 20px; font-size: 18px;"><i class="fa-solid fa-plus-circle"></i> Yeni Alan Ekle</h3>
+                    <form action="/api/admin/form-ayarlari/ekle" method="POST">
+                        <div class="form-group">
+                            <label>Alan Adı</label>
+                            <input type="text" name="alan_adi" class="form-control" placeholder="Örn: Kan Grubu" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Veri Tipi</label>
+                            <select name="alan_tipi" class="form-control">
+                                <option value="text">Kısa Yazı</option>
+                                <option value="number">Sayı</option>
+                                <option value="tel">Telefon</option>
+                                <option value="date">Tarih</option>
+                                <option value="textarea">Uzun Yazı</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="zorunlu_mu" style="width: 18px; height: 18px;">
+                                Zorunlu Alan
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-add"><i class="fa-solid fa-save"></i> Ekle</button>
+                    </form>
+                    <div style="margin-top: 20px; font-size: 12px; color: #64748b; text-align: center;">
+                        <i class="fa-solid fa-arrows-up-down-left-right"></i> Sıralamak için sağdaki kartları sürükleyin.
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="margin-bottom: 20px; font-size: 18px; color: #64748b;">Form Sıralaması</h3>
+                    <div class="fields-list" id="sortable-list">
+                        <% if (alanlar.length === 0) { %>
+                            <div style="grid-column: span 3; text-align: center; padding: 40px; color: #999;">Ekstra alan yok.</div>
+                        <% } %>
+
+                        <% alanlar.forEach(function(alan) { %>
+                            <div class="field-item" data-id="<%= alan.id %>" data-name="<%= alan.alan_adi %>">
+                                <% if (alan.zorunlu_mu) { %>
+                                    <div class="badge-req active">Zorunlu</div>
+                                <% } else { %>
+                                    <div class="badge-req">Opsiyonel</div>
+                                <% } %>
+
+                                <div class="field-icon">
+                                    <% if(alan.alan_tipi == 'text') { %><i class="fa-solid fa-font"></i><% } %>
+                                    <% if(alan.alan_tipi == 'number') { %><i class="fa-solid fa-hashtag"></i><% } %>
+                                    <% if(alan.alan_tipi == 'tel') { %><i class="fa-solid fa-phone"></i><% } %>
+                                    <% if(alan.alan_tipi == 'textarea') { %><i class="fa-solid fa-align-left"></i><% } %>
+                                    <% if(alan.alan_tipi == 'date') { %><i class="fa-solid fa-calendar"></i><% } %>
+                                </div>
+                                
+                                <div class="field-info">
+                                    <h4><%= alan.alan_adi %></h4>
+                                    <p><%= alan.alan_tipi.toUpperCase() %></p>
+                                </div>
+
+                                <div class="field-actions">
+                                    <button class="btn-delete btn-sil" data-id="<%= alan.id %>" data-name="<%= alan.alan_adi %>">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-modal-overlay" id="resultModal">
+        <div class="result-modal">
+            <div class="result-icon" id="resultIcon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="result-title" id="resultTitle">Başarılı!</div>
+            <div class="result-message" id="resultMessage">İşlem başarıyla tamamlandı.</div>
+            <div class="result-buttons" id="resultButtons">
+                <button class="result-btn success full-width" id="btnOk">Tamam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // =====================================================
+            // DEĞİŞKENLER
+            // =====================================================
+            var pendingDeleteId = null;
+            var pendingDeleteName = null;
+
+            // =====================================================
+            // TEMA YÖNETİMİ
+            // =====================================================
+            function initTheme() {
+                var saved = localStorage.getItem('dashboardTheme') || 'light';
+                document.documentElement.setAttribute('data-theme', saved);
+                updateThemeIcon(saved);
+            }
+
+            function toggleTheme() {
+                var current = document.documentElement.getAttribute('data-theme');
+                var next = current === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('dashboardTheme', next);
+                updateThemeIcon(next);
+            }
+
+            function updateThemeIcon(theme) {
+                var btn = document.getElementById('themeToggle');
+                if (btn) {
+                    btn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+                }
+            }
+
+            initTheme();
+
+            // Tema toggle butonu
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // =====================================================
+            // ADD MODAL
+            // =====================================================
+            function openAddModal() {
+                document.getElementById('addModal').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeAddModal() {
+                document.getElementById('addModal').classList.remove('show');
+                document.body.style.overflow = '';
+            }
+
+            // FAB butonu
+            document.getElementById('fabAdd').addEventListener('click', openAddModal);
+
+            // Modal kapat butonları
+            document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
+            document.getElementById('cancelAddModal').addEventListener('click', closeAddModal);
+
+            // Modal dışına tıklayınca kapat
+            document.getElementById('addModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddModal();
+                }
+            });
+
+            // =====================================================
+            // RESULT MODAL
+            // =====================================================
+            function showResultModal(message, type) {
+                type = type || 'success';
+                var modal = document.getElementById('resultModal');
+                var icon = document.getElementById('resultIcon');
+                var title = document.getElementById('resultTitle');
+                var msg = document.getElementById('resultMessage');
+                var buttons = document.getElementById('resultButtons');
+
+                icon.className = 'result-icon ' + type;
+
+                if (type === 'success') {
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                    title.textContent = 'Başarılı!';
+                    buttons.innerHTML = '<button class="result-btn success full-width" id="btnOk">Tamam</button>';
+                } else if (type === 'error') {
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    title.textContent = 'Hata!';
+                    buttons.innerHTML = '<button class="result-btn error full-width" id="btnOk">Tamam</button>';
+                }
+
+                msg.textContent = message;
+                modal.classList.add('show');
+            }
+
+            function showDeleteConfirm(id, name) {
+                pendingDeleteId = id;
+                pendingDeleteName = name;
+
+                var modal = document.getElementById('resultModal');
+                var icon = document.getElementById('resultIcon');
+                var title = document.getElementById('resultTitle');
+                var msg = document.getElementById('resultMessage');
+                var buttons = document.getElementById('resultButtons');
+
+                icon.className = 'result-icon confirm';
+                icon.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                title.textContent = 'Alanı Sil';
+                msg.textContent = '"' + name + '" alanı kalıcı olarak silinecek. Bu işlem geri alınamaz.';
+                
+                buttons.innerHTML = '<button class="result-btn cancel" id="btnCancel">İptal</button><button class="result-btn confirm-delete" id="btnDelete">Sil</button>';
+
+                modal.classList.add('show');
+            }
+
+            function closeResultModal() {
+                document.getElementById('resultModal').classList.remove('show');
+                pendingDeleteId = null;
+                pendingDeleteName = null;
+            }
+
+            function executeDelete() {
+                if (pendingDeleteId) {
+                    window.location.href = '/api/admin/form-ayarlari/sil/' + pendingDeleteId;
+                }
+            }
+
+            // Result Modal Event Delegation
+            document.getElementById('resultButtons').addEventListener('click', function(e) {
+                var target = e.target;
+                
+                if (target.id === 'btnOk' || target.id === 'btnCancel') {
+                    closeResultModal();
+                } else if (target.id === 'btnDelete') {
+                    executeDelete();
+                }
+            });
+
+            // Result Modal dışına tıklayınca kapat
+            document.getElementById('resultModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeResultModal();
+                }
+            });
+
+            // =====================================================
+            // SİLME BUTONLARI - EVENT DELEGATION
+            // =====================================================
+            document.addEventListener('click', function(e) {
+                var target = e.target.closest('.btn-sil');
+                if (target) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var id = target.getAttribute('data-id');
+                    var name = target.getAttribute('data-name');
+                    showDeleteConfirm(id, name);
+                }
+            });
+
+            // =====================================================
+            // SORTABLE - MASAÜSTÜ
+            // =====================================================
+            var el = document.getElementById('sortable-list');
+            if (el) {
+                new Sortable(el, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    onEnd: function() {
+                        saveSorting(el);
+                    }
+                });
+            }
+
+            // =====================================================
+            // SORTABLE - MOBİL
+            // =====================================================
+            var mobileEl = document.getElementById('mobile-sortable-list');
+            if (mobileEl) {
+                new Sortable(mobileEl, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost',
+                    handle: '.mobile-drag-handle',
+                    onEnd: function() {
+                        saveSorting(mobileEl);
+                    }
+                });
+            }
+
+            function saveSorting(container) {
+                var items = container.querySelectorAll('[data-id]');
+                var idListesi = [];
+                items.forEach(function(item) {
+                    idListesi.push(item.getAttribute('data-id'));
+                });
+
+                fetch('/api/admin/form-ayarlari/sirala', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ siralama: idListesi })
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    if(data.success) {
+                        showResultModal('Sıralama başarıyla kaydedildi');
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Hata:', err);
+                    showResultModal('Sıralama kaydedilemedi', 'error');
+                });
+            }
+
+            // =====================================================
+            // ESC İLE KAPATMA
+            // =====================================================
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeResultModal();
+                    closeAddModal();
+                }
+            });
+
+            // =====================================================
+            // SAYFA YÜKLENDİĞİNDE URL'DEN MESAJ YAKALA
+            // =====================================================
+            var urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('success')) {
+                showResultModal(decodeURIComponent(urlParams.get('success')), 'success');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            if (urlParams.get('error')) {
+                showResultModal(decodeURIComponent(urlParams.get('error')), 'error');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | Başvuru Formu</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk %>;
+            --primary-dark: <%= siteAyarlari.ara_renk %>;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #dc2626;
+            border-left: 4px solid #dc2626;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #166534;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 30px 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: #dc2626;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-row-full {
+            grid-column: 1 / -1;
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #f8fafc;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: #f1f5f9;
+        }
+
+        .file-upload i {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .file-upload-label {
+            cursor: pointer;
+            display: block;
+        }
+
+        .file-upload-label span {
+            color: #475569;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-size-warning {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .photo-preview-container {
+            margin-top: 15px;
+        }
+
+        .photo-preview {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .photo-preview i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .photo-info {
+            flex: 1;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .photo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-change {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-change:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-remove {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .btn-remove:hover {
+            background: #fecaca;
+        }
+
+        .checkbox-wrapper {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            margin: 30px 0;
+        }
+
+        .checkbox-wrapper label {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-top: 2px;
+        }
+
+        .kvkk-link {
+            color: var(--primary);
+            text-decoration: underline;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .kvkk-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .ip-notice {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .ip-notice i {
+            font-size: 16px;
+        }
+
+        .form-footer {
+            margin-top: 30px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 800px;
+            margin: 40px auto;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-size: 24px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            font-weight: 400;
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-close:hover {
+            background: rgba(239, 68, 68, 0.95);
+            border-color: rgba(239, 68, 68, 1);
+            transform: rotate(90deg) scale(1.1);
+            box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
+        }
+
+        .modal-close:active {
+            transform: rotate(90deg) scale(1);
+        }
+
+        /* Confirm Modal Buton Stilleri */
+        .confirm-btn-cancel {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            color: #475569;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .confirm-btn-cancel:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .confirm-btn-ok {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .confirm-btn-ok:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .modal-body {
+            padding: 30px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-body h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 25px 0 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-body h3:first-child {
+            margin-top: 0;
+        }
+
+        .modal-body p {
+            color: #475569;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .modal-body ul {
+            margin-left: 20px;
+            color: #475569;
+            line-height: 1.8;
+        }
+
+        .modal-footer {
+            padding: 20px 30px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 25px;
+                border-radius: 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 20px auto;
+            }
+        }
+
+        small {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fa-solid fa-running"></i> Spor Okulu Başvuru Formu</h1>
+            <p>Geleceğin sporcuları için ilk adım</p>
+        </div>
+
+        <div class="form-container">
+            <% if (hata) { %>
+                <div class="alert alert-danger">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <%= hata %>
+                </div>
+            <% } %>
+
+            <% if (basari) { %>
+                <div class="alert alert-success">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <%= basari %>
+                </div>
+            <% } %>
+
+            <form method="POST" action="/basvuru/kaydet" enctype="multipart/form-data">
+
+                <h2 class="section-title">
+                    <i class="fa-solid fa-building"></i> Şube Bilgileri
+                </h2>
+
+                <div class="form-group">
+                    <label>Şube <span class="required">*</span></label>
+                    <select name="sube_id" class="form-control" required>
+                        <option value="">Şube Seçiniz</option>
+                        <% subeler.forEach(sube => { %>
+                            <option value="<%= sube.id %>"><%= sube.sube_adi %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <h2 class="section-title">
+                    <i class="fa-solid fa-user"></i> Öğrenci Bilgileri
+                </h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>TC Kimlik No</label>
+                        <input type="text" name="tc_kimlik" class="form-control" placeholder="11 haneli TC No" maxlength="11" pattern="[0-9]{11}">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ad Soyad <span class="required">*</span></label>
+                        <input type="text" name="ad_soyad" class="form-control" placeholder="Öğrenci adı soyadı" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Doğum Tarihi <span class="required">*</span></label>
+                        <input type="date" name="dogum_tarihi" class="form-control" required max="<%= new Date().toISOString().split('T')[0] %>">
+                        <small>* En az 4 yaşında olmalıdır</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Fotoğraf</label>
+                    <div class="file-upload" id="fileUploadContainer">
+                        <input type="file" name="fotograf" id="fotograf" accept="image/*" onchange="handleFileSelect(this)">
+                        <label for="fotograf" class="file-upload-label" id="fileUploadLabel">
+                            <i class="fa-solid fa-cloud-upload-alt"></i>
+                            <span>Fotoğraf yüklemek için tıklayın</span>
+                            <br>
+                            <small style="color: #999; font-size: 12px;">JPG, JPEG, PNG, GIF - Maks. 5MB</small>
+                        </label>
+                    </div>
+                    <div class="file-size-warning" id="fileSizeWarning" style="display: none;">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Dosya boyutu 5MB'dan büyük olamaz!
+                    </div>
+
+                    <div class="photo-preview-container" id="photoPreviewContainer" style="display: none;">
+                        <div class="photo-preview">
+                            <i class="fa-solid fa-image"></i>
+                            <div class="photo-info">
+                                <span id="photoName"></span> - <span id="photoSize"></span>
+                            </div>
+                            <div class="photo-actions">
+                                <button type="button" class="btn-small btn-change" onclick="changePhoto()">
+                                    <i class="fa-solid fa-repeat"></i> Değiştir
+                                </button>
+                                <button type="button" class="btn-small btn-remove" onclick="removePhoto()">
+                                    <i class="fa-solid fa-xmark"></i> Kaldır
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <textarea name="aciklama" class="form-control" placeholder="Varsa belirtmek istediğiniz notlar..."></textarea>
+                </div>
+
+                <% if (formAlanlari && formAlanlari.length > 0) { %>
+                    <h2 class="section-title">
+                        <i class="fa-solid fa-list-check"></i> Ek Bilgiler
+                    </h2>
+
+                    <div class="form-row">
+                        <% formAlanlari.forEach(alan => { %>
+                            <div class="form-group <%= alan.alan_tipi === 'textarea' ? 'form-row-full' : '' %>">
+                                <label>
+                                    <%= alan.alan_adi %>
+                                    <% if (alan.zorunlu_mu) { %><span class="required">*</span><% } %>
+                                </label>
+
+                                <% if (alan.alan_tipi === 'textarea') { %>
+                                    <textarea
+                                        name="<%= alan.alan_adi.replace(/\s+/g, '_').toLowerCase() %>"
+                                        class="form-control"
+                                        placeholder="<%= alan.alan_adi %>"
+                                        <%= alan.zorunlu_mu ? 'required' : '' %>
+                                    ></textarea>
+                                <% } else { %>
+                                    <input
+                                        type="<%= alan.alan_tipi === 'tel' ? 'text' : alan.alan_tipi %>"
+                                        name="<%= alan.alan_adi.replace(/\s+/g, '_').toLowerCase() %>"
+                                        class="form-control"
+                                        placeholder="<%= alan.alan_adi %>"
+                                        <%= alan.zorunlu_mu ? 'required' : '' %>
+                                    >
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+
+                <div class="checkbox-wrapper">
+                    <label for="kvkk_onay">
+                        <input type="checkbox" id="kvkk_onay" name="kvkk_onay" value="1" required>
+                        <span>
+                            <span class="kvkk-link" onclick="openModal()">KVKK Aydınlatma Metni ve Sözleşmeler</span>'i okudum ve kabul ediyorum. <span class="required">*</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="ip-notice">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    IP Adresiniz ve cihaz bilgileriniz güvenlik amacıyla kaydedilecektir.
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn">
+                        <i class="fa-solid fa-paper-plane"></i> Başvuruyu Gönder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div class="modal" id="confirmModal" style="display: none; z-index: 10000;">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <h2><i class="fa-solid fa-triangle-exclamation"></i> <span id="confirmTitle">Uyarı</span></h2>
+            </div>
+            <div class="modal-body" style="padding: 30px; text-align: center;">
+                <div style="font-size: 64px; color: #f59e0b; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                </div>
+                <p id="confirmMessage" style="font-size: 16px; color: #334155; line-height: 1.6; margin: 0;"></p>
+            </div>
+            <div style="padding: 20px 30px 30px; display: flex; gap: 12px;">
+                <button type="button" class="confirm-btn-cancel" onclick="confirmCancel()">
+                    <i class="fa-solid fa-arrow-left"></i> Vazgeç
+                </button>
+                <button type="button" class="confirm-btn-ok" onclick="confirmOk()">
+                    <i class="fa-solid fa-check"></i> Evet, İptal Et
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KVKK Modal -->
+    <div class="modal" id="kvkkModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>KVKK Aydınlatma Metni ve Veli İzin Belgesi</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <h3><i class="fa-solid fa-heartbeat"></i> SAĞLIK BEYANI</h3>
+                <p>Yukarıda bilgileri yer alan çocuğumun, spor faaliyetlerine katılmasına engel bir sağlık sorunu bulunmamaktadır. Spor kulübü tarafından düzenlenen antrenman, etkinlik ve müsabakalara katılımında sağlık açısından herhangi bir sakınca olmadığı tarafımdan beyan edilmektedir.</p>
+
+                <p>Spor faaliyetleri sırasında oluşabilecek olası sakatlanma, yaralanma gibi durumlarda kulübün gerekli ilk yardım müdahalesini yapmasını, gerektiğinde sağlık kuruluşlarına başvurmasını kabul ediyor ve bu konuda kulübü sorumlu tutmayacağımı beyan ederim.</p>
+
+                <h3><i class="fa-solid fa-file-signature"></i> VELİ İZİN BELGESİ</h3>
+                <p>Aşağıda bilgileri yer alan çocuğumun, kulubunuz tarafından düzenlenen antrenman, etkinlik, kamp, gezi ve müsabakalara katılmasına izin veriyorum.</p>
+
+                <p>Etkinlikler sırasında çekilecek olan fotoğraf ve videoların kulüp tanıtımlarında (web sitesi, sosyal medya vb.) kullanılmasını kabul ediyorum.</p>
+
+                <p><strong>Faaliyet Kapsamı:</strong></p>
+                <ul>
+                    <li>Haftalık düzenli antrenmanlar</li>
+                    <li>Hafta sonu etkinlikleri ve turnuvalar</li>
+                    <li>Yaz/kış kampları</li>
+                    <li>İl içi ve il dışı müsabakalar</li>
+                    <li>Eğitim seminerleri ve workshoplar</li>
+                </ul>
+
+                <h3><i class="fa-solid fa-shield-alt"></i> KİŞİSEL VERİLERİN KORUNMASI AYDINLATMA METNİ</h3>
+
+                <p><strong>Veri Sorumlusu:</strong> <%= siteAyarlari.tesis_adi %>, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca veri sorumlusu sıfatıyla hareket etmektedir.</p>
+
+                <p><strong>İşlenen Kişisel Veriler:</strong></p>
+                <ul>
+                    <li>Kimlik bilgileri (Ad, soyad, TC kimlik no, doğum tarihi)</li>
+                    <li>İletişim bilgileri (Adres, telefon numaraları)</li>
+                    <li>Görsel veriler (Fotoğraf)</li>
+                    <li>Aile bilgileri (Anne-baba ad, soyad, meslek, iletişim bilgileri)</li>
+                    <li>IP adresi ve cihaz bilgileri (Güvenlik amaçlı)</li>
+                </ul>
+
+                <p><strong>İşleme Amaçları:</strong></p>
+                <ul>
+                    <li>Öğrenci kayıt işlemlerinin gerçekleştirilmesi</li>
+                    <li>Eğitim ve spor faaliyetlerinin planlanması ve yürütülmesi</li>
+                    <li>Acil durumlarda velilerle iletişim kurulması</li>
+                    <li>Yasal yükümlülüklerin yerine getirilmesi</li>
+                    <li>Sigorta işlemlerinin yapılması</li>
+                    <li>Etkinlik ve organizasyonların düzenlenmesi</li>
+                    <li>Güvenlik ve dolandırıcılık önleme</li>
+                </ul>
+
+                <p><strong>Veri Aktarımı:</strong> Kişisel verileriniz, yasal zorunluluklar ve yukarıda belirtilen amaçlarla sınırlı olmak üzere; ilgili federasyonlar, spor il müdürlükleri, sigorta şirketleri ve yasal mercilerle paylaşılabilecektir.</p>
+
+                <p><strong>Veri Saklama Süresi:</strong> Kişisel verileriniz, öğrencilik ilişkisi devam ettiği sürece ve ilişki sona erdikten sonra ilgili mevzuat uyarınca gerekli süre boyunca saklanacaktır.</p>
+
+                <p><strong>Haklarınız:</strong> KVKK'nın 11. maddesi uyarınca; kişisel verilerinizin işlenip işlenmediğini öğrenme, işlenmişse buna ilişkin bilgi talep etme, işlenme amacını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmiş olması halinde bunların düzeltilmesini isteme, ilgili mevzuatta öngörülen şartlar çerçevesinde silinmesini veya yok edilmesini isteme haklarına sahipsiniz.</p>
+
+                <p><strong>İletişim:</strong> Haklarınızı kullanmak için kulübümüze yazılı olarak başvurabilirsiniz.</p>
+
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-top: 20px; text-align: center;">
+                    <p style="margin: 0; font-size: 13px; color: #64748b;">
+                        Bu bilgiler güvenlik amacıyla kaydedilecektir.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal()"><i class="fa-solid fa-check"></i> Okudum, Anladım</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal fonksiyonları
+        function openModal() {
+            event.preventDefault();
+            document.getElementById('kvkkModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('kvkkModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Dosya seçim fonksiyonları
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+
+            const warningDiv = document.getElementById('fileSizeWarning');
+            const previewContainer = document.getElementById('photoPreviewContainer');
+            const uploadContainer = document.getElementById('fileUploadContainer');
+
+            if (file) {
+                if (file.size > maxSize) {
+                    warningDiv.style.display = 'block';
+                    input.value = '';
+                    return;
+                }
+
+                warningDiv.style.display = 'none';
+                uploadContainer.style.display = 'none';
+                previewContainer.style.display = 'block';
+
+                document.getElementById('photoName').textContent = file.name;
+                document.getElementById('photoSize').textContent = (file.size / 1024).toFixed(2) + ' KB';
+            }
+        }
+
+        function changePhoto() {
+            document.getElementById('fotograf').click();
+        }
+
+        function removePhoto() {
+            document.getElementById('fotograf').value = '';
+            document.getElementById('photoPreviewContainer').style.display = 'none';
+            document.getElementById('fileUploadContainer').style.display = 'block';
+        }
+
+        // Modal dışına tıklanınca kapatma
+        window.onclick = function(event) {
+            const modal = document.getElementById('kvkkModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+
+    <!-- DOĞRULAMA KODU MODALI -->
+    <div class="modal" id="verificationModal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-shield-halved"></i> Telefon Doğrulama</h2>
+                <button class="modal-close" onclick="closeVerificationModal()" title="Başvuruyu İptal Et" aria-label="Kapat">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 40px 30px;">
+                <div style="background: #f0f9ff; padding: 20px 20px 15px 20px; border-radius: 16px; margin-bottom: 25px;">
+                    <i class="fa-solid fa-mobile-screen-button" style="font-size: 48px; color: var(--primary); margin-bottom: 15px;"></i>
+                    <p style="color: #0369a1; font-weight: 600; margin: 0 0 15px 0;">
+                        <span id="verificationPhone"></span> numaralı telefona 6 haneli doğrulama kodu gönderildi.
+                    </p>
+
+                    <!-- Cooldown Mesajı (Mavi Kutunun İçinde) -->
+                    <div id="resendCooldownMessage" style="display: none; padding: 12px; background: #fef3c7; color: #92400e; border-radius: 10px; font-size: 13px; font-weight: 600; border: 2px solid #fcd34d;">
+                        <i class="fa-solid fa-clock"></i> <span id="resendCooldownText"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label style="text-align: center; display: block; margin-bottom: 15px; font-size: 16px; font-weight: 700;">
+                        Doğrulama Kodunu Giriniz
+                    </label>
+                    <input
+                        type="text"
+                        id="verificationCode"
+                        class="form-control"
+                        placeholder="6 haneli kod"
+                        maxlength="6"
+                        style="text-align: center; font-size: 24px; letter-spacing: 8px; font-weight: 700;"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div id="verificationError" class="alert alert-danger" style="display: none; margin-top: 15px;">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span id="verificationErrorText"></span>
+                </div>
+
+                <div id="verificationSuccess" class="alert alert-success" style="display: none; margin-top: 15px;">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span id="verificationSuccessText"></span>
+                </div>
+
+                <div class="form-footer" style="margin-top: 25px; display: flex; gap: 10px;">
+                    <button type="button" class="btn" id="btnVerify" onclick="verifyCode()" style="flex: 1;">
+                        <i class="fa-solid fa-check"></i> Kodu Doğrula
+                    </button>
+                    <button type="button" class="btn" id="btnResend" onclick="resendCode()" style="flex: 1; background: #64748b;">
+                        <i class="fa-solid fa-rotate"></i> Tekrar Gönder
+                    </button>
+                </div>
+
+                <p style="margin-top: 20px; font-size: 13px; color: #64748b;">
+                    <i class="fa-solid fa-clock"></i> Kod 5 dakika geçerlidir
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentBasvuruId = null;
+        let currentTelefon = null;
+        let resendTimer = null;
+        let resendCooldown = 0;
+        let confirmCallback = null;
+
+        // Custom Confirm Modal
+        function showConfirm(title, message, onConfirm) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            confirmCallback = onConfirm;
+            document.getElementById('confirmModal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function confirmOk() {
+            document.getElementById('confirmModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+        }
+
+        function confirmCancel() {
+            document.getElementById('confirmModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            confirmCallback = null;
+        }
+
+        // Form submit AJAX ile işle
+        document.querySelector('form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('/basvuru/kaydet', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Doğrulama modalını aç
+                    currentBasvuruId = data.basvuru_id;
+                    currentTelefon = data.telefon;
+
+                    document.getElementById('verificationPhone').textContent = formatPhoneDisplay(data.telefon);
+                    document.getElementById('verificationModal').style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+
+                    // İlk kod gönderildi, 60 saniye cooldown başlat
+                    startResendCooldown(60);
+
+                    // Input'a fokus
+                    setTimeout(() => {
+                        document.getElementById('verificationCode').focus();
+                    }, 300);
+                } else {
+                    alert(data.message || 'Bir hata oluştu!');
+                }
+
+            } catch (error) {
+                console.error('Hata:', error);
+                alert('Başvuru gönderilirken bir hata oluştu!');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Telefon formatını düzenle (görüntüleme için)
+        function formatPhoneDisplay(phone) {
+            // 905055555555 → 0505 555 55 55
+            if (phone.startsWith('90')) {
+                phone = '0' + phone.substring(2);
+            }
+            return phone.replace(/(\d{4})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+        }
+
+        // Kodu doğrula
+        async function verifyCode() {
+            const kod = document.getElementById('verificationCode').value.trim();
+
+            if (kod.length !== 6) {
+                showVerificationError('6 haneli kodu giriniz!');
+                return;
+            }
+
+            const btnVerify = document.getElementById('btnVerify');
+            const originalText = btnVerify.innerHTML;
+            btnVerify.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Doğrulanıyor...';
+            btnVerify.disabled = true;
+
+            try {
+                const response = await fetch('/basvuru/kod-dogrula', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        basvuru_id: currentBasvuruId,
+                        kod: kod
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showVerificationSuccess(data.message);
+
+                    // 2 saniye sonra sayfayı yenile
+                    setTimeout(() => {
+                        window.location.href = '/basvuru';
+                    }, 2000);
+                } else {
+                    showVerificationError(data.message);
+                }
+
+            } catch (error) {
+                console.error('Hata:', error);
+                showVerificationError('Doğrulama sırasında bir hata oluştu!');
+            } finally {
+                btnVerify.innerHTML = originalText;
+                btnVerify.disabled = false;
+            }
+        }
+
+        // Kodu tekrar gönder
+        async function resendCode() {
+            const btnResend = document.getElementById('btnResend');
+
+            // Cooldown aktifse işlem yapma
+            if (resendCooldown > 0) {
+                showVerificationError(`Lütfen ${resendCooldown} saniye bekleyin!`);
+                return;
+            }
+
+            const originalText = btnResend.innerHTML;
+            btnResend.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
+            btnResend.disabled = true;
+
+            try {
+                const response = await fetch('/basvuru/kod-tekrar-gonder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        basvuru_id: currentBasvuruId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showVerificationSuccess('Yeni kod gönderildi!');
+                    document.getElementById('verificationCode').value = '';
+                    document.getElementById('verificationCode').focus();
+
+                    // 60 saniye cooldown başlat
+                    startResendCooldown(60);
+                } else {
+                    showVerificationError(data.message);
+
+                    // Eğer cooldown hatası varsa, timer'ı başlat
+                    if (data.cooldown) {
+                        startResendCooldown(data.cooldown);
+                    }
+                }
+
+            } catch (error) {
+                console.error('Hata:', error);
+                showVerificationError('Kod gönderilirken bir hata oluştu!');
+            } finally {
+                btnResend.innerHTML = originalText;
+                btnResend.disabled = false;
+            }
+        }
+
+        // Geri sayım timer'ı başlat
+        function startResendCooldown(seconds) {
+            resendCooldown = seconds;
+            const btnResend = document.getElementById('btnResend');
+
+            // Önceki timer varsa temizle
+            if (resendTimer) {
+                clearInterval(resendTimer);
+            }
+
+            // Buton güncelleme fonksiyonu
+            function updateButton() {
+                const cooldownMessage = document.getElementById('resendCooldownMessage');
+                const cooldownText = document.getElementById('resendCooldownText');
+
+                if (resendCooldown > 0) {
+                    // Buton disabled
+                    btnResend.disabled = true;
+                    btnResend.style.opacity = '0.6';
+                    btnResend.style.cursor = 'not-allowed';
+
+                    // Cooldown mesajını göster
+                    cooldownMessage.style.display = 'block';
+                    cooldownText.textContent = `Yeni kod göndermek için ${resendCooldown} saniye bekleyin`;
+                } else {
+                    // Buton aktif
+                    btnResend.disabled = false;
+                    btnResend.style.opacity = '1';
+                    btnResend.style.cursor = 'pointer';
+
+                    // Cooldown mesajını gizle
+                    cooldownMessage.style.display = 'none';
+
+                    clearInterval(resendTimer);
+                    resendTimer = null;
+                }
+            }
+
+            // İlk güncelleme
+            updateButton();
+
+            // Her saniye güncelle
+            resendTimer = setInterval(() => {
+                resendCooldown--;
+                updateButton();
+            }, 1000);
+        }
+
+        function showVerificationError(message) {
+            const errorDiv = document.getElementById('verificationError');
+            const errorText = document.getElementById('verificationErrorText');
+            const successDiv = document.getElementById('verificationSuccess');
+
+            errorText.textContent = message;
+            errorDiv.style.display = 'flex';
+            successDiv.style.display = 'none';
+        }
+
+        function showVerificationSuccess(message) {
+            const successDiv = document.getElementById('verificationSuccess');
+            const successText = document.getElementById('verificationSuccessText');
+            const errorDiv = document.getElementById('verificationError');
+
+            successText.textContent = message;
+            successDiv.style.display = 'flex';
+            errorDiv.style.display = 'none';
+        }
+
+        // Modal Kapatma ve Başvuru İptal
+        function closeVerificationModal() {
+            // Custom confirm modal göster
+            showConfirm(
+                'Başvurunuzu İptal Etmek İstediğinizden Emin Misiniz?',
+                'Başvuru iptal edilecek ve doğrulama kodu geçersiz hale gelecektir.',
+                async function() {
+                    // Onaylandı, işleme devam et
+                    try {
+                        // Başvuruyu iptal et
+                        const response = await fetch('/basvuru/basvuru-iptal', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                basvuru_id: currentBasvuruId
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        console.log('Başvuru iptal edildi:', data);
+
+                    } catch (error) {
+                        console.error('İptal hatası:', error);
+                    } finally {
+                        // Timer'ı temizle
+                        if (resendTimer) {
+                            clearInterval(resendTimer);
+                            resendTimer = null;
+                        }
+                        resendCooldown = 0;
+
+                        // Modal'ı kapat
+                        document.getElementById('verificationModal').style.display = 'none';
+                        document.body.style.overflow = 'auto';
+
+                        // Sayfayı yenile
+                        window.location.href = '/basvuru';
+                    }
+                }
+            );
+        }
+
+        // Enter tuşu ile doğrulama
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('verificationCode').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyCode();
+                }
+            });
+
+            // ESC tuşu ile modal kapatma
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const confirmModal = document.getElementById('confirmModal');
+                    if (confirmModal.style.display === 'block') {
+                        confirmCancel();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

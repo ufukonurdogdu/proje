@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>E-Bülten Kayıtları | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .header-actions { display: flex; gap: 10px; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #16a34a);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .stat-icon.green { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .stat-icon.purple { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+
+        .stat-info h3 { font-size: 28px; font-weight: 700; }
+        .stat-info p { font-size: 14px; color: var(--text-secondary); }
+
+        /* Table Card */
+        .table-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .table-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg);
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 14px;
+            width: 200px;
+        }
+
+        .search-box i { color: var(--text-secondary); }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            background: var(--bg);
+        }
+
+        td { font-size: 14px; }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(99, 102, 241, 0.02); }
+
+        .phone-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .phone-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #22c55e;
+        }
+
+        .date-cell {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .action-btns { display: flex; gap: 8px; }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn.whatsapp { background: rgba(37, 211, 102, 0.1); color: #25D366; }
+        .action-btn.delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .action-btn:hover { transform: scale(1.1); }
+
+        .checkbox-cell input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i { font-size: 48px; opacity: 0.3; margin-bottom: 15px; }
+        .empty-state h4 { font-size: 16px; margin-bottom: 5px; color: var(--text); }
+
+        /* Bulk Actions */
+        .bulk-actions {
+            padding: 15px 24px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bulk-actions.show { display: flex; }
+
+        .bulk-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Result Modal */
+        .result-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .result-modal-overlay.show {
+            display: flex;
+        }
+
+        .result-modal {
+            background: var(--card-bg);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+            padding: 30px;
+            animation: modalPop 0.3s ease;
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .result-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+        }
+
+        .result-icon.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+        }
+
+        .result-icon.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .result-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .result-icon.info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .result-icon.confirm {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .result-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .result-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .result-btn.success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+        }
+
+        .result-btn.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .result-btn.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .result-btn.info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .result-btn.cancel {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .result-btn.confirm-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .result-btn:active {
+            transform: scale(0.98);
+        }
+
+        .result-btn.full-width {
+            width: 100%;
+        }
+
+        /* ==================== MASAÜSTÜNDE GİZLİ ELEMENTLER ==================== */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .mobile-stats { display: none; }
+        .kayit-list { display: none; }
+        .mobile-search { display: none; }
+        .mobile-bulk-bar { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Masaüstü Elementleri Gizle */
+            .page-header { display: none; }
+            .stats-row { display: none; }
+            .table-card { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-header-actions button:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== MOBİL STATS ===== */
+            .mobile-stats {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .mobile-stat-card {
+                background: var(--m-bg-secondary);
+                border-radius: 14px;
+                padding: 14px 10px;
+                text-align: center;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .mobile-stat-card .stat-num {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--m-text-primary);
+            }
+
+            .mobile-stat-card .stat-num.blue { color: #3b82f6; }
+            .mobile-stat-card .stat-num.green { color: #22c55e; }
+            .mobile-stat-card .stat-num.purple { color: #f97316; }
+
+            .mobile-stat-card .stat-label {
+                font-size: 11px;
+                color: var(--m-text-muted);
+                margin-top: 4px;
+            }
+
+            /* ===== MOBİL SEARCH ===== */
+            .mobile-search {
+                display: flex !important;
+                padding: 0 15px 15px;
+                gap: 10px;
+            }
+
+            .mobile-search-box {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                background: var(--m-bg-secondary);
+                padding: 12px 16px;
+                border-radius: 12px;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .mobile-search-box input {
+                flex: 1;
+                border: none;
+                background: none;
+                outline: none;
+                font-size: 16px;
+                color: var(--m-text-primary);
+            }
+
+            .mobile-search-box input::placeholder {
+                color: var(--m-text-muted);
+            }
+
+            .mobile-search-box i {
+                color: var(--m-text-muted);
+            }
+
+            .mobile-export-btn {
+                width: 48px;
+                height: 48px;
+                border: none;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #22c55e, #16a34a);
+                color: white;
+                font-size: 18px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-export-btn:active {
+                transform: scale(0.95);
+            }
+
+            /* ===== KAYIT LİST MOBİL ===== */
+            .kayit-list {
+                display: flex !important;
+                flex-direction: column;
+                gap: 10px;
+                padding: 0 15px;
+            }
+
+            .kayit-card {
+                background: var(--m-bg-secondary);
+                border-radius: 14px;
+                border: 1px solid var(--m-border-color);
+                padding: 14px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .kayit-card:active {
+                transform: scale(0.98);
+            }
+
+            .kayit-checkbox {
+                width: 22px;
+                height: 22px;
+                accent-color: #f97316;
+                cursor: pointer;
+            }
+
+            .kayit-avatar {
+                width: 44px;
+                height: 44px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.1));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #f97316;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+
+            .kayit-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .kayit-phone {
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--m-text-primary);
+                margin-bottom: 4px;
+            }
+
+            .kayit-date {
+                font-size: 12px;
+                color: var(--m-text-muted);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .kayit-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .kayit-action-btn {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+
+            .kayit-action-btn.whatsapp {
+                background: rgba(37, 211, 102, 0.1);
+                color: #25D366;
+            }
+
+            .kayit-action-btn.delete {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .kayit-action-btn:active {
+                transform: scale(0.9);
+            }
+
+            /* ===== MOBILE BULK BAR ===== */
+            .mobile-bulk-bar {
+                display: none;
+                position: fixed;
+                bottom: var(--nav-height);
+                left: 0;
+                right: 0;
+                padding: 12px 20px;
+                padding-bottom: max(env(safe-area-inset-bottom), 12px);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                gap: 12px;
+                align-items: center;
+                z-index: 100;
+            }
+
+            .mobile-bulk-bar.show {
+                display: flex;
+            }
+
+            .mobile-bulk-count {
+                flex: 1;
+                font-size: 14px;
+                font-weight: 600;
+                color: #f97316;
+            }
+
+            .mobile-bulk-bar .btn {
+                padding: 12px 20px;
+            }
+
+            /* ===== EMPTY STATE MOBİL ===== */
+            .mobile-empty-state {
+                text-align: center;
+                padding: 60px 20px;
+            }
+
+            .mobile-empty-state i {
+                font-size: 50px;
+                color: var(--m-text-muted);
+                opacity: 0.5;
+                margin-bottom: 15px;
+            }
+
+            .mobile-empty-state h4 {
+                font-size: 16px;
+                color: var(--m-text-primary);
+                margin-bottom: 8px;
+            }
+
+            .mobile-empty-state p {
+                font-size: 13px;
+                color: var(--m-text-muted);
+            }
+
+            /* ===== RESULT MODAL MOBİL ===== */
+            .result-modal-overlay {
+                padding: 20px;
+            }
+
+            .result-modal {
+                background: var(--m-bg-secondary);
+                max-width: 320px;
+            }
+
+            .result-title {
+                color: var(--m-text-primary);
+            }
+
+            .result-message {
+                color: var(--m-text-secondary);
+            }
+
+            .result-btn.cancel {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>E-Bülten</h1>
+                <span><%= (kayitlar || []).length %> kayıt</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>E-Bülten Kayıtları</span>
+                    </div>
+                    <h1><i class="fas fa-envelope-open-text"></i> E-Bülten Kayıtları</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-success" onclick="exportCSV()">
+                        <i class="fas fa-file-excel"></i> Excel'e Aktar
+                    </button>
+                </div>
+            </div>
+
+            <% 
+                const bugunKayit = (kayitlar || []).filter(k => { 
+                    if (!k.created_at) return false;
+                    const kayitTarih = new Date(k.created_at);
+                    const bugun = new Date();
+                    return kayitTarih.toDateString() === bugun.toDateString();
+                }).length;
+                
+                const haftaKayit = (kayitlar || []).filter(k => {
+                    if (!k.created_at) return false;
+                    const kayitTarih = new Date(k.created_at);
+                    const birHaftaOnce = new Date();
+                    birHaftaOnce.setDate(birHaftaOnce.getDate() - 7);
+                    return kayitTarih >= birHaftaOnce;
+                }).length;
+            %>
+
+            <!-- Stats (Desktop) -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= (kayitlar || []).length %></h3>
+                        <p>Toplam Kayıt</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= bugunKayit %></h3>
+                        <p>Bugün</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= haftaKayit %></h3>
+                        <p>Bu Hafta</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats (Mobile) -->
+            <div class="mobile-stats">
+                <div class="mobile-stat-card">
+                    <div class="stat-num blue"><%= (kayitlar || []).length %></div>
+                    <div class="stat-label">Toplam</div>
+                </div>
+                <div class="mobile-stat-card">
+                    <div class="stat-num green"><%= bugunKayit %></div>
+                    <div class="stat-label">Bugün</div>
+                </div>
+                <div class="mobile-stat-card">
+                    <div class="stat-num purple"><%= haftaKayit %></div>
+                    <div class="stat-label">Bu Hafta</div>
+                </div>
+            </div>
+
+            <!-- Mobile Search -->
+            <div class="mobile-search">
+                <div class="mobile-search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="mobileSearchInput" placeholder="Telefon ara..." oninput="filterMobileList()">
+                </div>
+                <button class="mobile-export-btn" onclick="exportCSV()" title="Excel'e Aktar">
+                    <i class="fas fa-file-excel"></i>
+                </button>
+            </div>
+
+            <!-- Table (Desktop) -->
+            <div class="table-card">
+                <div class="table-header">
+                    <h3><i class="fas fa-list"></i> Kayıt Listesi</h3>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Telefon ara..." oninput="filterTable()">
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                </th>
+                                <th>Telefon</th>
+                                <th>Kayıt Tarihi</th>
+                                <th style="width: 120px;">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (kayitlar && kayitlar.length > 0) { %>
+                                <% kayitlar.forEach(kayit => { %>
+                                    <tr data-id="<%= kayit.id %>">
+                                        <td class="checkbox-cell">
+                                            <input type="checkbox" class="row-checkbox" value="<%= kayit.id %>" onchange="updateBulkActions()">
+                                        </td>
+                                        <td>
+                                            <div class="phone-cell">
+                                                <div class="phone-icon"><i class="fas fa-phone"></i></div>
+                                                <strong><%= kayit.telefon %></strong>
+                                            </div>
+                                        </td>
+                                        <td class="date-cell">
+                                            <% if (kayit.created_at) { %>
+                                                <i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>
+                                                <%= new Date(kayit.created_at).toLocaleDateString('tr-TR') %>
+                                                <span style="margin-left: 10px;">
+                                                    <i class="fas fa-clock" style="margin-right: 5px;"></i>
+                                                    <%= new Date(kayit.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %>
+                                                </span>
+                                            <% } else { %>
+                                                -
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <div class="action-btns">
+                                                <a href="https://wa.me/90<%= kayit.telefon.replace(/\D/g, '') %>" target="_blank" class="action-btn whatsapp" title="WhatsApp'ta Aç">
+                                                    <i class="fab fa-whatsapp"></i>
+                                                </a>
+                                                <button class="action-btn delete" onclick="deleteKayit(<%= kayit.id %>)" title="Sil">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="4">
+                                        <div class="empty-state">
+                                            <i class="fas fa-envelope-open"></i>
+                                            <h4>Henüz kayıt yok</h4>
+                                            <p>E-bülten kayıtları burada görünecek</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="bulk-actions" id="bulkActions">
+                    <span class="bulk-count"><span id="selectedCount">0</span> kayıt seçildi</span>
+                    <button class="btn btn-danger" onclick="deleteSelected()">
+                        <i class="fas fa-trash"></i> Seçilenleri Sil
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kayıt List (Mobile) -->
+            <div class="kayit-list" id="kayitList">
+                <% if (kayitlar && kayitlar.length > 0) { %>
+                    <% kayitlar.forEach(kayit => { %>
+                        <div class="kayit-card" data-id="<%= kayit.id %>" data-phone="<%= kayit.telefon %>">
+                            <input type="checkbox" class="kayit-checkbox" value="<%= kayit.id %>" onchange="updateMobileBulk()">
+                            <div class="kayit-avatar">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="kayit-info">
+                                <div class="kayit-phone"><%= kayit.telefon %></div>
+                                <div class="kayit-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <% if (kayit.created_at) { %>
+                                        <%= new Date(kayit.created_at).toLocaleDateString('tr-TR') %> - 
+                                        <%= new Date(kayit.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %>
+                                    <% } else { %>
+                                        -
+                                    <% } %>
+                                </div>
+                            </div>
+                            <div class="kayit-actions">
+                                <a href="https://wa.me/90<%= kayit.telefon.replace(/\D/g, '') %>" target="_blank" class="kayit-action-btn whatsapp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <button class="kayit-action-btn delete" onclick="deleteKayit(<%= kayit.id %>)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="mobile-empty-state">
+                        <i class="fas fa-envelope-open"></i>
+                        <h4>Henüz kayıt yok</h4>
+                        <p>E-bülten kayıtları burada görünecek</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Mobile Bulk Bar -->
+            <div class="mobile-bulk-bar" id="mobileBulkBar">
+                <span class="mobile-bulk-count"><span id="mobileSelectedCount">0</span> seçildi</span>
+                <button class="btn btn-danger" onclick="deleteMobileSelected()">
+                    <i class="fas fa-trash"></i> Sil
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="result-modal-overlay" id="resultModal">
+        <div class="result-modal">
+            <div class="result-icon" id="resultIcon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="result-title" id="resultTitle">Başarılı!</div>
+            <div class="result-message" id="resultMessage">İşlem başarıyla tamamlandı.</div>
+            <div class="result-buttons" id="resultButtons">
+                <button class="result-btn success full-width" id="resultBtn" onclick="closeResultModal()">Tamam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const kayitlar = <%- JSON.stringify(kayitlar || []) %>;
+
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // DESKTOP FİLTRE
+        // =====================================================
+        function filterTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#dataTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = selectAll);
+            updateBulkActions();
+        }
+
+        function updateBulkActions() {
+            const checked = document.querySelectorAll('.row-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = checked;
+            document.getElementById('bulkActions').classList.toggle('show', checked > 0);
+        }
+
+        // =====================================================
+        // MOBİL FİLTRE
+        // =====================================================
+        function filterMobileList() {
+            const search = document.getElementById('mobileSearchInput').value.toLowerCase();
+            const cards = document.querySelectorAll('.kayit-card');
+            
+            cards.forEach(card => {
+                const phone = card.dataset.phone.toLowerCase();
+                card.style.display = phone.includes(search) ? '' : 'none';
+            });
+        }
+
+        function updateMobileBulk() {
+            const checked = document.querySelectorAll('.kayit-checkbox:checked').length;
+            document.getElementById('mobileSelectedCount').textContent = checked;
+            document.getElementById('mobileBulkBar').classList.toggle('show', checked > 0);
+        }
+
+        async function deleteMobileSelected() {
+            const ids = [...document.querySelectorAll('.kayit-checkbox:checked')].map(cb => cb.value);
+            if (ids.length === 0) return;
+            
+            showConfirmModal(
+                `${ids.length} adet kayıt silinecek. Bu işlem geri alınamaz.`,
+                async () => {
+                    for (const id of ids) {
+                        await fetch(`/api/admin/website/ebulten/${id}`, { method: 'DELETE' });
+                        document.querySelector(`.kayit-card[data-id="${id}"]`)?.remove();
+                    }
+                    showResultModal(`${ids.length} kayıt başarıyla silindi`);
+                    updateMobileBulk();
+                },
+                'Toplu Silme'
+            );
+        }
+
+        // =====================================================
+        // ORTAK İŞLEMLER
+        // =====================================================
+        function deleteKayit(id) {
+            showConfirmModal(
+                'Bu kayıt kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+                async () => {
+                    try {
+                        const res = await fetch(`/api/admin/website/ebulten/${id}`, { method: 'DELETE' });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            // Desktop
+                            document.querySelector(`tr[data-id="${id}"]`)?.remove();
+                            // Mobile
+                            document.querySelector(`.kayit-card[data-id="${id}"]`)?.remove();
+                            showResultModal('Kayıt başarıyla silindi');
+                        } else {
+                            showResultModal(data.message || 'Bir hata oluştu', 'error');
+                        }
+                    } catch (err) {
+                        showResultModal('Bağlantı hatası oluştu', 'error');
+                    }
+                },
+                'Kaydı Sil'
+            );
+        }
+
+        function deleteSelected() {
+            const ids = [...document.querySelectorAll('.row-checkbox:checked')].map(cb => cb.value);
+            if (ids.length === 0) return;
+            
+            showConfirmModal(
+                `${ids.length} adet kayıt silinecek. Bu işlem geri alınamaz.`,
+                async () => {
+                    for (const id of ids) {
+                        await fetch(`/api/admin/website/ebulten/${id}`, { method: 'DELETE' });
+                        document.querySelector(`tr[data-id="${id}"]`)?.remove();
+                    }
+                    showResultModal(`${ids.length} kayıt başarıyla silindi`);
+                    updateBulkActions();
+                },
+                'Toplu Silme'
+            );
+        }
+
+        function exportCSV() {
+            if (kayitlar.length === 0) {
+                showResultModal('Dışa aktarılacak kayıt bulunamadı.', 'warning');
+                return;
+            }
+
+            let csv = 'Telefon,Kayıt Tarihi\n';
+            kayitlar.forEach(k => {
+                const tarih = k.created_at ? new Date(k.created_at).toLocaleDateString('tr-TR') : '-';
+                csv += `${k.telefon},${tarih}\n`;
+            });
+
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `ebulten-kayitlari-${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+
+            showResultModal(`${kayitlar.length} kayıt Excel dosyasına aktarıldı.`);
+        }
+
+        // =====================================================
+        // MODAL SİSTEMİ
+        // =====================================================
+        let confirmCallback = null;
+
+        function showResultModal(message, type = 'success') {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMessage');
+            const buttons = document.getElementById('resultButtons');
+
+            // Reset
+            icon.className = 'result-icon ' + type;
+
+            // Set content based on type
+            if (type === 'success') {
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+                title.textContent = 'Başarılı!';
+                buttons.innerHTML = '<button class="result-btn success full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'error') {
+                icon.innerHTML = '<i class="fas fa-times"></i>';
+                title.textContent = 'Hata!';
+                buttons.innerHTML = '<button class="result-btn error full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'warning') {
+                icon.innerHTML = '<i class="fas fa-exclamation"></i>';
+                title.textContent = 'Uyarı!';
+                buttons.innerHTML = '<button class="result-btn warning full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'info') {
+                icon.innerHTML = '<i class="fas fa-info"></i>';
+                title.textContent = 'Bilgi';
+                buttons.innerHTML = '<button class="result-btn info full-width" onclick="closeResultModal()">Tamam</button>';
+            }
+
+            msg.textContent = message;
+            modal.classList.add('show');
+        }
+
+        function showConfirmModal(message, callback, title = 'Silmek istediğinize emin misiniz?') {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const titleEl = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMessage');
+            const buttons = document.getElementById('resultButtons');
+
+            confirmCallback = callback;
+
+            icon.className = 'result-icon confirm';
+            icon.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            titleEl.textContent = title;
+            msg.textContent = message;
+            
+            buttons.innerHTML = `
+                <button class="result-btn cancel" onclick="closeResultModal()">İptal</button>
+                <button class="result-btn confirm-delete" onclick="executeConfirm()">Sil</button>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function executeConfirm() {
+            closeResultModal();
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        // ESC tuşu ile kapat
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeResultModal();
+        });
+
+        // Dışına tıklayınca kapat
+        document.getElementById('resultModal').addEventListener('click', (e) => {
+            if (e.target.id === 'resultModal') closeResultModal();
+        });
+    </script>
+</body>
+</html>

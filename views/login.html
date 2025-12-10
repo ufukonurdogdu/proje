@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari ? siteAyarlari.tesis_adi : 'netSPOR' %> - Giriş</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="<%= siteAyarlari ? siteAyarlari.ana_renk : '#4f46e5' %>">
+    <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="<%= siteAyarlari ? siteAyarlari.pwa_adi : 'netSPOR' %>">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari ? siteAyarlari.ana_renk : '#4f46e5' %>;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            overflow: hidden;
+            position: relative;
+            padding: 20px;
+        }
+
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            z-index: 0;
+            animation: float 6s ease-in-out infinite;
+        }
+        .b1 { width: 300px; height: 300px; top: -50px; left: -50px; }
+        .b2 { width: 200px; height: 200px; bottom: -50px; right: -50px; animation-delay: 2s; }
+        .b3 { width: 150px; height: 150px; top: 50%; right: -30px; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: var(--glass-border);
+            padding: 40px 35px;
+            border-radius: 24px;
+            width: 420px;
+            max-width: 100%;
+            box-shadow: var(--shadow);
+            text-align: center;
+            z-index: 1;
+            position: relative;
+        }
+
+        .logo-area img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+        }
+
+        .logo-area i {
+            font-size: 50px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .brand-name { font-size: 22px; font-weight: 800; color: #1e293b; letter-spacing: -0.5px; margin-bottom: 5px; }
+        .brand-desc { font-size: 13px; color: #64748b; margin-bottom: 25px; }
+
+        /* TAB SİSTEMİ */
+        .login-tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 12px 15px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .login-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .login-tab i {
+            font-size: 14px;
+        }
+
+        /* FORM */
+        .login-form {
+            display: none;
+        }
+
+        .login-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group { margin-bottom: 18px; text-align: left; }
+        .input-group label { 
+            display: block; 
+            font-size: 11px; 
+            font-weight: 700; 
+            color: #475569; 
+            margin-bottom: 8px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: white;
+            transition: 0.3s;
+            outline: none;
+        }
+        .input-field:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); 
+        }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .remember-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .remember-row label {
+            font-size: 13px;
+            color: #64748b;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-login:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+        }
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login.veli-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .btn-login.veli-btn:hover {
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-error {
+            background: #fef2f2; 
+            color: #dc2626; 
+            padding: 12px 15px; 
+            border-radius: 10px; 
+            font-size: 13px; 
+            margin-bottom: 20px; 
+            border: 1px solid #fee2e2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error i {
+            font-size: 16px;
+        }
+
+        .footer-text { 
+            margin-top: 25px; 
+            font-size: 12px; 
+            color: #64748b; 
+        }
+
+        /* PWA Butonları */
+        .pwa-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        #installBtn, #iosInstallBtn {
+            display: none;
+            background: white;
+            color: #1e293b;
+            border: 2px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto;
+            transition: 0.3s;
+        }
+        #installBtn:hover, #iosInstallBtn:hover { 
+            background: #f8fafc; 
+            border-color: var(--primary); 
+        }
+        #installBtn i, #iosInstallBtn i { color: var(--primary); }
+
+        .safari-warning {
+            display: none;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            font-size: 11px;
+            color: #92400e;
+            text-align: center;
+        }
+        .safari-warning i { margin-right: 6px; }
+        .safari-warning.show { display: block; }
+
+        /* iOS Modal */
+        .ios-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 20px;
+        }
+        .ios-modal-overlay.show { display: flex; }
+
+        .ios-modal {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 30px 25px;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .ios-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+        }
+        .ios-modal-header h3 { font-size: 18px; font-weight: 700; color: #1e293b; }
+        .ios-modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+        }
+
+        .ios-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+        .ios-step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .ios-step-content h4 { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .ios-step-content p { font-size: 12px; color: #64748b; line-height: 1.5; }
+
+        .ios-share-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            background: #007AFF;
+            color: white;
+            border-radius: 5px;
+            font-size: 10px;
+            vertical-align: middle;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 25px;
+            }
+            .login-tab {
+                padding: 10px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bubble b1"></div>
+    <div class="bubble b2"></div>
+    <div class="bubble b3"></div>
+
+    <div class="login-card">
+        
+        <div class="logo-area">
+            <% if (siteAyarlari && siteAyarlari.logo_192) { %>
+                <img src="/uploads/<%= siteAyarlari.logo_default %>" alt="Logo">
+            <% } else { %>
+                <i class="fa-solid fa-futbol"></i>
+            <% } %>
+        </div>
+
+        <div class="brand-name"><%= siteAyarlari ? siteAyarlari.tesis_adi : 'netSPOR' %></div>
+        <div class="brand-desc">Spor Yönetim Sistemi</div>
+
+        <!-- TAB SEÇİMİ -->
+        <div class="login-tabs">
+            <button type="button" class="login-tab active" data-tab="yonetici">
+                <i class="fa-solid fa-user-tie"></i>
+                Yönetici
+            </button>
+            <button type="button" class="login-tab" data-tab="veli">
+                <i class="fa-solid fa-user-graduate"></i>
+                Veli / Öğrenci
+            </button>
+        </div>
+
+        <% if (locals.hata) { %>
+            <div class="alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span><%= hata %></span>
+            </div>
+        <% } %>
+
+        <!-- YÖNETİCİ FORMU -->
+        <form id="formYonetici" class="login-form active" action="/api/auth/login" method="POST">
+            <div class="input-group">
+                <label>Kullanıcı Adı</label>
+                <input type="text" name="kullanici_adi" class="input-field" placeholder="Yönetici kullanıcı adı" required>
+            </div>
+
+            <div class="input-group">
+                <label>Şifre</label>
+                <input type="password" name="sifre" class="input-field" placeholder="••••••••" required>
+            </div>
+
+            <div class="remember-row">
+                <input type="checkbox" name="beni_hatirla" id="remember1">
+                <label for="remember1">Oturumu açık tut</label>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                Yönetici Girişi
+            </button>
+        </form>
+
+        <!-- VELİ FORMU -->
+        <form id="formVeli" class="login-form" action="/veli/giris" method="POST">
+            <div class="input-group">
+                <label>Kullanıcı Adı</label>
+                <input type="text" name="kullanici_adi" class="input-field" placeholder="Size verilen kullanıcı adı" required>
+            </div>
+
+            <div class="input-group">
+                <label>Şifre</label>
+                <input type="password" name="sifre" class="input-field" placeholder="••••••••" required>
+            </div>
+
+            <div class="remember-row">
+                <input type="checkbox" name="beni_hatirla" id="remember2">
+                <label for="remember2">Oturumu açık tut</label>
+            </div>
+
+            <button type="submit" class="btn-login veli-btn">
+                <i class="fa-solid fa-child"></i>
+                Veli / Öğrenci Girişi
+            </button>
+        </form>
+
+        <!-- PWA BÖLÜMÜ -->
+        <div class="pwa-section">
+            <button id="installBtn">
+                <i class="fa-solid fa-download"></i> Uygulamayı Yükle
+            </button>
+
+            <button id="iosInstallBtn">
+                <i class="fa-brands fa-apple"></i> Ana Ekrana Ekle
+            </button>
+
+            <div class="safari-warning" id="safariWarning">
+                <i class="fa-solid fa-exclamation-triangle"></i>
+                Uygulamayı yüklemek için <strong>Safari</strong> kullanın
+            </div>
+        </div>
+
+        <div class="footer-text">
+            &copy; <%= new Date().getFullYear() %> netSPOR Yazılım Sistemleri
+        </div>
+    </div>
+
+    <!-- iOS Modal -->
+    <div class="ios-modal-overlay" id="iosModal">
+        <div class="ios-modal">
+            <div class="ios-modal-header">
+                <h3><i class="fa-brands fa-apple" style="margin-right: 8px;"></i> Ana Ekrana Ekle</h3>
+                <button class="ios-modal-close" onclick="closeIosModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-icon">1</div>
+                <div class="ios-step-content">
+                    <h4>Paylaş Butonuna Tıkla</h4>
+                    <p>Ekranın altındaki <span class="ios-share-icon"><i class="fa-solid fa-arrow-up-from-bracket"></i></span> paylaş butonuna dokunun</p>
+                </div>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-icon">2</div>
+                <div class="ios-step-content">
+                    <h4>Ana Ekrana Ekle</h4>
+                    <p><strong>"Ana Ekrana Ekle"</strong> seçeneğine dokunun</p>
+                </div>
+            </div>
+            <div class="ios-step">
+                <div class="ios-step-icon">3</div>
+                <div class="ios-step-content">
+                    <h4>Ekle'ye Tıkla</h4>
+                    <p>Sağ üstteki <strong>"Ekle"</strong> butonuna dokunun</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // =============================================
+    // TAB DEĞİŞTİRME
+    // =============================================
+    document.querySelectorAll('.login-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Tab butonlarını güncelle
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Formları güncelle
+            const tabName = this.dataset.tab;
+            document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+            
+            if (tabName === 'yonetici') {
+                document.getElementById('formYonetici').classList.add('active');
+            } else {
+                document.getElementById('formVeli').classList.add('active');
+            }
+        });
+    });
+
+    // URL'de veli parametresi varsa veli tabını aç
+    if (window.location.search.includes('veli') || window.location.search.includes('tip=veli')) {
+        document.querySelector('[data-tab="veli"]').click();
+    }
+
+    // =============================================
+    // CİHAZ TESPİTİ
+    // =============================================
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isIOSChrome = isIOS && /CriOS/.test(navigator.userAgent);
+    const isIOSFirefox = isIOS && /FxiOS/.test(navigator.userAgent);
+    const isIOSEdge = isIOS && /EdgiOS/.test(navigator.userAgent);
+    const isRealSafari = isIOS && !isIOSChrome && !isIOSFirefox && !isIOSEdge;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // =============================================
+    // SERVICE WORKER
+    // =============================================
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('SW kayıt başarılı'))
+            .catch(err => console.log('SW hatası:', err));
+    }
+
+    // =============================================
+    // PWA YÜKLEME
+    // =============================================
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+    const iosInstallBtn = document.getElementById('iosInstallBtn');
+    const safariWarning = document.getElementById('safariWarning');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.style.display = 'flex';
+    });
+
+    installBtn.addEventListener('click', () => {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((result) => {
+            deferredPrompt = null;
+        });
+    });
+
+    // iOS
+    if (isIOS && !isStandalone) {
+        if (isRealSafari) {
+            iosInstallBtn.style.display = 'flex';
+        } else {
+            safariWarning.classList.add('show');
+        }
+    }
+
+    iosInstallBtn.addEventListener('click', () => {
+        document.getElementById('iosModal').classList.add('show');
+    });
+
+    function closeIosModal() {
+        document.getElementById('iosModal').classList.remove('show');
+    }
+
+    document.getElementById('iosModal').addEventListener('click', (e) => {
+        if (e.target.id === 'iosModal') closeIosModal();
+    });
+</script>
+
+</body>
+</html>

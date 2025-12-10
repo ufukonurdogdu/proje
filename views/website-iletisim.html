@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>İletişim Mesajları | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        /* Stats */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card.unread { border-left: 4px solid var(--warning); }
+        .stat-card.read { border-left: 4px solid var(--success); }
+        .stat-card.total { border-left: 4px solid var(--primary); }
+
+        .stat-card h3 { font-size: 32px; font-weight: 700; margin-bottom: 5px; }
+        .stat-card p { font-size: 13px; color: var(--text-secondary); }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-tab {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .filter-tab .badge {
+            background: rgba(0,0,0,0.15);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .filter-tab.active .badge { background: rgba(255,255,255,0.25); }
+
+        /* Message Cards */
+        .messages-list { display: flex; flex-direction: column; gap: 15px; }
+
+        .message-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .message-card:hover {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .message-card.unread {
+            border-left: 4px solid var(--warning);
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.03), transparent);
+        }
+
+        .message-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .message-sender {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .sender-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .sender-info h4 { font-size: 16px; margin-bottom: 4px; }
+        
+        .sender-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .sender-meta span { display: flex; align-items: center; gap: 5px; }
+
+        .message-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.unread { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-badge.read { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+
+        .message-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .message-body {
+            padding: 20px;
+            background: var(--bg);
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text);
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .message-text:empty::before {
+            content: '(Mesaj yazılmamış)';
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .message-actions {
+            padding: 15px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-sm { padding: 8px 14px; font-size: 12px; }
+
+        .btn-success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .btn-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .btn-primary { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .btn-whatsapp { background: rgba(37, 211, 102, 0.1); color: #25D366; }
+
+        .btn:hover { transform: translateY(-2px); }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .empty-state i { font-size: 64px; color: var(--border); margin-bottom: 20px; }
+        .empty-state h4 { font-size: 18px; margin-bottom: 8px; }
+        .empty-state p { color: var(--text-secondary); }
+
+        /* Result Modal */
+        .result-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .result-modal-overlay.show {
+            display: flex;
+        }
+
+        .result-modal {
+            background: var(--card-bg);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+            padding: 30px;
+            animation: modalPop 0.3s ease;
+        }
+
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .result-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin: 0 auto 20px;
+        }
+
+        .result-icon.success { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .result-icon.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .result-icon.warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .result-icon.info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .result-icon.confirm { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .result-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .result-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .result-btn.success { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .result-btn.error { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .result-btn.warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .result-btn.info { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .result-btn.cancel { background: var(--border); color: var(--text); }
+        .result-btn.confirm-delete { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .result-btn:active { transform: scale(0.98); }
+        .result-btn.full-width { width: 100%; }
+
+        /* ==================== MASAÜSTÜNDE GİZLİ ELEMENTLER ==================== */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .mobile-stats { display: none; }
+        .mobile-filter-tabs { display: none; }
+        .mobile-messages-list { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Masaüstü Elementleri Gizle */
+            .page-header { display: none; }
+            .stats-row { display: none; }
+            .filter-tabs { display: none; }
+            .messages-list { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-header-actions button:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== MOBİL STATS ===== */
+            .mobile-stats {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .mobile-stat-card {
+                background: var(--m-bg-secondary);
+                border-radius: 14px;
+                padding: 14px 10px;
+                text-align: center;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .mobile-stat-card .stat-num {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--m-text-primary);
+            }
+
+            .mobile-stat-card .stat-num.orange { color: #f59e0b; }
+            .mobile-stat-card .stat-num.green { color: #22c55e; }
+            .mobile-stat-card .stat-num.purple { color: #6366f1; }
+
+            .mobile-stat-card .stat-label {
+                font-size: 11px;
+                color: var(--m-text-muted);
+                margin-top: 4px;
+            }
+
+            /* ===== MOBİL FİLTRE TABS ===== */
+            .mobile-filter-tabs {
+                display: flex !important;
+                gap: 8px;
+                padding: 0 15px 15px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .mobile-filter-tab {
+                padding: 10px 16px;
+                border: 1px solid var(--m-border-color);
+                background: var(--m-bg-secondary);
+                border-radius: 10px;
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                white-space: nowrap;
+                color: var(--m-text-secondary);
+            }
+
+            .mobile-filter-tab.active {
+                background: #6366f1;
+                color: white;
+                border-color: #6366f1;
+            }
+
+            .mobile-filter-tab .badge {
+                background: rgba(0,0,0,0.1);
+                padding: 2px 8px;
+                border-radius: 8px;
+                font-size: 11px;
+            }
+
+            .mobile-filter-tab.active .badge {
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== MOBİL MESAJ LİSTESİ ===== */
+            .mobile-messages-list {
+                display: flex !important;
+                flex-direction: column;
+                gap: 12px;
+                padding: 0 15px;
+            }
+
+            .mobile-message-card {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+                overflow: hidden;
+            }
+
+            .mobile-message-card.unread {
+                border-left: 3px solid #f59e0b;
+            }
+
+            .mobile-message-card:active {
+                transform: scale(0.98);
+            }
+
+            .mobile-message-header {
+                padding: 14px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .mobile-sender-avatar {
+                width: 46px;
+                height: 46px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #6366f1, #4f46e5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 16px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+
+            .mobile-sender-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .mobile-sender-name {
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--m-text-primary);
+                margin-bottom: 4px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .mobile-status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #f59e0b;
+            }
+
+            .mobile-status-dot.read {
+                background: #22c55e;
+            }
+
+            .mobile-sender-phone {
+                font-size: 12px;
+                color: var(--m-text-muted);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .mobile-message-date {
+                font-size: 11px;
+                color: var(--m-text-muted);
+                text-align: right;
+            }
+
+            .mobile-message-preview {
+                padding: 0 14px 14px;
+            }
+
+            .mobile-message-text {
+                font-size: 13px;
+                color: var(--m-text-secondary);
+                line-height: 1.5;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                background: var(--m-bg-tertiary);
+                padding: 12px;
+                border-radius: 10px;
+            }
+
+            .mobile-message-actions {
+                padding: 12px 14px;
+                display: flex;
+                gap: 8px;
+                border-top: 1px solid var(--m-border-color);
+            }
+
+            .mobile-action-btn {
+                flex: 1;
+                padding: 10px;
+                border: none;
+                border-radius: 10px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                text-decoration: none;
+            }
+
+            .mobile-action-btn.read-btn {
+                background: rgba(34, 197, 94, 0.1);
+                color: #22c55e;
+            }
+
+            .mobile-action-btn.unread-btn {
+                background: rgba(245, 158, 11, 0.1);
+                color: #f59e0b;
+            }
+
+            .mobile-action-btn.call-btn {
+                background: rgba(99, 102, 241, 0.1);
+                color: #6366f1;
+            }
+
+            .mobile-action-btn.whatsapp-btn {
+                background: rgba(37, 211, 102, 0.1);
+                color: #25D366;
+            }
+
+            .mobile-action-btn.delete-btn {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .mobile-action-btn:active {
+                transform: scale(0.95);
+            }
+
+            /* ===== EMPTY STATE MOBİL ===== */
+            .mobile-empty-state {
+                text-align: center;
+                padding: 60px 20px;
+                margin: 0 15px;
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .mobile-empty-state i {
+                font-size: 50px;
+                color: var(--m-text-muted);
+                opacity: 0.5;
+                margin-bottom: 15px;
+            }
+
+            .mobile-empty-state h4 {
+                font-size: 16px;
+                color: var(--m-text-primary);
+                margin-bottom: 8px;
+            }
+
+            .mobile-empty-state p {
+                font-size: 13px;
+                color: var(--m-text-muted);
+            }
+
+            /* ===== RESULT MODAL MOBİL ===== */
+            .result-modal-overlay {
+                padding: 20px;
+            }
+
+            .result-modal {
+                background: var(--m-bg-secondary);
+                max-width: 320px;
+            }
+
+            .result-title {
+                color: var(--m-text-primary);
+            }
+
+            .result-message {
+                color: var(--m-text-secondary);
+            }
+
+            .result-btn.cancel {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>İletişim Mesajları</h1>
+                <span><%= mesajlar.length %> mesaj</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>İletişim Mesajları</span>
+                    </div>
+                    <h1><i class="fas fa-inbox"></i> İletişim Mesajları</h1>
+                </div>
+            </div>
+
+            <% 
+                const okunmamis = mesajlar.filter(m => !m.okundu).length;
+                const okunmus = mesajlar.filter(m => m.okundu).length;
+            %>
+
+            <!-- Stats (Desktop) -->
+            <div class="stats-row">
+                <div class="stat-card unread">
+                    <h3><%= okunmamis %></h3>
+                    <p><i class="fas fa-envelope"></i> Okunmamış</p>
+                </div>
+                <div class="stat-card read">
+                    <h3><%= okunmus %></h3>
+                    <p><i class="fas fa-envelope-open"></i> Okunmuş</p>
+                </div>
+                <div class="stat-card total">
+                    <h3><%= mesajlar.length %></h3>
+                    <p><i class="fas fa-inbox"></i> Toplam</p>
+                </div>
+            </div>
+
+            <!-- Stats (Mobile) -->
+            <div class="mobile-stats">
+                <div class="mobile-stat-card">
+                    <div class="stat-num orange"><%= okunmamis %></div>
+                    <div class="stat-label">Okunmamış</div>
+                </div>
+                <div class="mobile-stat-card">
+                    <div class="stat-num green"><%= okunmus %></div>
+                    <div class="stat-label">Okunmuş</div>
+                </div>
+                <div class="mobile-stat-card">
+                    <div class="stat-num purple"><%= mesajlar.length %></div>
+                    <div class="stat-label">Toplam</div>
+                </div>
+            </div>
+
+            <!-- Filter Tabs (Desktop) -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" onclick="filterMessages('all', this)">
+                    <i class="fas fa-inbox"></i> Tümü <span class="badge"><%= mesajlar.length %></span>
+                </button>
+                <button class="filter-tab" onclick="filterMessages('unread', this)">
+                    <i class="fas fa-envelope"></i> Okunmamış <span class="badge"><%= okunmamis %></span>
+                </button>
+                <button class="filter-tab" onclick="filterMessages('read', this)">
+                    <i class="fas fa-envelope-open"></i> Okunmuş <span class="badge"><%= okunmus %></span>
+                </button>
+            </div>
+
+            <!-- Filter Tabs (Mobile) -->
+            <div class="mobile-filter-tabs">
+                <button class="mobile-filter-tab active" onclick="filterMobileMessages('all', this)">
+                    Tümü <span class="badge"><%= mesajlar.length %></span>
+                </button>
+                <button class="mobile-filter-tab" onclick="filterMobileMessages('unread', this)">
+                    Yeni <span class="badge"><%= okunmamis %></span>
+                </button>
+                <button class="mobile-filter-tab" onclick="filterMobileMessages('read', this)">
+                    Okunmuş <span class="badge"><%= okunmus %></span>
+                </button>
+            </div>
+
+            <!-- Messages List (Desktop) -->
+            <div class="messages-list">
+                <% if (mesajlar && mesajlar.length > 0) { %>
+                    <% mesajlar.forEach(mesaj => { %>
+                        <div class="message-card <%= mesaj.okundu ? '' : 'unread' %>" data-id="<%= mesaj.id %>" data-read="<%= mesaj.okundu ? 'read' : 'unread' %>">
+                            <div class="message-header">
+                                <div class="message-sender">
+                                    <div class="sender-avatar">
+                                        <%= mesaj.ad_soyad ? mesaj.ad_soyad.charAt(0).toUpperCase() : '?' %>
+                                    </div>
+                                    <div class="sender-info">
+                                        <h4><%= mesaj.ad_soyad || 'İsimsiz' %></h4>
+                                        <div class="sender-meta">
+                                            <span><i class="fas fa-phone"></i> <%= mesaj.telefon %></span>
+                                            <% if (mesaj.email) { %>
+                                                <span><i class="fas fa-envelope"></i> <%= mesaj.email %></span>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="message-status">
+                                    <span class="status-badge <%= mesaj.okundu ? 'read' : 'unread' %>">
+                                        <i class="fas fa-<%= mesaj.okundu ? 'check-double' : 'clock' %>"></i>
+                                        <%= mesaj.okundu ? 'Okundu' : 'Yeni' %>
+                                    </span>
+                                    <div class="message-date">
+                                        <% if (mesaj.created_at) { %>
+                                            <%= new Date(mesaj.created_at).toLocaleDateString('tr-TR') %>
+                                            <%= new Date(mesaj.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="message-body">
+                                <div class="message-text"><%= mesaj.mesaj || '' %></div>
+                            </div>
+
+                            <div class="message-actions">
+                                <% if (!mesaj.okundu) { %>
+                                    <button class="btn btn-success btn-sm" onclick="markAsRead(<%= mesaj.id %>)">
+                                        <i class="fas fa-check"></i> Okundu İşaretle
+                                    </button>
+                                <% } else { %>
+                                    <button class="btn btn-warning btn-sm" onclick="markAsUnread(<%= mesaj.id %>)">
+                                        <i class="fas fa-undo"></i> Okunmadı Yap
+                                    </button>
+                                <% } %>
+                                <a href="tel:<%= mesaj.telefon %>" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-phone"></i> Ara
+                                </a>
+                                <a href="https://wa.me/90<%= mesaj.telefon.replace(/\D/g, '') %>" target="_blank" class="btn btn-whatsapp btn-sm">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp
+                                </a>
+                                <button class="btn btn-danger btn-sm" onclick="deleteMesaj(<%= mesaj.id %>)">
+                                    <i class="fas fa-trash"></i> Sil
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>Henüz mesaj yok</h4>
+                        <p>İletişim formu üzerinden gelen mesajlar burada görünecek</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Messages List (Mobile) -->
+            <div class="mobile-messages-list" id="mobileMessagesList">
+                <% if (mesajlar && mesajlar.length > 0) { %>
+                    <% mesajlar.forEach(mesaj => { %>
+                        <div class="mobile-message-card <%= mesaj.okundu ? '' : 'unread' %>" data-id="<%= mesaj.id %>" data-read="<%= mesaj.okundu ? 'read' : 'unread' %>">
+                            <div class="mobile-message-header">
+                                <div class="mobile-sender-avatar">
+                                    <%= mesaj.ad_soyad ? mesaj.ad_soyad.charAt(0).toUpperCase() : '?' %>
+                                </div>
+                                <div class="mobile-sender-info">
+                                    <div class="mobile-sender-name">
+                                        <%= mesaj.ad_soyad || 'İsimsiz' %>
+                                        <span class="mobile-status-dot <%= mesaj.okundu ? 'read' : '' %>"></span>
+                                    </div>
+                                    <div class="mobile-sender-phone">
+                                        <i class="fas fa-phone"></i> <%= mesaj.telefon %>
+                                    </div>
+                                </div>
+                                <div class="mobile-message-date">
+                                    <% if (mesaj.created_at) { %>
+                                        <%= new Date(mesaj.created_at).toLocaleDateString('tr-TR', {day: '2-digit', month: '2-digit'}) %><br>
+                                        <%= new Date(mesaj.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %>
+                                    <% } %>
+                                </div>
+                            </div>
+                            
+                            <div class="mobile-message-preview">
+                                <div class="mobile-message-text"><%= mesaj.mesaj || '(Mesaj yok)' %></div>
+                            </div>
+
+                            <div class="mobile-message-actions">
+                                <% if (!mesaj.okundu) { %>
+                                    <button class="mobile-action-btn read-btn" onclick="markAsRead(<%= mesaj.id %>)">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                <% } else { %>
+                                    <button class="mobile-action-btn unread-btn" onclick="markAsUnread(<%= mesaj.id %>)">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                <% } %>
+                                <a href="tel:<%= mesaj.telefon %>" class="mobile-action-btn call-btn">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                                <a href="https://wa.me/90<%= mesaj.telefon.replace(/\D/g, '') %>" target="_blank" class="mobile-action-btn whatsapp-btn">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                                <button class="mobile-action-btn delete-btn" onclick="deleteMesaj(<%= mesaj.id %>)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="mobile-empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>Henüz mesaj yok</h4>
+                        <p>İletişim formu üzerinden gelen mesajlar burada görünecek</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="result-modal-overlay" id="resultModal">
+        <div class="result-modal">
+            <div class="result-icon" id="resultIcon">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="result-title" id="resultTitle">Başarılı!</div>
+            <div class="result-message" id="resultMessage">İşlem başarıyla tamamlandı.</div>
+            <div class="result-buttons" id="resultButtons">
+                <button class="result-btn success full-width" onclick="closeResultModal()">Tamam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // MODAL SİSTEMİ
+        // =====================================================
+        let confirmCallback = null;
+
+        function showResultModal(message, type = 'success') {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMessage');
+            const buttons = document.getElementById('resultButtons');
+
+            icon.className = 'result-icon ' + type;
+
+            if (type === 'success') {
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+                title.textContent = 'Başarılı!';
+                buttons.innerHTML = '<button class="result-btn success full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'error') {
+                icon.innerHTML = '<i class="fas fa-times"></i>';
+                title.textContent = 'Hata!';
+                buttons.innerHTML = '<button class="result-btn error full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'warning') {
+                icon.innerHTML = '<i class="fas fa-exclamation"></i>';
+                title.textContent = 'Uyarı!';
+                buttons.innerHTML = '<button class="result-btn warning full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'info') {
+                icon.innerHTML = '<i class="fas fa-info"></i>';
+                title.textContent = 'Bilgi';
+                buttons.innerHTML = '<button class="result-btn info full-width" onclick="closeResultModal()">Tamam</button>';
+            }
+
+            msg.textContent = message;
+            modal.classList.add('show');
+        }
+
+        function showConfirmModal(message, callback, title = 'Silmek istediğinize emin misiniz?') {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const titleEl = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMessage');
+            const buttons = document.getElementById('resultButtons');
+
+            confirmCallback = callback;
+
+            icon.className = 'result-icon confirm';
+            icon.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            titleEl.textContent = title;
+            msg.textContent = message;
+            
+            buttons.innerHTML = `
+                <button class="result-btn cancel" onclick="closeResultModal()">İptal</button>
+                <button class="result-btn confirm-delete" onclick="executeConfirm()">Sil</button>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function executeConfirm() {
+            closeResultModal();
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.remove('show');
+            confirmCallback = null;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeResultModal();
+        });
+
+        document.getElementById('resultModal').addEventListener('click', (e) => {
+            if (e.target.id === 'resultModal') closeResultModal();
+        });
+
+        // =====================================================
+        // FİLTRE İŞLEMLERİ
+        // =====================================================
+        function filterMessages(type, btn) {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.querySelectorAll('.message-card').forEach(card => {
+                if (type === 'all') {
+                    card.style.display = '';
+                } else {
+                    card.style.display = card.dataset.read === type ? '' : 'none';
+                }
+            });
+        }
+
+        function filterMobileMessages(type, btn) {
+            document.querySelectorAll('.mobile-filter-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.querySelectorAll('.mobile-message-card').forEach(card => {
+                if (type === 'all') {
+                    card.style.display = '';
+                } else {
+                    card.style.display = card.dataset.read === type ? '' : 'none';
+                }
+            });
+        }
+
+        // =====================================================
+        // MESAJ İŞLEMLERİ
+        // =====================================================
+        async function markAsRead(id) {
+            try {
+                const res = await fetch(`/api/admin/website/iletisim/${id}/okundu`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ okundu: 1 })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showResultModal('Mesaj okundu olarak işaretlendi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showResultModal('Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showResultModal('Bağlantı hatası oluştu', 'error');
+            }
+        }
+
+        async function markAsUnread(id) {
+            try {
+                const res = await fetch(`/api/admin/website/iletisim/${id}/okundu`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ okundu: 0 })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showResultModal('Mesaj okunmadı olarak işaretlendi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showResultModal('Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showResultModal('Bağlantı hatası oluştu', 'error');
+            }
+        }
+
+        function deleteMesaj(id) {
+            showConfirmModal(
+                'Bu mesaj kalıcı olarak silinecek. Bu işlem geri alınamaz.',
+                async () => {
+                    try {
+                        const res = await fetch(`/api/admin/website/iletisim/${id}`, { method: 'DELETE' });
+                        const data = await res.json();
+
+                        if (data.success) {
+                            // Desktop
+                            document.querySelector(`.message-card[data-id="${id}"]`)?.remove();
+                            // Mobile
+                            document.querySelector(`.mobile-message-card[data-id="${id}"]`)?.remove();
+                            showResultModal('Mesaj başarıyla silindi');
+                        } else {
+                            showResultModal('Bir hata oluştu', 'error');
+                        }
+                    } catch (err) {
+                        showResultModal('Bağlantı hatası oluştu', 'error');
+                    }
+                },
+                'Mesajı Sil'
+            );
+        }
+    </script>
+</body>
+</html>

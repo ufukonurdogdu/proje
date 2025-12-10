@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= ogrenci.ad_soyad %> | Profil</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { --primary: <%= siteAyarlari.ana_renk %>; --bg-body: #f3f5f9; --dark-text: #2d3748; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        
+        .main { flex: 1; margin: 2vh; background: white; border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.04); position: relative; }
+        
+        /* Header */
+        .profile-header { background: white; padding: 30px; border-bottom: 1px solid #f1f5f9; display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+        .profile-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #f8fafc; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .profile-info { flex: 1; padding-top: 10px; min-width: 280px; }
+        .profile-name { font-size: 26px; font-weight: 800; color: var(--dark-text); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .profile-meta { font-size: 14px; color: #64748b; margin-top: 5px; display: flex; gap: 15px; flex-wrap: wrap; }
+        
+        .status-badge { font-size: 12px; padding: 4px 10px; border-radius: 8px; font-weight: 700; text-transform: uppercase; }
+        .st-aktif { background: #dcfce7; color: #166534; } 
+        .st-pasif { background: #fee2e2; color: #991b1b; } 
+        .st-dondur { background: #fef3c7; color: #92400e; }
+
+        /* Tabs */
+        .tabs { display: flex; padding: 0 30px; border-bottom: 1px solid #f1f5f9; background: white; gap: 20px; overflow-x: auto; }
+        .tab-btn { padding: 20px 5px; font-size: 14px; font-weight: 600; color: #94a3b8; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .content { padding: 30px; overflow-y: auto; flex: 1; background: #f8fafc; }
+        .tab-pane { display: none; animation: fadeIn 0.3s; }
+        .tab-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Grid Cards */
+        .grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+        .card { background: white; border-radius: 20px; padding: 25px; border: 1px solid #e2e8f0; box-shadow: 0 5px 15px rgba(0,0,0,0.02); margin-bottom: 20px; }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 16px; font-weight: 800; color: var(--dark-text); display: flex; align-items: center; gap: 8px; }
+        .year-select { display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 5px 10px; border-radius: 10px; font-weight: 700; }
+        .year-btn { border: none; background: none; cursor: pointer; color: #64748b; }
+        .year-btn:hover { color: var(--primary); }
+
+        /* 12 Ay Kutuları */
+        .months-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .month-box { padding: 15px 10px; border-radius: 14px; text-align: center; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+        .month-box:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        
+        .m-title { font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .m-status { font-size: 10px; font-weight: 700; padding: 3px 6px; border-radius: 6px; display: inline-block; }
+        .m-balance { font-size: 12px; font-weight: 700; margin-top: 5px; display: block; }
+
+        .box-unpaid { background: white; border-color: #fee2e2; } .box-unpaid .m-status { background: #fee2e2; color: #ef4444; } .box-unpaid .m-title { color: #ef4444; }
+        .box-paid { background: #f0fdf4; border-color: #dcfce7; } .box-paid .m-status { background: #dcfce7; color: #166534; } .box-paid .m-title { color: #166534; }
+        .box-partial { background: #fffbeb; border-color: #fef3c7; } .box-partial .m-status { background: #fef3c7; color: #d97706; }
+        .box-passive { background: #f1f5f9; border-color: #e2e8f0; opacity: 0.6; cursor: not-allowed; }
+        .box-passive:hover { transform: none; box-shadow: none; }
+        .box-passive .m-status { background: #e2e8f0; color: #64748b; } .box-passive .m-title { color: #94a3b8; }
+
+        /* Actions */
+        .action-bar { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn { padding: 10px 16px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-sec { background: white; border: 1px solid #e2e8f0; color: var(--dark-text); }
+        .btn-del { background: #fee2e2; color: #dc2626; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-purple { background: #8b5cf6; color: white; }
+        .btn-orange { background: #f97316; color: white; }
+        .btn-sm { padding: 8px 12px; font-size: 12px; }
+
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); padding: 20px; }
+        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: popUp 0.3s; }
+        @keyframes popUp { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
+        .modal-header h3 { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .modal-close { width: 36px; height: 36px; border-radius: 50%; border: none; background: #f1f5f9; cursor: pointer; font-size: 18px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-label { font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 6px; display: block; }
+        .form-control { width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fcfcfc; font-size: 14px; }
+        .form-control:focus { border-color: var(--primary); background: white; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; font-size: 14px; }
+
+        /* Radio/Checkbox Grupları */
+        .option-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .option-item { flex: 1; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; text-align: center; transition: 0.2s; }
+        .option-item:hover { border-color: var(--primary); }
+        .option-item.active { border-color: var(--primary); background: rgba(59,130,246,0.05); }
+        .option-item input { display: none; }
+        .option-item i { font-size: 20px; margin-bottom: 5px; display: block; color: var(--primary); }
+        .option-item span { font-size: 12px; font-weight: 700; }
+
+        /* Taksit Kartları */
+        .taksit-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; }
+        .taksit-card.odendi { background: #f0fdf4; border-color: #dcfce7; }
+        .taksit-card.gecikti { background: #fef2f2; border-color: #fecaca; }
+        .taksit-no { width: 40px; height: 40px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+        .taksit-card.odendi .taksit-no { background: #22c55e; }
+        .taksit-card.gecikti .taksit-no { background: #ef4444; }
+        .taksit-info { flex: 1; }
+        .taksit-info .tutar { font-size: 16px; font-weight: 800; }
+        .taksit-info .vade { font-size: 12px; color: #64748b; }
+        .taksit-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-bekliyor { background: #fef3c7; color: #92400e; }
+        .badge-odendi { background: #dcfce7; color: #166534; }
+        .badge-gecikti { background: #fee2e2; color: #dc2626; }
+
+        /* Özel Ders Kartları */
+        .ders-paket-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 20px; color: white; margin-bottom: 15px; }
+        .ders-paket-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; }
+        .ders-paket-title { font-size: 16px; font-weight: 700; }
+        .ders-paket-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .ders-progress { background: rgba(255,255,255,0.2); border-radius: 10px; height: 8px; margin-bottom: 10px; }
+        .ders-progress-bar { background: white; height: 100%; border-radius: 10px; transition: width 0.3s; }
+        .ders-stats { display: flex; justify-content: space-between; font-size: 13px; }
+        .ders-stat { text-align: center; }
+        .ders-stat-value { font-size: 20px; font-weight: 800; }
+        .ders-stat-label { opacity: 0.8; font-size: 11px; }
+
+        /* Ödeme Geçmişi */
+        .payment-history { max-height: 400px; overflow-y: auto; }
+        .payment-history::-webkit-scrollbar { width: 6px; }
+        .payment-history::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .payment-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .payment-item:hover { background: #f8fafc; margin: 0 -10px; padding-left: 10px; padding-right: 10px; border-radius: 10px; }
+
+        /* Info Box */
+        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 12px 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #1e40af; }
+        .info-box i { font-size: 16px; }
+        .info-box.warning { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+        .info-box.success { background: #dcfce7; border-color: #bbf7d0; color: #166534; }
+
+        /* Hesaplama Özeti */
+        .calc-summary { background: #f8fafc; border-radius: 12px; padding: 15px; margin: 15px 0; }
+        .calc-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; }
+        .calc-row:last-child { border-bottom: none; font-weight: 800; font-size: 16px; color: var(--primary); }
+
+        /* Paket Satışı Kutusu */
+        .box-paket { background: #f3e8ff; border-color: #c084fc; }
+        .box-paket .m-status { background: #c084fc; color: white; }
+        .box-paket .m-title { color: #7c3aed; }
+        
+        /* Analiz Kartları */
+        .analiz-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .analiz-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-color: #10b981;
+        }
+        .analiz-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .analiz-brans {
+            background: #10b981;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .analiz-tarih {
+            color: #64748b;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .analiz-puan-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 18px;
+        }
+        .analiz-puan-badge small {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .analiz-bars {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .analiz-bar-item {
+            text-align: center;
+        }
+        .analiz-bar-item > span:first-child {
+            font-size: 10px;
+            color: #64748b;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .analiz-bar-item > span:last-child {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .analiz-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+        .analiz-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+        .analiz-ozet {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Analiz Modal Slider */
+        .puan-slider-container {
+            margin-bottom: 20px;
+        }
+        .puan-slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .puan-slider-header label {
+            font-weight: 700;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .puan-slider-header .puan-value {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            min-width: 40px;
+            text-align: center;
+        }
+        .puan-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .puan-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .puan-aciklama {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            margin-top: 8px;
+            font-size: 13px;
+            resize: none;
+        }
+
+        @media(max-width: 1000px) { 
+            .grid-2 { grid-template-columns: 1fr; } 
+            .profile-header { flex-direction: column; text-align: center; } 
+            .action-bar { justify-content: center; }
+            .months-grid { grid-template-columns: repeat(3, 1fr); }
+            .form-row { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            .analiz-bars { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <%
+    // Yetki kontrolleri için kısa değişkenler
+    const isYonetici = user.rol === 'yonetici';
+    const canViewKasa = isYonetici || (user.yetkiler && user.yetkiler.kasa_gor);
+    const canEditKasa = isYonetici || (user.yetkiler && user.yetkiler.kasa_islem);
+    const canEditStudent = isYonetici || (user.yetkiler && user.yetkiler.ogrenci_duzenle);
+    const canDeleteStudent = isYonetici || (user.yetkiler && user.yetkiler.ogrenci_sil);
+    const canYoklama = isYonetici || (user.yetkiler && user.yetkiler.yoklama);
+    
+    // İlk aktif tab belirleme
+    let firstActiveTab = 'analiz';
+    if (canViewKasa) firstActiveTab = 'finans';
+    %>
+
+    <div class="main">
+        
+        <!-- HEADER -->
+        <div class="profile-header">
+		<img src="/images/students/<%= ogrenci.profil_foto || '1.png' %>" onerror="this.src='/images/1.png'" class="profile-img">
+			
+            <div class="profile-info">
+                <div class="profile-name">
+                    <%= ogrenci.ad_soyad %> 
+                    <span class="status-badge <%= ogrenci.durum === 'aktif' ? 'st-aktif' : (ogrenci.durum === 'pasif' ? 'st-pasif' : 'st-dondur') %>">
+                        <%= ogrenci.durum.toUpperCase() %>
+                    </span>
+                </div>
+                <div class="profile-meta">
+                    <span><i class="fa-solid fa-id-card"></i> <%= ogrenci.tc_kimlik %></span>
+                    <span><i class="fa-solid fa-layer-group"></i> <%= ogrenci.brans_adi || '-' %> - <%= ogrenci.grup_adi || '-' %></span>
+                    <span><i class="fa-solid fa-calendar"></i> Kayıt: <%= new Date(ogrenci.kayit_tarihi).toLocaleDateString('tr-TR') %></span>
+                </div>
+                
+                <div class="action-bar">
+                    <% if (canEditStudent) { %>
+                        <a href="/api/ogrenci/duzenle/<%= ogrenci.id %>" class="btn btn-sec"><i class="fa-solid fa-pen"></i> Düzenle</a>
+                        <button onclick="openStatusModal()" class="btn btn-sec"><i class="fa-solid fa-power-off"></i> Durum</button>
+                    <% } %>
+                    
+                    <button onclick="openAnalizModal()" class="btn btn-main" style="background:#10b981;"><i class="fa-solid fa-chart-line"></i> Analiz Ekle</button>
+                    
+                    <% if (canViewKasa) { %>
+                        <button onclick="openSaleModal()" class="btn btn-main"><i class="fa-solid fa-cart-shopping"></i> Paket/Ders</button>
+                        <button onclick="openProductModal()" class="btn btn-purple"><i class="fa-solid fa-box"></i> Ürün</button>
+                    <% } %>
+                    
+                    <% if (canDeleteStudent) { %>
+                        <button onclick="openDeleteModal()" class="btn btn-del"><i class="fa-solid fa-trash"></i> Sil</button>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <% if (canViewKasa) { %>
+                <div class="tab-btn <%= firstActiveTab === 'finans' ? 'active' : '' %>" onclick="openTab('finans')">Finans & Aidat</div>
+            <% } %>
+            
+            <div class="tab-btn <%= firstActiveTab === 'analiz' ? 'active' : '' %>" onclick="openTab('analiz')">Analizler</div>
+            
+            <% if (canViewKasa) { %>
+                <div class="tab-btn" onclick="openTab('taksit')">Taksitler</div>
+                <div class="tab-btn" onclick="openTab('ozelders')">Özel Dersler</div>
+            <% } %>
+            
+            <div class="tab-btn" onclick="openTab('gecmis')">Geçmiş</div>
+            <div class="tab-btn" onclick="openTab('bilgi')">Bilgiler</div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="content">
+            
+            <% if (canViewKasa) { %>
+            <!-- FİNANS TAB -->
+            <div id="tab-finans" class="tab-pane <%= firstActiveTab === 'finans' ? 'active' : '' %>">
+                <div class="grid-2">
+                    
+                    <!-- AİDAT TAKİBİ -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-calendar-check" style="color: var(--primary);"></i> Aidat Takibi</div>
+                            <div class="year-select">
+                                <button class="year-btn" onclick="changeYear(<%= seciliYil - 1 %>)"><i class="fa-solid fa-chevron-left"></i></button>
+                                <span><%= seciliYil %></span>
+                                <button class="year-btn" onclick="changeYear(<%= seciliYil + 1 %>)"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="months-grid">
+                            <% const aylarIsim = ["", "OCAK", "ŞUBAT", "MART", "NİSAN", "MAYIS", "HAZİRAN", "TEMMUZ", "AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK"]; %>
+
+                            <% for(let i=1; i<=12; i++) { 
+                                const ay = aylar[i];
+                                let boxClass = "box-unpaid";
+                                let statusText = "ÖDENMEDİ";
+                                let clickAction = canEditKasa ? `openPaymentModal(${i}, '${aylarIsim[i]}', ${ay.gereken}, ${ay.odenen})` : '';
+                                let isPaket = ay.odeme_tipi === 'paket';
+
+                                if(ay.durum === 'tamamlandi') { 
+                                    if (isPaket) {
+                                        boxClass = "box-paket";
+                                        statusText = "PAKET";
+                                        clickAction = `openPaketBilgiModal('${ay.paket_adi || 'Paket Satışı'}', '${ay.paket_baslangic ? new Date(ay.paket_baslangic).toLocaleDateString('tr-TR') : '-'}', '${ay.paket_bitis ? new Date(ay.paket_bitis).toLocaleDateString('tr-TR') : '-'}')`;
+                                    } else {
+                                        boxClass = "box-paid"; 
+                                        statusText = "ÖDENDİ"; 
+                                        clickAction = '';
+                                    }
+                                }
+                                else if(ay.durum === 'kismi_odendi') { boxClass = "box-partial"; statusText = "KISMİ"; }
+
+                                if(ay.isPasif) {
+                                    boxClass += " box-passive";
+                                    statusText = "-";
+                                    clickAction = "";
+                                }
+                            %>
+                                <div class="month-box <%= boxClass %>" onclick="<%= clickAction %>" style="<%= !clickAction ? 'cursor: default;' : '' %>">
+                                    <span class="m-title"><%= aylarIsim[i] %></span>
+                                    <span class="m-status"><%= statusText %></span>
+                                    <% if(!ay.isPasif) { %>
+                                        <% if(isPaket && ay.durum === 'tamamlandi') { %>
+                                            <span class="m-balance" style="color:#8b5cf6;"><i class="fa-solid fa-box"></i> Paket</span>
+                                        <% } else if(ay.kalan > 0) { %> 
+                                            <span class="m-balance" style="color:#dc2626;">Kalan: <%= ay.kalan %> ₺</span> 
+                                        <% } else { %> 
+                                            <span class="m-balance" style="color:#16a34a;">Tamam</span> 
+                                        <% } %>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- ÖDEME GEÇMİŞİ -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Ödeme Geçmişi</div>
+                        </div>
+                        
+                        <div class="payment-history">
+                            <% 
+                            let tumOdemeler = [];
+                            if (typeof kasaKayitlari !== 'undefined' && kasaKayitlari.length > 0) {
+                                kasaKayitlari.forEach(k => {
+                                    let tip = 'diger';
+                                    if (k.kategori && k.kategori.includes('Aidat')) tip = 'aidat';
+                                    else if (k.kategori && k.kategori.includes('Ürün')) tip = 'urun';
+                                    else if (k.kategori && (k.kategori.includes('Paket') || k.kategori.includes('Özel Ders') || k.kategori.includes('Taksit'))) tip = 'paket';
+                                    
+                                    tumOdemeler.push({
+                                        tip: tip,
+                                        tarih: k.tarih,
+                                        tutar: k.tutar,
+                                        aciklama: k.aciklama,
+                                        kategori: k.kategori,
+                                        islem_yapan: k.islem_yapan || '-'
+                                    });
+                                });
+                            }
+                            tumOdemeler.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
+                            %>
+                            
+                            <% if (tumOdemeler.length === 0) { %>
+                                <div style="text-align:center; padding:40px 20px; color:#94a3b8;">
+                                    <i class="fa-solid fa-receipt" style="font-size:40px; margin-bottom:15px; opacity:0.3;"></i>
+                                    <p>Henüz ödeme kaydı bulunmuyor.</p>
+                                </div>
+                            <% } else { %>
+                                <% tumOdemeler.slice(0, 20).forEach(odeme => { %>
+                                    <div class="payment-item">
+                                        <div style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+                                            <% if (odeme.tip === 'aidat') { %>background: #dcfce7; color: #16a34a;<% } else if (odeme.tip === 'urun') { %>background: #f3e8ff; color: #8b5cf6;<% } else if (odeme.tip === 'paket') { %>background: #dbeafe; color: #3b82f6;<% } else { %>background: #f1f5f9; color: #64748b;<% } %>">
+                                            <i class="fa-solid <%= odeme.tip === 'aidat' ? 'fa-calendar-check' : (odeme.tip === 'urun' ? 'fa-box' : (odeme.tip === 'paket' ? 'fa-shopping-cart' : 'fa-receipt')) %>"></i>
+                                        </div>
+                                        <div style="flex:1; min-width:0;">
+                                            <div style="font-weight:600; font-size:13px; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><%= odeme.aciklama %></div>
+                                            <div style="display:flex; gap:10px; margin-top:2px; font-size:11px; color:#94a3b8;">
+                                                <span><i class="fa-regular fa-calendar"></i> <%= new Date(odeme.tarih).toLocaleDateString('tr-TR') %></span>
+                                                <span><i class="fa-regular fa-user"></i> <%= odeme.islem_yapan %></span>
+                                            </div>
+                                        </div>
+                                        <div style="text-align:right;">
+                                            <div style="font-weight:800; font-size:14px; color:#16a34a;">+<%= parseFloat(odeme.tutar).toLocaleString('tr-TR') %> ₺</div>
+                                            <% if (odeme.tip === 'aidat') { %>
+                                                <span style="font-size:9px; background:#dcfce7; color:#16a34a; padding:2px 6px; border-radius:4px; font-weight:700;">AİDAT</span>
+                                            <% } else if (odeme.tip === 'urun') { %>
+                                                <span style="font-size:9px; background:#f3e8ff; color:#8b5cf6; padding:2px 6px; border-radius:4px; font-weight:700;">ÜRÜN</span>
+                                            <% } else if (odeme.tip === 'paket') { %>
+                                                <span style="font-size:9px; background:#dbeafe; color:#3b82f6; padding:2px 6px; border-radius:4px; font-weight:700;">PAKET</span>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- ANALİZ TAB -->
+            <div id="tab-analiz" class="tab-pane <%= firstActiveTab === 'analiz' ? 'active' : '' %>">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-chart-line" style="color: #10b981;"></i> Performans Analizleri</div>
+                        <button onclick="openAnalizModal()" class="btn btn-main" style="background:#10b981;">
+                            <i class="fa-solid fa-plus"></i> Yeni Analiz
+                        </button>
+                    </div>
+
+                    <% if (!analizler || analizler.length === 0) { %>
+                        <div style="text-align:center; padding:50px 20px; color:#94a3b8;">
+                            <i class="fa-solid fa-chart-line" style="font-size:50px; margin-bottom:15px; opacity:0.3;"></i>
+                            <h3 style="margin-bottom:10px;">Henüz Analiz Yok</h3>
+                            <p>Bu öğrenci için performans analizi eklenmemiş.</p>
+                            <button onclick="openAnalizModal()" class="btn btn-main" style="background:#10b981; margin-top:15px;">
+                                <i class="fa-solid fa-plus"></i> İlk Analizi Ekle
+                            </button>
+                        </div>
+                    <% } else { %>
+                        <div style="display:grid; gap:15px; padding:15px;">
+                            <% analizler.forEach(function(analiz) { 
+                                const analizTarihi = analiz.analiz_tarihi ? new Date(analiz.analiz_tarihi) : new Date();
+                            %>
+                                <div class="analiz-card" onclick="openAnalizDetayModal(<%= analiz.id %>)">
+                                    <div class="analiz-card-header">
+                                        <div>
+                                            <span class="analiz-brans"><%= analiz.brans || 'Genel' %></span>
+                                            <span class="analiz-tarih"><%= analizTarihi.toLocaleDateString('tr-TR') %></span>
+                                        </div>
+                                        <div class="analiz-puan-badge">
+                                            <span><%= analiz.genel_puan || '5.0' %></span>
+                                            <small>/10</small>
+                                        </div>
+                                    </div>
+                                    <div class="analiz-bars">
+                                        <div class="analiz-bar-item">
+                                            <span>Teknik</span>
+                                            <div class="analiz-bar"><div class="analiz-bar-fill" style="width:<%= (analiz.teknik_puan || 5) * 10 %>%; background:#3b82f6;"></div></div>
+                                            <span><%= analiz.teknik_puan || 5 %></span>
+                                        </div>
+                                        <div class="analiz-bar-item">
+                                            <span>Fiziksel</span>
+                                            <div class="analiz-bar"><div class="analiz-bar-fill" style="width:<%= (analiz.fiziksel_puan || 5) * 10 %>%; background:#10b981;"></div></div>
+                                            <span><%= analiz.fiziksel_puan || 5 %></span>
+                                        </div>
+                                        <div class="analiz-bar-item">
+                                            <span>Taktik</span>
+                                            <div class="analiz-bar"><div class="analiz-bar-fill" style="width:<%= (analiz.taktik_puan || 5) * 10 %>%; background:#f59e0b;"></div></div>
+                                            <span><%= analiz.taktik_puan || 5 %></span>
+                                        </div>
+                                        <div class="analiz-bar-item">
+                                            <span>Mental</span>
+                                            <div class="analiz-bar"><div class="analiz-bar-fill" style="width:<%= (analiz.mental_puan || 5) * 10 %>%; background:#8b5cf6;"></div></div>
+                                            <span><%= analiz.mental_puan || 5 %></span>
+                                        </div>
+                                        <div class="analiz-bar-item">
+                                            <span>Disiplin</span>
+                                            <div class="analiz-bar"><div class="analiz-bar-fill" style="width:<%= (analiz.disiplin_puan || 5) * 10 %>%; background:#ef4444;"></div></div>
+                                            <span><%= analiz.disiplin_puan || 5 %></span>
+                                        </div>
+                                        <div class="analiz-bar-item">
+                                            <span>Takım</span>
+                                            <div class="analiz-bar"><div class="analiz-bar-fill" style="width:<%= (analiz.takim_puan || 5) * 10 %>%; background:#06b6d4;"></div></div>
+                                            <span><%= analiz.takim_puan || 5 %></span>
+                                        </div>
+                                    </div>
+                                    <% if (analiz.genel_degerlendirme) { %>
+                                        <p class="analiz-ozet"><%= analiz.genel_degerlendirme.substring(0, 120) %><%= analiz.genel_degerlendirme.length > 120 ? '...' : '' %></p>
+                                    <% } %>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed #e2e8f0;">
+                                        <span style="font-size:11px; color:#94a3b8;">
+                                            <i class="fa-solid fa-user"></i> <%= analiz.analizci_adi || 'Bilinmiyor' %>
+                                        </span>
+                                        <span style="font-size:11px; color:#10b981;">
+                                            <i class="fa-solid fa-eye"></i> Detay için tıkla
+                                        </span>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <% if (canViewKasa) { %>
+            <!-- TAKSİT TAB -->
+            <div id="tab-taksit" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-credit-card" style="color: #f97316;"></i> Taksit Ödemeleri</div>
+                    </div>
+                    
+                    <% 
+                    const bekleyenTaksitler = (typeof taksitler !== 'undefined') ? taksitler.filter(t => t.durum !== 'odendi') : [];
+                    const odenmişTaksitler = (typeof taksitler !== 'undefined') ? taksitler.filter(t => t.durum === 'odendi') : [];
+                    %>
+                    
+                    <% if (bekleyenTaksitler.length === 0 && odenmişTaksitler.length === 0) { %>
+                        <div style="text-align:center; padding:40px 20px; color:#94a3b8;">
+                            <i class="fa-solid fa-credit-card" style="font-size:40px; margin-bottom:15px; opacity:0.3;"></i>
+                            <p>Taksitli satış bulunmuyor.</p>
+                        </div>
+                    <% } else { %>
+                        
+                        <% if (bekleyenTaksitler.length > 0) { %>
+                            <h4 style="font-size:14px; color:#64748b; margin-bottom:15px;">Bekleyen Taksitler</h4>
+                            <% bekleyenTaksitler.forEach(t => { 
+                                const bugun = new Date();
+                                const vade = new Date(t.vade_tarihi);
+                                const gecikmisMi = bugun > vade && t.durum !== 'odendi';
+                                const taksitTuru = t.satis_turu === 'ozel_ders' ? 'Özel Ders' : 'Paket';
+                                const turRenk = t.satis_turu === 'ozel_ders' ? '#8b5cf6' : '#3b82f6';
+                            %>
+                                <div class="taksit-card <%= gecikmisMi ? 'gecikti' : '' %>">
+                                    <div class="taksit-no"><%= t.taksit_no %></div>
+                                    <div class="taksit-info">
+                                        <div class="tutar"><%= parseFloat(t.kalan).toLocaleString('tr-TR') %> ₺</div>
+                                        <div class="vade">
+                                            <%= t.satis_baslik %> 
+                                            <span style="background:<%= turRenk %>20; color:<%= turRenk %>; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:700; margin-left:5px;"><%= taksitTuru %></span>
+                                            <br>Vade: <%= new Date(t.vade_tarihi).toLocaleDateString('tr-TR') %>
+                                        </div>
+                                    </div>
+                                    <span class="taksit-badge <%= gecikmisMi ? 'badge-gecikti' : 'badge-bekliyor' %>">
+                                        <%= gecikmisMi ? 'GECİKTİ' : 'BEKLİYOR' %>
+                                    </span>
+                                    <% if (canEditKasa) { %>
+                                        <button class="btn btn-success btn-sm" onclick="openTaksitOdeModal(<%= t.id %>, <%= t.kalan %>, '<%= t.satis_baslik %>', <%= t.taksit_no %>)">
+                                            <i class="fa-solid fa-check"></i> Öde
+                                        </button>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                        <% } %>
+
+                        <% if (odenmişTaksitler.length > 0) { %>
+                            <h4 style="font-size:14px; color:#64748b; margin: 20px 0 15px;">Ödenen Taksitler</h4>
+                            <% odenmişTaksitler.forEach(t => { %>
+                                <div class="taksit-card odendi">
+                                    <div class="taksit-no"><i class="fa-solid fa-check"></i></div>
+                                    <div class="taksit-info">
+                                        <div class="tutar"><%= parseFloat(t.tutar).toLocaleString('tr-TR') %> ₺</div>
+                                        <div class="vade"><%= t.satis_baslik %> • <%= new Date(t.odeme_tarihi).toLocaleDateString('tr-TR') %></div>
+                                    </div>
+                                    <span class="taksit-badge badge-odendi">ÖDENDİ</span>
+                                </div>
+                            <% }) %>
+                        <% } %>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- ÖZEL DERS TAB -->
+            <div id="tab-ozelders" class="tab-pane">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fa-solid fa-graduation-cap" style="color: #8b5cf6;"></i> Özel Ders Paketleri</div>
+                    </div>
+                    
+                    <% const aktifPaketler = (typeof ozelDersPaketleri !== 'undefined') ? ozelDersPaketleri : []; %>
+                    
+                    <% if (aktifPaketler.length === 0) { %>
+                        <div style="text-align:center; padding:40px 20px; color:#94a3b8;">
+                            <i class="fa-solid fa-graduation-cap" style="font-size:40px; margin-bottom:15px; opacity:0.3;"></i>
+                            <p>Aktif özel ders paketi bulunmuyor.</p>
+                        </div>
+                    <% } else { %>
+                        <% aktifPaketler.forEach(p => { 
+                            const kullanimOrani = (p.kullanilan_saat / p.toplam_saat) * 100;
+                            const kalanGun = Math.ceil((new Date(p.bitis_tarihi) - new Date()) / (1000 * 60 * 60 * 24));
+                        %>
+                            <div class="ders-paket-card">
+                                <div class="ders-paket-header">
+                                    <div>
+                                        <div class="ders-paket-title"><%= p.satis_baslik %></div>
+                                        <div style="font-size:12px; opacity:0.8; margin-top:3px;">
+                                            Bitiş: <%= new Date(p.bitis_tarihi).toLocaleDateString('tr-TR') %>
+                                        </div>
+                                    </div>
+                                    <span class="ders-paket-badge">
+                                        <% if (kalanGun <= 7) { %>⚠️ <%= kalanGun %> gün kaldı<% } else { %>Aktif<% } %>
+                                    </span>
+                                </div>
+                                <div class="ders-progress">
+                                    <div class="ders-progress-bar" style="width: <%= kullanimOrani %>%;"></div>
+                                </div>
+                                <div class="ders-stats">
+                                    <div class="ders-stat">
+                                        <div class="ders-stat-value"><%= p.kullanilan_saat %></div>
+                                        <div class="ders-stat-label">Kullanılan</div>
+                                    </div>
+                                    <div class="ders-stat">
+                                        <div class="ders-stat-value"><%= p.kalan_saat %></div>
+                                        <div class="ders-stat-label">Kalan Saat</div>
+                                    </div>
+                                    <div class="ders-stat">
+                                        <div class="ders-stat-value"><%= p.toplam_saat %></div>
+                                        <div class="ders-stat-label">Toplam</div>
+                                    </div>
+                                </div>
+                                <% if (canYoklama) { %>
+                                    <button class="btn btn-sm" style="background:rgba(255,255,255,0.2); color:white; margin-top:15px; width:100%; justify-content:center;" 
+                                            onclick="openDersKullanModal(<%= p.id %>, <%= p.kalan_saat %>, '<%= p.satis_baslik %>', <%= p.toplam_saat %>, <%= p.kullanilan_saat %>)"
+                                        <i class="fa-solid fa-plus"></i> Ders Kullanımı Ekle
+                                    </button>
+                                <% } else { %>
+                                    <div style="text-align:center; margin-top:15px; font-size:12px; opacity:0.7;">
+                                        <i class="fa-solid fa-lock"></i> Kullanım eklemek için yoklama yetkisi gerekli
+                                    </div>
+                                <% } %>
+                            </div>
+                        <% }) %>
+                    <% } %>
+                </div>
+            </div>
+            <% } %>
+
+            <!-- GEÇMİŞ TAB -->
+            <div id="tab-gecmis" class="tab-pane">
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:20px;">Yoklama & Hareketler</div>
+                    <% if (yoklamalar.length === 0) { %>
+                        <p style="color:#94a3b8; text-align:center; padding:20px;">Yoklama kaydı yok.</p>
+                    <% } %>
+                    <% yoklamalar.forEach(y => { %>
+                        <div style="padding:12px 0; border-bottom:1px solid #f1f5f9; display:flex; gap:10px; align-items:center;">
+                            <div style="width:40px; height:40px; border-radius:10px; background:#f0fdf4; color:#22c55e; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight:600;"><%= new Date(y.tarih).toLocaleDateString('tr-TR') %></div>
+                                <div style="font-size:12px; color:#64748b;"><%= y.durum.toUpperCase() %></div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+
+            <!-- BİLGİ TAB -->
+            <div id="tab-bilgi" class="tab-pane">
+                <div class="card">
+                    <div class="card-title" style="margin-bottom:20px;">Detaylı Bilgiler</div>
+                    <% let detay = {}; try { detay = JSON.parse(ogrenci.ozel_veri || '{}'); } catch(e){} %>
+                    <% if (Object.keys(detay).length === 0) { %>
+                        <p style="color:#94a3b8; text-align:center; padding:20px;">Ek bilgi yok.</p>
+                    <% } else { %>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                            <% for(const [k,v] of Object.entries(detay)) { %>
+                                <div>
+                                    <label style="font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase;"><%= k.replace(/_/g, ' ') %></label>
+                                    <div style="font-weight:600; margin-top:3px;"><%= v %></div>
+                                </div>
+                            <% } %>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- MODALLER -->
+    <!-- ===================== -->
+
+    <% if (canEditKasa) { %>
+    <!-- AİDAT ÖDEME MODAL -->
+    <div id="paymentModal" class="modal" onclick="if(event.target == this) closeModal('paymentModal')">
+        <div class="modal-content" style="max-width:450px;">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fa-solid fa-money-bill" style="color:#22c55e;"></i> Ödeme Al</h3>
+                <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+            </div>
+            <form action="/api/ogrenci/odeme-yap" method="POST">
+                <input type="hidden" name="ogrenci_id" value="<%= ogrenci.id %>">
+                <input type="hidden" name="yil" value="<%= seciliYil %>">
+                <input type="hidden" name="ay" id="inputAy">
+                <input type="hidden" name="ay_adi" id="inputAyAdi">
+                <input type="hidden" name="gereken_tutar" id="inputGereken">
+                
+                <div style="background:#fef2f2; padding:15px; border-radius:12px; margin-bottom:20px; display:flex; justify-content:space-between; font-weight:700;">
+                    <span>Kalan Borç:</span>
+                    <span style="color:#dc2626;" id="lblKalan">0 ₺</span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ödenecek Tutar</label>
+                    <input type="number" name="odenecek_tutar" id="inputOdenecek" class="form-control" style="font-size:18px; font-weight:800;" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ödeme Tarihi</label>
+                    <input type="date" name="odeme_tarihi" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+                </div>
+                <button type="submit" class="btn-submit" style="background:#22c55e;">Tahsil Et</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TAKSİT ÖDEME MODAL -->
+    <div id="taksitOdeModal" class="modal" onclick="if(event.target == this) closeModal('taksitOdeModal')">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-credit-card" style="color:#f97316;"></i> Taksit Ödemesi</h3>
+                <button class="modal-close" onclick="closeModal('taksitOdeModal')">&times;</button>
+            </div>
+            <form id="taksitOdeForm">
+                <input type="hidden" name="taksit_id" id="taksitOdeId">
+                <input type="hidden" name="ogrenci_id" value="<%= ogrenci.id %>">
+                
+                <div style="background:#f8fafc; padding:15px; border-radius:12px; margin-bottom:20px;">
+                    <div style="font-weight:700; margin-bottom:5px;" id="taksitOdeBaslik">-</div>
+                    <div style="font-size:13px; color:#64748b;" id="taksitOdeInfo">-</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ödenecek Tutar (₺)</label>
+                    <input type="number" name="tutar" id="taksitOdeTutar" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ödeme Tarihi</label>
+                    <input type="date" name="odeme_tarihi" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+                </div>
+                
+                <button type="button" class="btn-submit" style="background:#f97316;" onclick="submitTaksitOdeme()">
+                    <i class="fa-solid fa-check"></i> Ödemeyi Kaydet
+                </button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <% if (canViewKasa) { %>
+    <!-- PAKET/DERS SATIŞ MODAL -->
+    <div id="saleModal" class="modal" onclick="if(event.target == this) closeModal('saleModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cart-shopping" style="color:var(--primary);"></i> Paket & Ders Satışı</h3>
+                <button class="modal-close" onclick="closeModal('saleModal')">&times;</button>
+            </div>
+            
+            <form action="/api/ogrenci/paket-satis" method="POST" id="saleForm">
+                <input type="hidden" name="ogrenci_id" value="<%= ogrenci.id %>">
+                
+                <!-- Satış Türü -->
+                <div class="option-group">
+                    <label class="option-item active" onclick="selectSatisTuru('paket', this)">
+                        <input type="radio" name="satis_turu" value="paket" checked>
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Aylık Paket</span>
+                    </label>
+                    <label class="option-item" onclick="selectSatisTuru('ozel_ders', this)">
+                        <input type="radio" name="satis_turu" value="ozel_ders">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                        <span>Özel Ders</span>
+                    </label>
+                </div>
+
+                <!-- PAKET ALANI -->
+                <div id="paketAlani">
+                    <div class="info-box">
+                        <i class="fa-solid fa-info-circle"></i>
+                        Tarih aralığı seçin, aylar otomatik hesaplanacak.
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Başlangıç Tarihi</label>
+                            <input type="date" name="baslangic_tarihi" id="baslangicTarihi" class="form-control" onchange="hesaplaTarihFarki()" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bitiş Tarihi</label>
+                            <input type="date" name="bitis_tarihi" id="bitisTarihi" class="form-control" onchange="hesaplaTarihFarki()" required>
+                        </div>
+                    </div>
+                    
+                    <div id="tarihOzet" style="display:none;" class="info-box success">
+                        <i class="fa-solid fa-check-circle"></i>
+                        <span id="tarihOzetText">-</span>
+                    </div>
+                </div>
+
+                <!-- ÖZEL DERS ALANI -->
+                <div id="ozelDersAlani" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Toplam Saat</label>
+                            <input type="number" name="toplam_saat" id="toplamSaat" class="form-control" placeholder="Örn: 8" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Geçerlilik (Gün)</label>
+                            <input type="number" name="gecerlilik_gun" id="gecerlilikGun" class="form-control" placeholder="Örn: 45" min="1">
+                        </div>
+                    </div>
+                    
+                    <div class="info-box warning">
+                        <i class="fa-solid fa-clock"></i>
+                        Süre dolduğunda veya saatler bittiğinde paket kapanır.
+                    </div>
+                </div>
+
+                <!-- ORTAK ALANLAR -->
+                <div class="form-group">
+                    <label class="form-label">Paket/Ders Adı</label>
+                    <input type="text" name="baslik" class="form-control" placeholder="Örn: 6 Aylık Yaz Kampı" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Toplam Tutar (₺)</label>
+                    <input type="number" name="tutar" id="toplamTutarInput" class="form-control" placeholder="0.00" step="0.01" required onchange="hesaplaOdeme()">
+                </div>
+
+                <!-- ÖDEME TÜRÜ -->
+                <label class="form-label">Ödeme Şekli</label>
+                <div class="option-group">
+                    <label class="option-item active" onclick="selectOdemeTuru('pesin', this)">
+                        <input type="radio" name="odeme_turu" value="pesin" checked>
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                        <span>Peşin</span>
+                    </label>
+                    <label class="option-item" onclick="selectOdemeTuru('taksit', this)">
+                        <input type="radio" name="odeme_turu" value="taksit">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <span>Taksit</span>
+                    </label>
+                </div>
+
+                <!-- PEŞİN ALANI -->
+                <div id="pesinAlani">
+                    <div class="form-group">
+                        <label class="form-label">Alınan Tutar (₺) *</label>
+                        <input type="number" id="pesinPesinat" class="form-control" placeholder="0.00" step="0.01" required>
+                    </div>
+                    <div id="pesinUyari" style="display:none;" class="info-box warning">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        Peşin ödemede tam tutar alınmalıdır!
+                    </div>
+                </div>
+
+                <!-- TAKSİT ALANI -->
+                <div id="taksitAlani" style="display:none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Peşinat (₺)</label>
+                            <input type="number" id="taksitPesinat" class="form-control" placeholder="0.00" step="0.01" onchange="hesaplaTaksit()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Taksit Sayısı</label>
+                            <select name="taksit_sayisi" id="taksitSayisi" class="form-control" onchange="hesaplaTaksit()">
+                                <option value="2">2 Taksit</option>
+                                <option value="3">3 Taksit</option>
+                                <option value="4" selected>4 Taksit</option>
+                                <option value="6">6 Taksit</option>
+                                <option value="8">8 Taksit</option>
+                                <option value="10">10 Taksit</option>
+                                <option value="12">12 Taksit</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="calc-summary" id="taksitOzet" style="display:none;">
+                        <div class="calc-row">
+                            <span>Toplam Tutar:</span>
+                            <span id="ozToplamTutar">0 ₺</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Peşinat:</span>
+                            <span id="ozPesinat">0 ₺</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Kalan:</span>
+                            <span id="ozKalan">0 ₺</span>
+                        </div>
+                        <div class="calc-row">
+                            <span>Aylık Taksit:</span>
+                            <span id="ozTaksit">0 ₺</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-submit" id="saleSubmitBtn" onclick="submitSale()">
+                    <i class="fa-solid fa-check"></i> Satışı Tamamla
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ÜRÜN SATIŞ MODAL -->
+    <div id="productModal" class="modal" onclick="if(event.target == this) closeModal('productModal')">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-box" style="color:#8b5cf6;"></i> Ürün Satışı</h3>
+                <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
+            </div>
+            
+            <form id="productSaleForm">
+                <input type="hidden" name="ogrenci_id" value="<%= ogrenci.id %>">
+                
+                <div class="form-group">
+                    <label class="form-label">Ürün Seçin *</label>
+                    <select name="urun_id" id="urunSelect" class="form-control" required onchange="urunSecildi()">
+                        <option value="">-- Ürün Seçin --</option>
+                    </select>
+                </div>
+
+                <div id="bedenArea" style="display:none;">
+                    <div class="form-group">
+                        <label class="form-label">Beden / Varyant *</label>
+                        <select name="stok_id" id="bedenSelect" class="form-control" onchange="bedenSecildi()">
+                            <option value="">-- Beden Seçin --</option>
+                        </select>
+                        <div id="stokBilgi" style="font-size:12px; color:#64748b; margin-top:5px;"></div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Adet</label>
+                        <input type="number" name="adet" id="adetInput" class="form-control" value="1" min="1" onchange="hesaplaUrunToplam()" oninput="hesaplaUrunToplam()">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Birim Fiyat</label>
+                        <input type="number" name="birim_fiyat" id="birimFiyatInput" class="form-control" step="0.01" readonly>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Toplam Tutar</label>
+                    <input type="number" name="toplam_tutar" id="urunToplamInput" class="form-control" style="font-weight:800; background:#f0fdf4;" readonly>
+                </div>
+
+                <label class="form-label">Ödeme Tipi *</label>
+                <div class="option-group">
+                    <label class="option-item active" onclick="this.querySelector('input').checked=true; document.querySelectorAll('#productModal .option-item').forEach(x=>x.classList.remove('active')); this.classList.add('active');">
+                        <input type="radio" name="odeme_tipi" value="nakit" checked>
+                        <i class="fa-solid fa-money-bill"></i>
+                        <span>Nakit</span>
+                    </label>
+                    <label class="option-item" onclick="this.querySelector('input').checked=true; document.querySelectorAll('#productModal .option-item').forEach(x=>x.classList.remove('active')); this.classList.add('active');">
+                        <input type="radio" name="odeme_tipi" value="havale">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Havale</span>
+                    </label>
+                    <label class="option-item" onclick="this.querySelector('input').checked=true; document.querySelectorAll('#productModal .option-item').forEach(x=>x.classList.remove('active')); this.classList.add('active');">
+                        <input type="radio" name="odeme_tipi" value="kredi_karti">
+                        <i class="fa-solid fa-credit-card"></i>
+                        <span>K.Kartı</span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Açıklama</label>
+                    <input type="text" name="aciklama" id="urunAciklamaInput" class="form-control" placeholder="Otomatik oluşturulacak...">
+                </div>
+
+                <div id="productMessage" style="display:none; padding:12px; border-radius:10px; margin-bottom:15px; font-size:13px; font-weight:600;"></div>
+
+                <button type="button" class="btn-submit" style="background:#8b5cf6;" onclick="submitProductSale()">
+                    <i class="fa-solid fa-check"></i> Satışı Tamamla
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAKET BİLGİ MODAL -->
+    <div id="paketBilgiModal" class="modal" onclick="if(event.target == this) closeModal('paketBilgiModal')">
+        <div class="modal-content" style="max-width:400px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-box" style="color:#8b5cf6;"></i> Paket Satışı</h3>
+                <button class="modal-close" onclick="closeModal('paketBilgiModal')">&times;</button>
+            </div>
+
+            <div style="background:#f3e8ff; border-radius:16px; padding:20px; text-align:center;">
+                <div style="width:60px; height:60px; background:#c084fc; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px;">
+                    <i class="fa-solid fa-check" style="color:white; font-size:24px;"></i>
+                </div>
+                <h4 style="color:#7c3aed; margin-bottom:10px;" id="paketBilgiAdi">Paket Satışı</h4>
+                <p style="color:#64748b; font-size:13px; margin-bottom:15px;">Bu ay paket satışı kapsamında ödenmiştir.</p>
+
+                <div style="background:white; border-radius:12px; padding:15px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #e2e8f0;">
+                        <span style="color:#64748b;">Başlangıç:</span>
+                        <span style="font-weight:700;" id="paketBilgiBaslangic">-</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #e2e8f0;">
+                        <span style="color:#64748b;">Bitiş:</span>
+                        <span style="font-weight:700;" id="paketBilgiBitis">-</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; padding:8px 0;">
+                        <span style="color:#64748b;">Kalan Gün:</span>
+                        <span style="font-weight:700; color:#8b5cf6;" id="paketBilgiKalanGun">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeModal('paketBilgiModal')" class="btn-submit" style="margin-top:20px; background:#8b5cf6;">Tamam</button>
+        </div>
+    </div>
+    <% } %>
+
+    <% if (canYoklama && canViewKasa) { %>
+<!-- ÖZEL DERS KULLANIM MODAL (GÜNCELLENMİŞ) -->
+<div id="dersKullanModal" class="modal" onclick="if(event.target == this) closeModal('dersKullanModal')">
+    <div class="modal-content" style="max-width:450px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-graduation-cap" style="color:#8b5cf6;"></i> Özel Ders Yoklaması</h3>
+            <button class="modal-close" onclick="closeModal('dersKullanModal')">&times;</button>
+        </div>
+        <form id="dersKullanForm">
+            <input type="hidden" name="paket_id" id="dersKullanPaketId">
+            <input type="hidden" name="ogrenci_id" value="<%= ogrenci.id %>">
+            
+            <!-- Paket Bilgisi -->
+            <div style="background:linear-gradient(135deg, #8b5cf6, #6d28d9); border-radius:16px; padding:20px; color:white; margin-bottom:20px;">
+                <div style="font-weight:700; font-size:16px;" id="dersKullanBaslik">-</div>
+                <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:24px; font-weight:800;" id="dersKullanToplam">0</div>
+                        <div style="font-size:11px; opacity:0.8;">Toplam Saat</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:24px; font-weight:800;" id="dersKullanKullanan">0</div>
+                        <div style="font-size:11px; opacity:0.8;">Kullanılan</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:24px; font-weight:800; color:#22c55e;" id="dersKullanKalan">0</div>
+                        <div style="font-size:11px; opacity:0.8;">Kalan Saat</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Durum Seçimi -->
+            <label class="form-label">Yoklama Durumu *</label>
+            <div class="option-group" style="margin-bottom:15px;">
+                <label class="option-item active" onclick="selectDersDurum('katildi', this)" style="flex:1;">
+                    <input type="radio" name="durum" value="katildi" checked>
+                    <i class="fa-solid fa-check-circle" style="color:#22c55e;"></i>
+                    <span>Katıldı</span>
+                    <small style="display:block; font-size:10px; color:#64748b; margin-top:3px;">Ders düşer</small>
+                </label>
+                <label class="option-item" onclick="selectDersDurum('katilmadi', this)" style="flex:1;">
+                    <input type="radio" name="durum" value="katilmadi">
+                    <i class="fa-solid fa-times-circle" style="color:#ef4444;"></i>
+                    <span>Katılmadı</span>
+                    <small style="display:block; font-size:10px; color:#64748b; margin-top:3px;">Ders düşmez</small>
+                </label>
+                <label class="option-item" onclick="selectDersDurum('izinli', this)" style="flex:1;">
+                    <input type="radio" name="durum" value="izinli">
+                    <i class="fa-solid fa-clock" style="color:#f59e0b;"></i>
+                    <span>İzinli</span>
+                    <small style="display:block; font-size:10px; color:#64748b; margin-top:3px;">Ders düşmez</small>
+                </label>
+            </div>
+
+            <!-- Saat Girişi (Sadece Katıldı durumunda aktif) -->
+            <div id="saatGirisiAlani">
+                <div class="form-group">
+                    <label class="form-label">Kullanılan Saat</label>
+                    <input type="number" name="kullanilan_saat" id="dersKullanSaat" class="form-control" step="0.5" min="0.5" value="1" required>
+                    <small style="color:#64748b; font-size:11px;">Minimum 0.5 saat</small>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tarih</label>
+                <input type="date" name="tarih" id="dersKullanTarih" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Açıklama (Opsiyonel)</label>
+                <input type="text" name="aciklama" id="dersKullanAciklama" class="form-control" placeholder="Örn: Bireysel antrenman">
+            </div>
+
+            <!-- Bilgi Kutusu -->
+            <div id="durumBilgiKutusu" class="info-box success" style="margin-bottom:15px;">
+                <i class="fa-solid fa-info-circle"></i>
+                <span id="durumBilgiText">Ders kullanımı kaydedilecek ve kalan saat düşecektir.</span>
+            </div>
+            
+            <button type="button" class="btn-submit" style="background:#8b5cf6;" onclick="submitDersKullanim()">
+                <i class="fa-solid fa-check"></i> Yoklamayı Kaydet
+            </button>
+        </form>
+    </div>
+</div>
+<% } %>
+
+    <% if (canEditStudent) { %>
+    <!-- DURUM MODAL -->
+    <div id="statusModal" class="modal" onclick="if(event.target == this) closeModal('statusModal')">
+        <div class="modal-content" style="max-width:350px;">
+            <div class="modal-header">
+                <h3>Durum Değiştir</h3>
+                <button class="modal-close" onclick="closeModal('statusModal')">&times;</button>
+            </div>
+            <form id="statusForm">
+                <input type="hidden" name="id" value="<%= ogrenci.id %>">
+                <select name="yeni_durum" class="form-control">
+                    <option value="aktif" <%= ogrenci.durum=='aktif'?'selected':'' %>>Aktif</option>
+                    <option value="pasif" <%= ogrenci.durum=='pasif'?'selected':'' %>>Pasif</option>
+                    <option value="dondurulmus" <%= ogrenci.durum=='dondurulmus'?'selected':'' %>>Dondurulmuş</option>
+                </select>
+                <button type="button" class="btn-submit" onclick="submitStatus()" style="margin-top:15px;">Güncelle</button>
+            </form>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- ANALİZ EKLEME MODAL -->
+    <div id="analizModal" class="modal" onclick="if(event.target == this) closeModal('analizModal')">
+        <div class="modal-content" style="max-width:700px; max-height:90vh; overflow-y:auto;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-chart-line" style="color:#10b981;"></i> Performans Analizi Ekle</h3>
+                <button class="modal-close" onclick="closeModal('analizModal')">&times;</button>
+            </div>
+
+            <form id="analizForm">
+                <input type="hidden" name="ogrenci_id" value="<%= ogrenci.id %>">
+
+                <!-- Branş ve Tarih -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Branş *</label>
+                        <select name="brans" class="form-control" required>
+                            <option value="">Seçin...</option>
+                            <option value="Futbol">⚽ Futbol</option>
+                            <option value="Basketbol">🏀 Basketbol</option>
+                            <option value="Voleybol">🏐 Voleybol</option>
+                            <option value="Yüzme">🏊 Yüzme</option>
+                            <option value="Cimnastik">🤸 Cimnastik</option>
+                            <option value="Tenis">🎾 Tenis</option>
+                            <option value="Dövüş Sanatları">🥋 Dövüş Sanatları</option>
+                            <option value="Atletizm">🏃 Atletizm</option>
+                            <option value="Fitness">💪 Fitness</option>
+                            <option value="Dans">💃 Dans</option>
+                            <option value="Diğer">📋 Diğer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Analiz Tarihi *</label>
+                        <input type="date" name="analiz_tarihi" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>" required>
+                    </div>
+                </div>
+
+                <hr style="border:none; border-top:1px dashed #e2e8f0; margin:20px 0;">
+                <h4 style="font-size:14px; color:#64748b; margin-bottom:15px;"><i class="fa-solid fa-star"></i> Performans Değerlendirmesi</h4>
+
+                <!-- Teknik Beceriler -->
+                <div class="puan-slider-container">
+                    <div class="puan-slider-header">
+                        <label><i class="fa-solid fa-futbol" style="color:#3b82f6;"></i> Teknik Beceriler</label>
+                        <span class="puan-value" id="teknikValue" style="background:#3b82f6;">5</span>
+                    </div>
+                    <input type="range" name="teknik_puan" class="puan-slider" min="1" max="10" value="5" 
+                           oninput="updateSlider('teknik', this.value, '#3b82f6')">
+                    <textarea name="teknik_aciklama" class="puan-aciklama" rows="2" placeholder="Top kontrolü, pas, şut tekniği vb. hakkında notlar..."></textarea>
+                </div>
+
+                <!-- Fiziksel Durum -->
+                <div class="puan-slider-container">
+                    <div class="puan-slider-header">
+                        <label><i class="fa-solid fa-heart-pulse" style="color:#10b981;"></i> Fiziksel Durum</label>
+                        <span class="puan-value" id="fizikselValue" style="background:#10b981;">5</span>
+                    </div>
+                    <input type="range" name="fiziksel_puan" class="puan-slider" min="1" max="10" value="5"
+                           oninput="updateSlider('fiziksel', this.value, '#10b981')">
+                    <textarea name="fiziksel_aciklama" class="puan-aciklama" rows="2" placeholder="Dayanıklılık, hız, güç, esneklik vb. hakkında notlar..."></textarea>
+                </div>
+
+                <!-- Taktik Anlayış -->
+                <div class="puan-slider-container">
+                    <div class="puan-slider-header">
+                        <label><i class="fa-solid fa-chess" style="color:#f59e0b;"></i> Taktik Anlayış</label>
+                        <span class="puan-value" id="taktikValue" style="background:#f59e0b;">5</span>
+                    </div>
+                    <input type="range" name="taktik_puan" class="puan-slider" min="1" max="10" value="5"
+                           oninput="updateSlider('taktik', this.value, '#f59e0b')">
+                    <textarea name="taktik_aciklama" class="puan-aciklama" rows="2" placeholder="Oyun anlayışı, pozisyon alma, karar verme vb. hakkında notlar..."></textarea>
+                </div>
+
+                <!-- Mental Durum -->
+                <div class="puan-slider-container">
+                    <div class="puan-slider-header">
+                        <label><i class="fa-solid fa-brain" style="color:#8b5cf6;"></i> Mental Durum</label>
+                        <span class="puan-value" id="mentalValue" style="background:#8b5cf6;">5</span>
+                    </div>
+                    <input type="range" name="mental_puan" class="puan-slider" min="1" max="10" value="5"
+                           oninput="updateSlider('mental', this.value, '#8b5cf6')">
+                    <textarea name="mental_aciklama" class="puan-aciklama" rows="2" placeholder="Motivasyon, odaklanma, stres yönetimi vb. hakkında notlar..."></textarea>
+                </div>
+
+                <!-- Disiplin -->
+                <div class="puan-slider-container">
+                    <div class="puan-slider-header">
+                        <label><i class="fa-solid fa-clipboard-check" style="color:#ef4444;"></i> Disiplin ve Tutum</label>
+                        <span class="puan-value" id="disiplinValue" style="background:#ef4444;">5</span>
+                    </div>
+                    <input type="range" name="disiplin_puan" class="puan-slider" min="1" max="10" value="5"
+                           oninput="updateSlider('disiplin', this.value, '#ef4444')">
+                    <textarea name="disiplin_aciklama" class="puan-aciklama" rows="2" placeholder="Antrenmana katılım, kurallara uyum, davranışlar vb. hakkında notlar..."></textarea>
+                </div>
+
+                <!-- Takım Çalışması -->
+                <div class="puan-slider-container">
+                    <div class="puan-slider-header">
+                        <label><i class="fa-solid fa-people-group" style="color:#06b6d4;"></i> Takım Çalışması</label>
+                        <span class="puan-value" id="takimValue" style="background:#06b6d4;">5</span>
+                    </div>
+                    <input type="range" name="takim_puan" class="puan-slider" min="1" max="10" value="5"
+                           oninput="updateSlider('takim', this.value, '#06b6d4')">
+                    <textarea name="takim_aciklama" class="puan-aciklama" rows="2" placeholder="İletişim, işbirliği, liderlik vb. hakkında notlar..."></textarea>
+                </div>
+
+                <hr style="border:none; border-top:1px dashed #e2e8f0; margin:20px 0;">
+                <h4 style="font-size:14px; color:#64748b; margin-bottom:15px;"><i class="fa-solid fa-clipboard-list"></i> Genel Değerlendirme</h4>
+
+                <div class="form-group">
+                    <label class="form-label">Genel Değerlendirme</label>
+                    <textarea name="genel_degerlendirme" class="form-control" rows="3" placeholder="Öğrencinin genel performansı hakkında değerlendirme..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Öneriler ve Gelişim Alanları</label>
+                    <textarea name="oneriler" class="form-control" rows="3" placeholder="Öğrencinin gelişmesi gereken alanlar ve öneriler..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Kısa Vadeli Hedef (1-3 Ay)</label>
+                        <textarea name="kisa_vadeli_hedef" class="form-control" rows="2" placeholder="Yakın dönem hedefler..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Uzun Vadeli Hedef (6-12 Ay)</label>
+                        <textarea name="uzun_vadeli_hedef" class="form-control" rows="2" placeholder="Uzun dönem hedefler..."></textarea>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-submit" style="background:#10b981;" onclick="submitAnaliz()">
+                    <i class="fa-solid fa-check"></i> Analizi Kaydet
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ANALİZ DETAY MODAL -->
+    <div id="analizDetayModal" class="modal" onclick="if(event.target ==this) closeModal('analizDetayModal')">
+		<div class="modal-content" style="max-width:700px; max-height:90vh; overflow-y:auto;">
+			<div class="modal-header">
+			<h3><i class="fa-solid fa-chart-line" style="color:#10b981;"></i> Analiz Detayı</h3>
+			<button class="modal-close" onclick="closeModal('analizDetayModal')">×</button>
+		</div>
+			
+				<div id="analizDetayContent">
+            <div style="text-align:center; padding:40px;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:30px; color:#10b981;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// =====================
+// YETKİ DEĞİŞKENLERİ
+// =====================
+const canViewKasa = <%= canViewKasa %>;
+const canEditKasa = <%= canEditKasa %>;
+const canEditStudent = <%= canEditStudent %>;
+const canDeleteStudent = <%= canDeleteStudent %>;
+const canYoklama = <%= canYoklama %>;
+
+// =====================
+// GLOBAL DEĞİŞKENLER
+// =====================
+let urunlerData = [];
+let seciliDersDurum = 'katildi';
+let mevcutKalanSaat = 0;
+
+// =====================
+// MODAL UYARI SİSTEMİ
+// =====================
+function showAlert(message, type = 'info') {
+    const existing = document.getElementById('globalAlert');
+    if (existing) existing.remove();
+
+    const colors = {
+        success: { bg: '#dcfce7', border: '#22c55e', text: '#166534', icon: 'fa-check-circle' },
+        error: { bg: '#fee2e2', border: '#ef4444', text: '#dc2626', icon: 'fa-times-circle' },
+        warning: { bg: '#fef3c7', border: '#f59e0b', text: '#92400e', icon: 'fa-exclamation-triangle' },
+        info: { bg: '#dbeafe', border: '#3b82f6', text: '#1e40af', icon: 'fa-info-circle' }
+    };
+    const c = colors[type] || colors.info;
+
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'globalAlert';
+    alertDiv.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); display: flex; align-items: center; 
+        justify-content: center; z-index: 9999; backdrop-filter: blur(5px);
+    `;
+    alertDiv.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 20px; max-width: 400px; 
+                    text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: popUp 0.3s;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: ${c.bg}; 
+                        display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                <i class="fa-solid ${c.icon}" style="font-size: 28px; color: ${c.text};"></i>
+            </div>
+            <p style="font-size: 15px; color: #1e293b; font-weight: 600; margin-bottom: 20px; line-height: 1.5;">${message}</p>
+            <button onclick="document.getElementById('globalAlert').remove()" 
+                    style="padding: 12px 40px; background: ${c.border}; color: white; border: none; 
+                           border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 14px;">
+                Tamam
+            </button>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+}
+
+function showConfirm(message, onConfirm) {
+    const alertDiv = document.createElement('div');
+    alertDiv.id = 'globalConfirm';
+    alertDiv.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.5); display: flex; align-items: center; 
+        justify-content: center; z-index: 9999; backdrop-filter: blur(5px);
+    `;
+    alertDiv.innerHTML = `
+        <div style="background: white; padding: 30px; border-radius: 20px; max-width: 400px; 
+                    text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: popUp 0.3s;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: #fef3c7; 
+                        display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+                <i class="fa-solid fa-question" style="font-size: 28px; color: #f59e0b;"></i>
+            </div>
+            <p style="font-size: 15px; color: #1e293b; font-weight: 600; margin-bottom: 20px; line-height: 1.5;">${message}</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button onclick="document.getElementById('globalConfirm').remove()" 
+                        style="padding: 12px 30px; background: #f1f5f9; color: #64748b; border: none; 
+                               border-radius: 12px; font-weight: 700; cursor: pointer;">İptal</button>
+                <button id="confirmBtn" style="padding: 12px 30px; background: var(--primary); color: white; border: none; 
+                           border-radius: 12px; font-weight: 700; cursor: pointer;">Evet</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(alertDiv);
+    document.getElementById('confirmBtn').onclick = () => {
+        document.getElementById('globalConfirm').remove();
+        onConfirm();
+    };
+}
+
+// =====================
+// TAB FONKSİYONLARI
+// =====================
+function openTab(id) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-'+id).classList.add('active');
+}
+
+function closeModal(id) { 
+    document.getElementById(id).style.display = 'none'; 
+}
+
+function changeYear(y) { 
+    window.location.href = `/api/ogrenci/profil/<%= ogrenci.id %>?yil=${y}`; 
+}
+
+// =====================
+// AİDAT ÖDEME
+// =====================
+function openPaymentModal(ay, ad, ger, ode) {
+    if (!canEditKasa) {
+        showAlert('Bu işlem için yetkiniz yok!', 'error');
+        return;
+    }
+    document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-money-bill" style="color:#22c55e;"></i> ${ad} Ödemesi`;
+    document.getElementById('inputAy').value = ay;
+    document.getElementById('inputAyAdi').value = ad;
+    document.getElementById('inputGereken').value = ger;
+    document.getElementById('lblKalan').innerText = (ger - ode) + " ₺";
+    document.getElementById('inputOdenecek').value = (ger - ode);
+    document.getElementById('paymentModal').style.display = 'flex';
+}
+
+// =====================
+// PAKET BİLGİ MODAL
+// =====================
+function openPaketBilgiModal(paketAdi, baslangic, bitis) {
+    document.getElementById('paketBilgiAdi').innerText = paketAdi || 'Paket Satışı';
+    document.getElementById('paketBilgiBaslangic').innerText = baslangic || '-';
+    document.getElementById('paketBilgiBitis').innerText = bitis || '-';
+
+    if (bitis && bitis !== '-') {
+        const bitisParts = bitis.split('.');
+        const bitisDate = new Date(bitisParts[2], bitisParts[1] - 1, bitisParts[0]);
+        const bugun = new Date();
+        const kalanGun = Math.ceil((bitisDate - bugun) / (1000 * 60 * 60 * 24));
+
+        if (kalanGun > 0) {
+            document.getElementById('paketBilgiKalanGun').innerText = kalanGun + ' gün';
+            document.getElementById('paketBilgiKalanGun').style.color = kalanGun <= 7 ? '#ef4444' : '#8b5cf6';
+        } else {
+            document.getElementById('paketBilgiKalanGun').innerText = 'Süresi doldu';
+            document.getElementById('paketBilgiKalanGun').style.color = '#ef4444';
+        }
+    } else {
+        document.getElementById('paketBilgiKalanGun').innerText = '-';
+    }
+
+    document.getElementById('paketBilgiModal').style.display = 'flex';
+}
+
+// =====================
+// PAKET/DERS SATIŞ
+// =====================
+function openSaleModal() {
+    if (!canViewKasa) {
+        showAlert('Bu işlem için yetkiniz yok!', 'error');
+        return;
+    }
+    document.getElementById('saleModal').style.display = 'flex'; 
+    document.getElementById('saleForm').reset();
+    document.getElementById('tarihOzet').style.display = 'none';
+    document.getElementById('taksitOzet').style.display = 'none';
+    document.getElementById('pesinUyari').style.display = 'none';
+    
+    const optionGroups = document.querySelectorAll('#saleModal .option-group');
+    optionGroups[0].querySelectorAll('.option-item').forEach((item, i) => {
+        item.classList.toggle('active', i === 0);
+    });
+    optionGroups[1].querySelectorAll('.option-item').forEach((item, i) => {
+        item.classList.toggle('active', i === 0);
+    });
+    
+    document.getElementById('paketAlani').style.display = 'block';
+    document.getElementById('ozelDersAlani').style.display = 'none';
+    document.getElementById('pesinAlani').style.display = 'block';
+    document.getElementById('taksitAlani').style.display = 'none';
+}
+
+function openStatusModal() {
+    if (!canEditStudent) {
+        showAlert('Bu işlem için yetkiniz yok!', 'error');
+        return;
+    }
+    document.getElementById('statusModal').style.display = 'flex'; 
+}
+
+function selectSatisTuru(tur, el) {
+    document.querySelectorAll('#saleModal .option-group')[0].querySelectorAll('.option-item').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    el.querySelector('input').checked = true;
+    
+    if (tur === 'paket') {
+        document.getElementById('paketAlani').style.display = 'block';
+        document.getElementById('ozelDersAlani').style.display = 'none';
+    } else {
+        document.getElementById('paketAlani').style.display = 'none';
+        document.getElementById('ozelDersAlani').style.display = 'block';
+    }
+}
+
+function selectOdemeTuru(tur, el) {
+    document.querySelectorAll('#saleModal .option-group')[1].querySelectorAll('.option-item').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    el.querySelector('input').checked = true;
+    
+    if (tur === 'pesin') {
+        document.getElementById('pesinAlani').style.display = 'block';
+        document.getElementById('taksitAlani').style.display = 'none';
+    } else {
+        document.getElementById('pesinAlani').style.display = 'none';
+        document.getElementById('taksitAlani').style.display = 'block';
+        hesaplaTaksit();
+    }
+}
+
+function hesaplaTarihFarki() {
+    const baslangic = document.getElementById('baslangicTarihi').value;
+    const bitis = document.getElementById('bitisTarihi').value;
+    
+    if (baslangic && bitis) {
+        const b1 = new Date(baslangic);
+        const b2 = new Date(bitis);
+        
+        if (b2 < b1) {
+            showAlert('Bitiş tarihi başlangıç tarihinden önce olamaz!', 'error');
+            document.getElementById('bitisTarihi').value = '';
+            return;
+        }
+        
+        const ayFarki = (b2.getFullYear() - b1.getFullYear()) * 12 + (b2.getMonth() - b1.getMonth()) + 1;
+        const gunFarki = Math.ceil((b2 - b1) / (1000 * 60 * 60 * 24)) + 1;
+        
+        document.getElementById('tarihOzet').style.display = 'flex';
+        document.getElementById('tarihOzetText').innerText = `${ayFarki} ay (${gunFarki} gün) kapsıyor`;
+    }
+}
+
+function hesaplaTaksit() {
+    const toplam = parseFloat(document.getElementById('toplamTutarInput').value) || 0;
+    const pesinat = parseFloat(document.getElementById('taksitPesinat').value) || 0;
+    const taksitSayisi = parseInt(document.getElementById('taksitSayisi').value) || 4;
+    
+    const kalan = toplam - pesinat;
+    const aylikTaksit = kalan > 0 ? Math.ceil(kalan / taksitSayisi * 100) / 100 : 0;
+    
+    document.getElementById('ozToplamTutar').innerText = toplam.toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('ozPesinat').innerText = pesinat.toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('ozKalan').innerText = kalan.toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('ozTaksit').innerText = aylikTaksit.toLocaleString('tr-TR') + ' ₺';
+    
+    document.getElementById('taksitOzet').style.display = toplam > 0 ? 'block' : 'none';
+}
+
+async function submitSale() {
+    const form = document.getElementById('saleForm');
+    const formData = new FormData(form);
+    const odemeTuru = formData.get('odeme_turu');
+    const satisTuru = formData.get('satis_turu');
+    const toplam = parseFloat(formData.get('tutar')) || 0;
+    
+    let pesinat = 0;
+    if (odemeTuru === 'pesin') {
+        pesinat = parseFloat(document.getElementById('pesinPesinat').value) || 0;
+    } else {
+        pesinat = parseFloat(document.getElementById('taksitPesinat').value) || 0;
+    }
+    
+    if (!formData.get('baslik') || formData.get('baslik').trim() === '') {
+        showAlert('Lütfen paket/ders adı girin!', 'error');
+        return;
+    }
+    
+    if (toplam <= 0) {
+        showAlert('Lütfen toplam tutarı girin!', 'error');
+        return;
+    }
+    
+    if (odemeTuru === 'pesin' && pesinat < toplam) {
+        showAlert('Peşin ödemede tam tutar alınmalıdır!', 'error');
+        return;
+    }
+    
+    if (satisTuru === 'paket') {
+        const baslangic = document.getElementById('baslangicTarihi').value;
+        const bitis = document.getElementById('bitisTarihi').value;
+        if (!baslangic || !bitis) {
+            showAlert('Lütfen tarih aralığı seçin!', 'error');
+            return;
+        }
+    }
+    
+    if (satisTuru === 'ozel_ders') {
+        const saat = document.getElementById('toplamSaat').value;
+        const gun = document.getElementById('gecerlilikGun').value;
+        if (!saat || !gun) {
+            showAlert('Lütfen saat ve geçerlilik süresini girin!', 'error');
+            return;
+        }
+    }
+    
+    formData.set('pesinat', pesinat);
+    
+    const btn = document.getElementById('saleSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+    
+    try {
+        const res = await fetch('/api/ogrenci/paket-satis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            showAlert(data.message || 'Satış başarıyla kaydedildi!', 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message || 'Bir hata oluştu!', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Satışı Tamamla';
+        }
+    } catch (error) {
+        showAlert('Bağlantı hatası! Lütfen tekrar deneyin.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Satışı Tamamla';
+    }
+}
+
+// =====================
+// TAKSİT ÖDEME
+// =====================
+function openTaksitOdeModal(id, kalan, baslik, taksitNo) {
+    if (!canEditKasa) {
+        showAlert('Bu işlem için yetkiniz yok!', 'error');
+        return;
+    }
+    document.getElementById('taksitOdeId').value = id;
+    document.getElementById('taksitOdeBaslik').innerText = baslik;
+    document.getElementById('taksitOdeInfo').innerText = taksitNo + '. Taksit - Kalan: ' + kalan.toLocaleString('tr-TR') + ' ₺';
+    document.getElementById('taksitOdeTutar').value = kalan;
+    document.getElementById('taksitOdeModal').style.display = 'flex';
+}
+
+async function submitTaksitOdeme() {
+    const form = document.getElementById('taksitOdeForm');
+    const formData = new FormData(form);
+    
+    const tutar = parseFloat(formData.get('tutar')) || 0;
+    if (tutar <= 0) {
+        showAlert('Lütfen geçerli bir tutar girin!', 'error');
+        return;
+    }
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+    
+    try {
+        const res = await fetch('/api/ogrenci/taksit-ode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showAlert('Taksit ödemesi başarıyla alındı!', 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message || 'Hata oluştu!', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Ödemeyi Kaydet';
+        }
+    } catch (e) {
+        showAlert('Bağlantı hatası!', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Ödemeyi Kaydet';
+    }
+}
+
+// =====================================================
+// ÖZEL DERS YOKLAMASI (GÜNCELLENMİŞ)
+// Sadece "katıldı" durumunda ders düşer
+// "katılmadı" ve "izinli" durumlarında ders düşmez
+// =====================================================
+
+function openDersKullanModal(paketId, kalanSaat, baslik, toplamSaat, kullanilanSaat) {
+    if (!canYoklama) {
+        showAlert('Bu işlem için yoklama yetkisi gerekli!', 'error');
+        return;
+    }
+    
+    // Form değerlerini set et
+    document.getElementById('dersKullanPaketId').value = paketId;
+    document.getElementById('dersKullanBaslik').innerText = baslik;
+    document.getElementById('dersKullanToplam').innerText = toplamSaat || 0;
+    document.getElementById('dersKullanKullanan').innerText = kullanilanSaat || 0;
+    document.getElementById('dersKullanKalan').innerText = kalanSaat;
+    document.getElementById('dersKullanSaat').max = kalanSaat;
+    document.getElementById('dersKullanSaat').value = 1;
+    document.getElementById('dersKullanAciklama').value = '';
+    document.getElementById('dersKullanTarih').value = new Date().toISOString().split('T')[0];
+    
+    // Global değişkeni güncelle
+    mevcutKalanSaat = kalanSaat;
+    
+    // Varsayılan durumu ayarla (katıldı)
+    seciliDersDurum = 'katildi';
+    document.querySelectorAll('#dersKullanModal .option-group .option-item').forEach((item, i) => {
+        item.classList.toggle('active', i === 0);
+    });
+    const katildiRadio = document.querySelector('input[name="durum"][value="katildi"]');
+    if (katildiRadio) katildiRadio.checked = true;
+    
+    // Saat alanını göster
+    document.getElementById('saatGirisiAlani').style.display = 'block';
+    document.getElementById('dersKullanSaat').required = true;
+    
+    // Bilgi kutusunu güncelle
+    updateDurumBilgi('katildi');
+    
+    document.getElementById('dersKullanModal').style.display = 'flex';
+}
+
+function selectDersDurum(durum, element) {
+    seciliDersDurum = durum;
+    
+    // Aktif class'ı güncelle
+    document.querySelectorAll('#dersKullanModal .option-group .option-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    element.classList.add('active');
+    element.querySelector('input').checked = true;
+    
+    // Saat alanını göster/gizle
+    const saatAlani = document.getElementById('saatGirisiAlani');
+    const saatInput = document.getElementById('dersKullanSaat');
+    
+    if (durum === 'katildi') {
+        saatAlani.style.display = 'block';
+        saatInput.required = true;
+    } else {
+        saatAlani.style.display = 'none';
+        saatInput.required = false;
+    }
+    
+    // Bilgi kutusunu güncelle
+    updateDurumBilgi(durum);
+}
+
+function updateDurumBilgi(durum) {
+    const kutu = document.getElementById('durumBilgiKutusu');
+    const text = document.getElementById('durumBilgiText');
+    
+    if (durum === 'katildi') {
+        kutu.className = 'info-box success';
+        kutu.style.background = '#dcfce7';
+        kutu.style.borderColor = '#bbf7d0';
+        kutu.style.color = '#166534';
+        text.innerHTML = '<strong>Ders düşecek:</strong> Kullanılan saat kadar ders hakkı düşürülecektir.';
+    } else if (durum === 'katilmadi') {
+        kutu.className = 'info-box';
+        kutu.style.background = '#fee2e2';
+        kutu.style.borderColor = '#fecaca';
+        kutu.style.color = '#991b1b';
+        text.innerHTML = '<strong>Ders düşmeyecek:</strong> Katılmadı olarak işaretlenecek, ders hakkı korunacaktır.';
+    } else if (durum === 'izinli') {
+        kutu.className = 'info-box warning';
+        kutu.style.background = '#fef3c7';
+        kutu.style.borderColor = '#fde68a';
+        kutu.style.color = '#92400e';
+        text.innerHTML = '<strong>Ders düşmeyecek:</strong> İzinli olarak işaretlenecek, ders hakkı saklı kalacaktır.';
+    }
+}
+
+async function submitDersKullanim() {
+    const form = document.getElementById('dersKullanForm');
+    const formData = new FormData(form);
+    
+    // Durum kontrolü
+    const durum = seciliDersDurum;
+    formData.set('durum', durum);
+    
+    // Sadece katıldı durumunda saat kontrolü
+    if (durum === 'katildi') {
+        const saat = parseFloat(formData.get('kullanilan_saat')) || 0;
+        if (saat <= 0) {
+            showAlert('Lütfen geçerli bir saat girin!', 'error');
+            return;
+        }
+        if (saat > mevcutKalanSaat) {
+            showAlert('Yetersiz saat! Kalan: ' + mevcutKalanSaat + ' saat', 'error');
+            return;
+        }
+    } else {
+        // Katılmadı veya izinli ise saat 0 olarak gönder
+        formData.set('kullanilan_saat', '0');
+    }
+    
+    const btn = document.querySelector('#dersKullanModal .btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+    
+    try {
+        const res = await fetch('/api/ogrenci/ozel-ders-kullan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message || 'Hata oluştu!', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Yoklamayı Kaydet';
+        }
+    } catch (e) {
+        showAlert('Bağlantı hatası!', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Yoklamayı Kaydet';
+    }
+}
+
+// =====================
+// ÜRÜN SATIŞ
+// =====================
+function openProductModal() {
+    if (!canViewKasa) {
+        showAlert('Bu işlem için yetkiniz yok!', 'error');
+        return;
+    }
+    document.getElementById('productModal').style.display = 'flex';
+    document.getElementById('productSaleForm').reset();
+    document.getElementById('bedenArea').style.display = 'none';
+    document.getElementById('stokBilgi').innerHTML = '';
+    
+    document.querySelectorAll('#productModal .option-item').forEach((item, i) => {
+        item.classList.toggle('active', i === 0);
+    });
+    
+    loadUrunler();
+}
+
+async function loadUrunler() {
+    try {
+        const res = await fetch('/api/envanter/api/urunler');
+        const data = await res.json();
+        
+        if (data.success) {
+            urunlerData = data.urunler;
+            const select = document.getElementById('urunSelect');
+            select.innerHTML = '<option value="">-- Ürün Seçin --</option>';
+            
+            data.urunler.forEach(u => {
+                const stokInfo = u.tur === 'stoklu' ? ' [Stoklu]' : ' [Stoksuz]';
+                select.innerHTML += `<option value="${u.id}" data-fiyat="${u.fiyat}" data-tur="${u.tur}">${u.urun_adi} - ${parseFloat(u.fiyat).toLocaleString('tr-TR')}₺${stokInfo}</option>`;
+            });
+        } else {
+            showAlert('Ürünler yüklenemedi!', 'error');
+        }
+    } catch (e) {
+        console.error('Ürünler yüklenemedi:', e);
+        showAlert('Ürünler yüklenirken hata oluştu!', 'error');
+    }
+}
+
+function urunSecildi() {
+    const select = document.getElementById('urunSelect');
+    const opt = select.options[select.selectedIndex];
+    const urunId = select.value;
+    
+    if (!urunId) {
+        document.getElementById('bedenArea').style.display = 'none';
+        document.getElementById('birimFiyatInput').value = '';
+        document.getElementById('urunToplamInput').value = '';
+        document.getElementById('urunAciklamaInput').value = '';
+        return;
+    }
+
+    const fiyat = parseFloat(opt.dataset.fiyat);
+    const tur = opt.dataset.tur;
+    
+    document.getElementById('birimFiyatInput').value = fiyat;
+    document.getElementById('adetInput').value = 1;
+    document.getElementById('adetInput').max = '';
+    hesaplaUrunToplam();
+    
+    const urunAdi = opt.text.split(' - ')[0];
+    document.getElementById('urunAciklamaInput').value = `<%= ogrenci.ad_soyad %> - ${urunAdi} satışı`;
+
+    if (tur === 'stoklu') {
+        const urun = urunlerData.find(u => u.id == urunId);
+        const bedenSelect = document.getElementById('bedenSelect');
+        bedenSelect.innerHTML = '<option value="">-- Beden Seçin --</option>';
+        
+        if (urun && urun.stoklar && urun.stoklar.length > 0) {
+            urun.stoklar.forEach(s => {
+                const stokDurum = s.adet > 0 ? `(${s.adet} adet)` : '(Stok yok!)';
+                const disabled = s.adet <= 0 ? 'disabled' : '';
+                bedenSelect.innerHTML += `<option value="${s.id}" data-adet="${s.adet}" ${disabled}>${s.beden} ${stokDurum}</option>`;
+            });
+        } else {
+            bedenSelect.innerHTML += '<option value="" disabled>Stok kaydı yok</option>';
+        }
+        document.getElementById('bedenArea').style.display = 'block';
+        document.getElementById('stokBilgi').innerHTML = '';
+    } else {
+        document.getElementById('bedenArea').style.display = 'none';
+    }
+}
+
+function bedenSecildi() {
+    const select = document.getElementById('bedenSelect');
+    const opt = select.options[select.selectedIndex];
+    
+    if (opt && opt.value && opt.dataset.adet) {
+        const adet = parseInt(opt.dataset.adet);
+        document.getElementById('stokBilgi').innerHTML = `<i class="fa-solid fa-box"></i> Mevcut stok: <strong>${adet}</strong> adet`;
+        document.getElementById('adetInput').max = adet;
+        
+        const currentAdet = parseInt(document.getElementById('adetInput').value) || 1;
+        if (currentAdet > adet) {
+            document.getElementById('adetInput').value = adet;
+            hesaplaUrunToplam();
+        }
+    } else {
+        document.getElementById('stokBilgi').innerHTML = '';
+        document.getElementById('adetInput').max = '';
+    }
+}
+
+function hesaplaUrunToplam() {
+    const adet = parseInt(document.getElementById('adetInput').value) || 1;
+    const birimFiyat = parseFloat(document.getElementById('birimFiyatInput').value) || 0;
+    document.getElementById('urunToplamInput').value = (adet * birimFiyat).toFixed(2);
+}
+
+async function submitProductSale() {
+    const form = document.getElementById('productSaleForm');
+    const formData = new FormData(form);
+    
+    if (!formData.get('urun_id')) {
+        showAlert('Lütfen bir ürün seçin!', 'error');
+        return;
+    }
+
+    const urunSelect = document.getElementById('urunSelect');
+    const tur = urunSelect.options[urunSelect.selectedIndex].dataset.tur;
+    
+    if (tur === 'stoklu' && !formData.get('stok_id')) {
+        showAlert('Lütfen bir beden seçin!', 'error');
+        return;
+    }
+
+    const adet = parseInt(formData.get('adet')) || 1;
+    if (adet < 1) {
+        showAlert('Adet en az 1 olmalıdır!', 'error');
+        return;
+    }
+
+    if (tur === 'stoklu') {
+        const bedenSelect = document.getElementById('bedenSelect');
+        const selectedOption = bedenSelect.options[bedenSelect.selectedIndex];
+        if (selectedOption && selectedOption.dataset.adet) {
+            const maxStok = parseInt(selectedOption.dataset.adet) || 0;
+            if (adet > maxStok) {
+                showAlert(`Yetersiz stok! Maksimum ${maxStok} adet satılabilir.`, 'error');
+                return;
+            }
+        }
+    }
+
+    const btn = document.querySelector('#productModal .btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> İşleniyor...';
+
+    try {
+        const res = await fetch('/api/envanter/satis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            showAlert('Ürün satışı başarıyla kaydedildi!', 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message || 'Hata oluştu!', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Satışı Tamamla';
+        }
+    } catch (e) {
+        showAlert('Bağlantı hatası!', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Satışı Tamamla';
+    }
+}
+    
+// =====================
+// DURUM GÜNCELLE
+// =====================
+function submitStatus() {
+    const form = document.getElementById('statusForm');
+    const formData = new FormData(form);
+    
+    fetch('/api/ogrenci/durum-guncelle', { 
+        method: 'POST', 
+        body: new URLSearchParams(formData)
+    })
+    .then(r => r.json())
+    .then(d => { 
+        if(d.success) {
+            showAlert('Durum başarıyla güncellendi!', 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert('Durum güncellenirken hata oluştu!', 'error');
+        }
+    })
+    .catch(() => {
+        showAlert('Bağlantı hatası!', 'error');
+    });
+}
+
+// =====================
+// SİLME
+// =====================
+function openDeleteModal() {
+    if (!canDeleteStudent) {
+        showAlert('Bu işlem için yetkiniz yok!', 'error');
+        return;
+    }
+    showConfirm('Bu öğrenciyi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!', () => {
+        window.location.href = '/api/ogrenci/sil/<%= ogrenci.id %>';
+    });
+}
+
+// =====================
+// ANALİZ FONKSİYONLARI
+// =====================
+function openAnalizModal() {
+    document.getElementById('analizForm').reset();
+    document.querySelectorAll('.puan-slider').forEach(slider => {
+        slider.value = 5;
+    });
+    document.querySelectorAll('.puan-value').forEach(span => {
+        span.textContent = '5';
+    });
+    document.getElementById('analizModal').style.display = 'flex';
+}
+
+function updateSlider(name, value, color) {
+    document.getElementById(name + 'Value').textContent = value;
+    document.getElementById(name + 'Value').style.background = color;
+}
+
+async function submitAnaliz() {
+    const form = document.getElementById('analizForm');
+    const formData = new FormData(form);
+    
+    if (!formData.get('brans')) {
+        showAlert('Lütfen bir branş seçin!', 'error');
+        return;
+    }
+    
+    const btn = document.querySelector('#analizModal .btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+    
+    try {
+        const res = await fetch('/api/ogrenci/analiz-ekle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            showAlert('Analiz başarıyla kaydedildi!', 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message || 'Hata oluştu!', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Analizi Kaydet';
+        }
+    } catch (e) {
+        showAlert('Bağlantı hatası!', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Analizi Kaydet';
+    }
+}
+
+async function openAnalizDetayModal(analizId) {
+    document.getElementById('analizDetayModal').style.display = 'flex';
+    document.getElementById('analizDetayContent').innerHTML = `
+        <div style="text-align:center; padding:40px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:30px; color:#10b981;"></i>
+        </div>
+    `;
+    
+    try {
+        const res = await fetch(`/api/ogrenci/analiz-detay/${analizId}`);
+        const data = await res.json();
+        
+        if (data.success) {
+            const a = data.analiz;
+            document.getElementById('analizDetayContent').innerHTML = `
+                <div style="text-align:center; margin-bottom:25px;">
+                    <span style="background:#10b981; color:white; padding:6px 16px; border-radius:20px; font-weight:700;">${a.brans}</span>
+                    <p style="color:#64748b; font-size:13px; margin-top:10px;">
+                        ${new Date(a.analiz_tarihi).toLocaleDateString('tr-TR')} 
+                        ${a.analizci_adi ? '• ' + a.analizci_adi : ''}
+                    </p>
+                </div>
+                
+                <div style="background:linear-gradient(135deg,#10b981,#059669); color:white; border-radius:16px; padding:20px; text-align:center; margin-bottom:25px;">
+                    <div style="font-size:40px; font-weight:800;">${a.genel_puan}</div>
+                    <div style="opacity:0.8;">Genel Puan / 10</div>
+                </div>
+                
+                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:25px;">
+                    ${createPuanCard('Teknik', a.teknik_puan, '#3b82f6', 'fa-futbol')}
+                    ${createPuanCard('Fiziksel', a.fiziksel_puan, '#10b981', 'fa-heart-pulse')}
+                    ${createPuanCard('Taktik', a.taktik_puan, '#f59e0b', 'fa-chess')}
+                    ${createPuanCard('Mental', a.mental_puan, '#8b5cf6', 'fa-brain')}
+                    ${createPuanCard('Disiplin', a.disiplin_puan, '#ef4444', 'fa-clipboard-check')}
+                    ${createPuanCard('Takım', a.takim_puan, '#06b6d4', 'fa-people-group')}
+                </div>
+                
+                ${a.genel_degerlendirme ? `
+                    <div style="background:#f8fafc; border-radius:12px; padding:15px; margin-bottom:15px;">
+                        <h4 style="font-size:13px; color:#64748b; margin-bottom:8px;"><i class="fa-solid fa-comment"></i> Genel Değerlendirme</h4>
+                        <p style="color:#1e293b; line-height:1.6; margin:0;">${a.genel_degerlendirme}</p>
+                    </div>
+                ` : ''}
+                
+                ${a.oneriler ? `
+                    <div style="background:#fef3c7; border-radius:12px; padding:15px; margin-bottom:15px;">
+                        <h4 style="font-size:13px; color:#92400e; margin-bottom:8px;"><i class="fa-solid fa-lightbulb"></i> Öneriler</h4>
+                        <p style="color:#92400e; line-height:1.6; margin:0;">${a.oneriler}</p>
+                    </div>
+                ` : ''}
+                
+                ${(a.kisa_vadeli_hedef || a.uzun_vadeli_hedef) ? `
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        ${a.kisa_vadeli_hedef ? `
+                            <div style="background:#dbeafe; border-radius:12px; padding:15px;">
+                                <h4 style="font-size:12px; color:#1d4ed8; margin-bottom:8px;"><i class="fa-solid fa-flag"></i> Kısa Vadeli Hedef</h4>
+                                <p style="color:#1d4ed8; font-size:13px; margin:0;">${a.kisa_vadeli_hedef}</p>
+                            </div>
+                        ` : ''}
+                        ${a.uzun_vadeli_hedef ? `
+                            <div style="background:#dcfce7; border-radius:12px; padding:15px;">
+                                <h4 style="font-size:12px; color:#166534; margin-bottom:8px;"><i class="fa-solid fa-trophy"></i> Uzun Vadeli Hedef</h4>
+                                <p style="color:#166534; font-size:13px; margin:0;">${a.uzun_vadeli_hedef}</p>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                <button onclick="silAnalizConfirm(${a.id})" class="btn btn-del" style="width:100%; margin-top:20px; justify-content:center;">
+                    <i class="fa-solid fa-trash"></i> Analizi Sil
+                </button>
+            `;
+        } else {
+            document.getElementById('analizDetayContent').innerHTML = `
+                <div style="text-align:center; padding:40px; color:#ef4444;">
+                    <i class="fa-solid fa-exclamation-circle" style="font-size:30px;"></i>
+                    <p>Analiz yüklenemedi!</p>
+                </div>
+            `;
+        }
+    } catch (e) {
+        document.getElementById('analizDetayContent').innerHTML = `
+            <div style="text-align:center; padding:40px; color:#ef4444;">
+                <i class="fa-solid fa-exclamation-circle" style="font-size:30px;"></i>
+                <p>Bağlantı hatası!</p>
+            </div>
+        `;
+    }
+}
+
+function createPuanCard(title, puan, color, icon) {
+    return `
+        <div style="background:#f8fafc; border-radius:12px; padding:15px; text-align:center;">
+            <i class="fa-solid ${icon}" style="color:${color}; font-size:20px; margin-bottom:8px;"></i>
+            <div style="font-size:24px; font-weight:800; color:${color};">${puan || 5}</div>
+            <div style="font-size:11px; color:#64748b;">${title}</div>
+        </div>
+    `;
+}
+
+function silAnalizConfirm(analizId) {
+    showConfirm('Bu analizi silmek istediğinizden emin misiniz?', async () => {
+        try {
+            const res = await fetch(`/api/ogrenci/analiz-sil/${analizId}`);
+            const data = await res.json();
+            
+            if (data.success) {
+                showAlert('Analiz silindi!', 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert(data.message || 'Hata oluştu!', 'error');
+            }
+        } catch (e) {
+            showAlert('Bağlantı hatası!', 'error');
+        }
+    });
+}
+</script>
+		</body>
+</html>

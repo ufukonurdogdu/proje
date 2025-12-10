@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | Ayarlar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk %>;
+            --secondary: <%= siteAyarlari.ara_renk %>;
+            --bg-body: #f3f5f9;
+            --dark-text: #2d3748;
+            --muted-text: #a0aec0;
+            --radius-xl: 24px;
+            --radius-md: 16px;
+            --shadow-soft: 0 8px 30px rgba(0,0,0,0.04);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; text-decoration: none; list-style: none; outline: none; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        
+        /* SIDEBAR */
+        .sidebar { width: 280px; height: 96vh; margin: 2vh 0 2vh 2vh; background: #1a1f37; border-radius: var(--radius-xl); display: flex; flex-direction: column; color: white; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); z-index: 100; }
+        .sidebar::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%); pointer-events: none; }
+        .brand { padding: 30px; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; background: linear-gradient(to right, #fff, #a0aec0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .menu { padding: 10px 20px; flex: 1; overflow-y: auto; }
+        .menu-category { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); margin: 20px 10px 10px 10px; font-weight: 700; }
+        .nav-link { display: flex; align-items: center; padding: 14px 20px; margin-bottom: 8px; border-radius: 14px; color: #a0aec0; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; backdrop-filter: blur(10px); }
+        .nav-link i { width: 24px; font-size: 18px; margin-right: 12px; }
+
+        /* MAIN */
+        .main { flex: 1; margin: 2vh; background: white; border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-soft); }
+        header { padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .content-scroll { padding: 40px; overflow-y: auto; flex: 1; }
+
+        /* TAB NAVİGASYON */
+        .tab-nav { display: flex; gap: 8px; margin-bottom: 30px; background: #f8fafc; padding: 6px; border-radius: 14px; }
+        .tab-btn { padding: 12px 24px; border: none; background: transparent; border-radius: 10px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .tab-btn:hover { color: var(--dark-text); }
+        .tab-btn.active { background: white; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .tab-btn i { font-size: 16px; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+
+        /* KARTLAR */
+        .settings-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 25px; margin-bottom: 25px; }
+        .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
+        .card-header .icon-box { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .card-header .icon-box.blue { background: #eff6ff; color: #3b82f6; }
+        .card-header .icon-box.purple { background: #faf5ff; color: #a855f7; }
+        .card-header .icon-box.green { background: #f0fdf4; color: #22c55e; }
+        .card-header .icon-box.orange { background: #fff7ed; color: #f97316; }
+        .card-header .icon-box.red { background: #fef2f2; color: #ef4444; }
+        .card-header h3 { font-size: 16px; font-weight: 700; color: var(--dark-text); }
+        .card-header p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+        /* FORM */
+        .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .form-row.single { grid-template-columns: 1fr; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px 15px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; color: var(--dark-text); transition: 0.3s; background: #fff; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .form-control:disabled, .form-control[readonly] { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+        .form-hint { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+
+        /* RENK SEÇİCİ */
+        .color-picker-group { display: flex; gap: 20px; }
+        .color-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #f8fafc; border-radius: 12px; flex: 1; }
+        .color-item input[type="color"] { width: 44px; height: 44px; border: none; border-radius: 10px; cursor: pointer; padding: 0; }
+        .color-item .color-info { flex: 1; }
+        .color-item .color-label { font-size: 13px; font-weight: 600; color: #475569; }
+        .color-item .color-value { font-size: 11px; color: #94a3b8; font-family: monospace; margin-top: 2px; }
+
+        /* LOGO UPLOAD */
+        .logo-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .logo-upload-box { border: 2px dashed #e2e8f0; border-radius: 14px; padding: 20px; text-align: center; transition: all 0.3s; cursor: pointer; position: relative; background: #fafbfc; }
+        .logo-upload-box:hover { border-color: var(--primary); background: #f0f9ff; }
+        .logo-upload-box.has-preview { border-style: solid; border-color: #22c55e; background: #f0fdf4; }
+        .logo-preview { width: 80px; height: 80px; border-radius: 12px; object-fit: contain; margin: 0 auto 12px; display: block; background: white; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .logo-placeholder { width: 80px; height: 80px; border-radius: 12px; background: #e2e8f0; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #94a3b8; }
+        .logo-upload-box h4 { font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 4px; }
+        .logo-upload-box span { font-size: 11px; color: #94a3b8; }
+        .logo-upload-box input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .logo-badge { position: absolute; top: 10px; right: 10px; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+        .logo-badge.current { background: #dbeafe; color: #2563eb; }
+        .logo-badge.new { background: #dcfce7; color: #16a34a; }
+
+        /* LİMİT ALANI */
+        .limit-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .limit-item { background: #f8fafc; border-radius: 12px; padding: 16px; text-align: center; border: 1px solid #e2e8f0; transition: all 0.3s; }
+        .limit-item:hover { border-color: var(--primary); }
+        .limit-item label { display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 10px; }
+        .limit-item input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; color: var(--dark-text); }
+        .limit-item input:focus { border-color: var(--primary); }
+
+        .limit-warning { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #fbbf24; border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; display: none; animation: slideDown 0.3s ease; }
+        .limit-warning.show { display: flex; align-items: center; gap: 12px; }
+        .limit-warning i { font-size: 20px; color: #d97706; }
+        .limit-warning-text { flex: 1; }
+        .limit-warning-text strong { color: #92400e; font-size: 13px; display: block; margin-bottom: 4px; }
+        .limit-warning-text span { color: #a16207; font-size: 12px; }
+        .limit-warning input { padding: 10px 14px; border: 2px solid #f59e0b; border-radius: 8px; font-size: 13px; width: 220px; }
+
+        /* BUTONLAR */
+        .btn-group { display: flex; gap: 12px; margin-top: 25px; }
+        .btn { padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; border: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%); color: white; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4); }
+        .btn-secondary { background: #f1f5f9; color: #475569; }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        /* TEHLİKE BÖLÜMÜ */
+        .danger-section { background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1px solid #fecaca; border-radius: 16px; padding: 25px; }
+        .danger-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .danger-header i { font-size: 24px; color: #dc2626; }
+        .danger-header h3 { font-size: 16px; font-weight: 700; color: #b91c1c; }
+        .danger-header p { font-size: 12px; color: #dc2626; margin-top: 2px; }
+
+        .danger-actions { display: flex; gap: 15px; flex-wrap: wrap; }
+        .btn-danger-outline { padding: 12px 20px; border: 2px solid #fca5a5; background: white; color: #dc2626; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-danger-outline:hover { background: #fef2f2; border-color: #f87171; }
+        .btn-danger { padding: 12px 20px; background: #dc2626; color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-danger:hover { background: #b91c1c; }
+
+        /* RESET FORM */
+        .reset-form { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #fecaca; animation: slideDown 0.3s ease; }
+        .reset-form.show { display: block; }
+        .reset-warning { background: white; border: 1px solid #fecaca; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .reset-warning p { color: #b91c1c; font-size: 13px; line-height: 1.6; }
+        .reset-warning ul { margin-top: 10px; padding-left: 20px; }
+        .reset-warning li { color: #dc2626; font-size: 12px; margin-bottom: 4px; list-style: disc; }
+        .reset-input-group { display: flex; gap: 12px; }
+        .reset-input-group input { flex: 1; max-width: 300px; padding: 12px 15px; border: 2px solid #fca5a5; border-radius: 10px; font-size: 13px; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ==================== MASAÜSTÜNDE GİZLİ ==================== */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+                --bg-body: #0f172a;
+                --dark-text: #f1f5f9;
+            }
+
+            :root { --nav-height: 70px; }
+
+            body {
+                background: var(--m-bg-primary);
+                height: auto;
+                min-height: 100vh;
+                overflow: auto;
+                display: block;
+            }
+
+            .main { 
+                display: flex;
+                margin: 0;
+                border-radius: 0;
+                height: auto;
+                min-height: auto;
+                background: var(--m-bg-primary);
+            }
+            .main > header { display: none; }
+            .content-scroll {
+                padding: 15px;
+                padding-bottom: calc(var(--nav-height) + 30px);
+            }
+
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+            .mobile-back-btn {
+                width: 36px; height: 36px; border: none; border-radius: 10px;
+                background: rgba(255,255,255,0.15); color: white; font-size: 16px;
+                cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none;
+            }
+            .mobile-header-title { flex: 1; }
+            .mobile-header-title h1 { font-size: 17px; font-weight: 700; }
+            .mobile-header-title span { font-size: 12px; opacity: 0.8; }
+            .mobile-header-actions { display: flex; gap: 8px; }
+            .mobile-header-actions button {
+                width: 38px; height: 38px; border: none; border-radius: 12px;
+                background: rgba(255,255,255,0.15); color: white; font-size: 16px;
+                cursor: pointer; display: flex; align-items: center; justify-content: center;
+            }
+
+            .tab-nav {
+                display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+                padding: 6px; margin-bottom: 20px; background: var(--m-bg-tertiary);
+            }
+            .tab-btn {
+                padding: 10px 8px; font-size: 11px; gap: 4px;
+                flex-direction: column; justify-content: center; color: var(--m-text-muted);
+            }
+            .tab-btn i { font-size: 16px; margin: 0; }
+            .tab-btn.active { background: var(--m-bg-secondary); color: #6366f1; }
+
+            .settings-card {
+                background: var(--m-bg-secondary); border-color: var(--m-border-color);
+                padding: 16px; margin-bottom: 16px;
+            }
+            .card-header { padding-bottom: 12px; margin-bottom: 16px; border-color: var(--m-border-color); }
+            .card-header .icon-box { width: 38px; height: 38px; font-size: 16px; }
+            .card-header h3 { font-size: 15px; color: var(--m-text-primary); }
+            .card-header p { font-size: 11px; color: var(--m-text-muted); }
+
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .form-group label { color: var(--m-text-secondary); font-size: 12px; }
+            .form-control {
+                background: var(--m-bg-tertiary); border-color: var(--m-border-color);
+                color: var(--m-text-primary); font-size: 16px; padding: 14px;
+            }
+            .form-control:disabled, .form-control[readonly] {
+                background: var(--m-bg-tertiary); color: var(--m-text-muted);
+            }
+            .form-hint { color: var(--m-text-muted); }
+
+            .color-picker-group { flex-direction: column; gap: 12px; }
+            .color-item { background: var(--m-bg-tertiary); }
+            .color-item .color-label { color: var(--m-text-secondary); }
+            .color-item .color-value { color: var(--m-text-muted); }
+
+            .logo-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .logo-upload-box {
+                padding: 16px; background: var(--m-bg-tertiary); border-color: var(--m-border-color);
+            }
+            .logo-upload-box h4 { color: var(--m-text-primary); font-size: 12px; }
+            .logo-upload-box span { color: var(--m-text-muted); font-size: 10px; }
+            .logo-preview { width: 60px; height: 60px; }
+            .logo-placeholder {
+                width: 60px; height: 60px; font-size: 22px;
+                background: var(--m-border-color); color: var(--m-text-muted);
+            }
+
+            .limit-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .limit-item {
+                background: var(--m-bg-tertiary); border-color: var(--m-border-color); padding: 14px;
+            }
+            .limit-item label { color: var(--m-text-secondary); font-size: 11px; }
+            .limit-item input {
+                background: var(--m-bg-secondary); border-color: var(--m-border-color);
+                color: var(--m-text-primary); font-size: 16px;
+            }
+            .limit-warning { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .limit-warning input { width: 100%; }
+
+            .btn-group { margin-top: 20px; }
+            .btn { width: 100%; justify-content: center; padding: 16px; }
+            .btn-primary { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+            .btn-secondary { background: var(--m-bg-tertiary); color: var(--m-text-primary); }
+
+            .danger-section { padding: 16px; }
+            .danger-header i { font-size: 20px; }
+            .danger-header h3 { font-size: 15px; }
+            .danger-actions { flex-direction: column; }
+            .btn-danger, .btn-danger-outline { width: 100%; justify-content: center; }
+            .reset-input-group { flex-direction: column; }
+            .reset-input-group input { max-width: 100%; }
+            .reset-warning { background: var(--m-bg-secondary); }
+            .reset-warning p, .reset-warning li { font-size: 12px; }
+
+            .bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+                height: var(--nav-height); background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom); z-index: 1000;
+            }
+            .nav-item {
+                flex: 1; display: flex; flex-direction: column; align-items: center;
+                justify-content: center; gap: 4px; text-decoration: none;
+                color: var(--m-text-muted); font-size: 10px; font-weight: 500;
+            }
+            .nav-item i { font-size: 20px; }
+            .nav-item.active { color: #6366f1; }
+        }
+
+        @media (max-width: 1200px) and (min-width: 992px) {
+            .logo-grid { grid-template-columns: repeat(2, 1fr); }
+            .limit-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ==================== RESULT MODAL ==================== */
+        .result-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .result-modal-overlay.show {
+            display: flex;
+        }
+
+        .result-modal {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 340px;
+            width: 100%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .result-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 30px;
+        }
+
+        .result-icon.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .result-icon.error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .result-icon.warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .result-icon.info {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        .result-icon.confirm {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .result-modal h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .result-modal p {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .result-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .result-btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            min-width: 100px;
+        }
+
+        .result-btn.primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+        }
+
+        .result-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .result-btn.secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .result-btn.cancel {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .result-btn.confirm-delete {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        /* Dark tema için modal */
+        [data-theme="dark"] .result-modal {
+            background: #1e293b;
+        }
+
+        [data-theme="dark"] .result-modal h3 {
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .result-modal p {
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .result-btn.secondary,
+        [data-theme="dark"] .result-btn.cancel {
+            background: #334155;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <header class="mobile-header">
+        <div class="mobile-header-title">
+            <h1>Sistem Ayarları</h1>
+            <span>Genel ayarlar ve limitler</span>
+        </div>
+        <div class="mobile-header-actions">
+            <button onclick="toggleTheme()" id="themeToggle"><i class="fas fa-moon"></i></button>
+        </div>
+    </header>
+
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item"><i class="fa-solid fa-house"></i><span>Ana Sayfa</span></a>
+        <a href="/api/ogrenci/liste" class="nav-item"><i class="fa-solid fa-users"></i><span>Öğrenciler</span></a>
+        <a href="/api/kasa" class="nav-item"><i class="fa-solid fa-wallet"></i><span>Kasa</span></a>
+        <a href="/api/ayarlar" class="nav-item active"><i class="fa-solid fa-gear"></i><span>Ayarlar</span></a>
+    </nav>
+
+    <!-- ===== RESULT MODAL ===== -->
+    <div class="result-modal-overlay" id="resultModal">
+        <div class="result-modal">
+            <div class="result-icon success" id="resultIcon">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 id="resultTitle">Başarılı!</h3>
+            <p id="resultMessage">İşlem başarıyla tamamlandı.</p>
+            <div class="result-buttons" id="resultButtons">
+                <button class="result-btn primary" onclick="closeResultModal()">Tamam</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="page-title">
+                <h1 style="font-size: 24px; font-weight: 700;">Sistem Ayarları</h1>
+                <p style="font-size: 13px; color: #a0aec0;">Genel ayarlar, logolar ve sistem limitleri</p>
+            </div>
+            <div style="font-weight: 600;"><%= user.ad_soyad %></div>
+        </header>
+
+        <div class="content-scroll">
+            <div class="tab-nav">
+                <button type="button" class="tab-btn active" data-tab="genel"><i class="fa-solid fa-gear"></i> <span>Genel</span></button>
+                <button type="button" class="tab-btn" data-tab="logo"><i class="fa-solid fa-images"></i> <span>Logo</span></button>
+                <button type="button" class="tab-btn" data-tab="limit"><i class="fa-solid fa-shield-halved"></i> <span>Limitler</span></button>
+                <button type="button" class="tab-btn" data-tab="sistem"><i class="fa-solid fa-server"></i> <span>Sistem</span></button>
+            </div>
+
+            <form action="/api/admin/ayarlar/guncelle" method="POST" enctype="multipart/form-data" id="settingsForm">
+                <div class="tab-content active" id="tab-genel">
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="icon-box blue"><i class="fa-solid fa-building"></i></div>
+                            <div><h3>Tesis Bilgileri</h3><p>Temel tesis ve uygulama bilgileri</p></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Tesis Adı</label>
+                                <input type="text" name="tesis_adi" class="form-control" value="<%= ayarlar.tesis_adi %>" placeholder="Örn: netSPOR Akademi">
+                                <div class="form-hint">Bu isim panelde ve bildirimlerde görünür</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Uygulama Adı (PWA)</label>
+                                <input type="text" name="pwa_adi" class="form-control" value="<%= ayarlar.pwa_adi || '' %>" placeholder="Örn: netSPOR">
+                                <div class="form-hint">Telefon ana ekranında ikonun altında görünür</div>
+                            </div>
+                        </div>
+                        <div class="form-row single">
+                            <div class="form-group">
+                                <label>Site Adresi</label>
+                                <input type="text" class="form-control" value="<%= ayarlar.site_adresi %>" readonly disabled>
+                                <div class="form-hint">Bu alan kurulum sırasında belirlendi ve değiştirilemez</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="icon-box purple"><i class="fa-solid fa-palette"></i></div>
+                            <div><h3>Tema Renkleri</h3><p>Panel renk şemasını özelleştirin</p></div>
+                        </div>
+                        <div class="color-picker-group">
+                            <div class="color-item">
+                                <input type="color" name="ana_renk" id="anaRenk" value="<%= ayarlar.ana_renk %>">
+                                <div class="color-info"><div class="color-label">Ana Renk</div><div class="color-value" id="anaRenkValue"><%= ayarlar.ana_renk %></div></div>
+                            </div>
+                            <div class="color-item">
+                                <input type="color" name="ara_renk" id="araRenk" value="<%= ayarlar.ara_renk %>">
+                                <div class="color-info"><div class="color-label">Ara Renk</div><div class="color-value" id="araRenkValue"><%= ayarlar.ara_renk %></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Kaydet</button></div>
+                </div>
+
+                <div class="tab-content" id="tab-logo">
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="icon-box green"><i class="fa-solid fa-image"></i></div>
+                            <div><h3>Uygulama Logoları</h3><p>Farklı boyutlarda logo görselleri yükleyin</p></div>
+                        </div>
+                        <div class="logo-grid">
+                            <div class="logo-upload-box" id="defaultLogoBox">
+                                <% if (ayarlar.logo_default) { %><span class="logo-badge current">Mevcut</span><img src="/uploads/<%= ayarlar.logo_default %>" class="logo-preview" id="defaultPreview"><% } else { %><div class="logo-placeholder" id="defaultPlaceholder"><i class="fa-solid fa-image"></i></div><% } %>
+                                <h4>Varsayılan Logo</h4><span>Login & Genel</span>
+                                <input type="file" name="logo_default" accept="image/*" onchange="previewLogo(this, 'default')">
+                            </div>
+                            <div class="logo-upload-box" id="logo192Box">
+                                <% if (ayarlar.logo_192) { %><span class="logo-badge current">Mevcut</span><img src="/uploads/<%= ayarlar.logo_192 %>" class="logo-preview" id="logo192Preview"><% } else { %><div class="logo-placeholder" id="logo192Placeholder"><i class="fa-solid fa-globe"></i></div><% } %>
+                                <h4>Favicon & App</h4><span>192x192 px</span>
+                                <input type="file" name="logo_192" accept="image/*" onchange="previewLogo(this, 'logo192')">
+                            </div>
+                            <div class="logo-upload-box" id="logo512Box">
+                                <% if (ayarlar.logo_512) { %><span class="logo-badge current">Mevcut</span><img src="/uploads/<%= ayarlar.logo_512 %>" class="logo-preview" id="logo512Preview"><% } else { %><div class="logo-placeholder" id="logo512Placeholder"><i class="fa-solid fa-expand"></i></div><% } %>
+                                <h4>Büyük Logo</h4><span>512x512 px</span>
+                                <input type="file" name="logo_512" accept="image/*" onchange="previewLogo(this, 'logo512')">
+                            </div>
+                            <div class="logo-upload-box" id="logo180Box">
+                                <% if (ayarlar.logo_180) { %><span class="logo-badge current">Mevcut</span><img src="/uploads/<%= ayarlar.logo_180 %>" class="logo-preview" id="logo180Preview"><% } else { %><div class="logo-placeholder" id="logo180Placeholder"><i class="fa-solid fa-bars"></i></div><% } %>
+                                <h4>Sidebar Logo</h4><span>180x180 px</span>
+                                <input type="file" name="logo_180" accept="image/*" onchange="previewLogo(this, 'logo180')">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Logoları Kaydet</button></div>
+                </div>
+
+                <div class="tab-content" id="tab-limit">
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="icon-box orange"><i class="fa-solid fa-lock"></i></div>
+                            <div><h3>Sistem Limitleri</h3><p>Bu alanları değiştirmek için yetki şifresi gereklidir</p></div>
+                        </div>
+                        <div class="limit-warning" id="limitWarning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <div class="limit-warning-text"><strong>Limit değişikliği algılandı!</strong><span>Kaydetmek için yetkili şifresini girin</span></div>
+                            <input type="password" name="limit_guvenlik_sifresi" placeholder="Güvenlik Şifresi">
+                        </div>
+                        <input type="hidden" name="limit_degisikligi_var" id="limitFlag" value="0">
+                        <div class="limit-grid">
+                            <div class="limit-item"><label><i class="fa-solid fa-building"></i> Şube Limiti</label><input type="number" name="sube_limiti" class="limit-input" value="<%= ayarlar.sube_limiti %>" min="1"></div>
+                            <div class="limit-item"><label><i class="fa-solid fa-users"></i> Kullanıcı Limiti</label><input type="number" name="kullanici_limiti" class="limit-input" value="<%= ayarlar.kullanici_limiti %>" min="1"></div>
+                            <div class="limit-item"><label><i class="fa-solid fa-futbol"></i> Branş Limiti</label><input type="number" name="brans_limiti" class="limit-input" value="<%= ayarlar.brans_limiti %>" min="1"></div>
+                            <div class="limit-item"><label><i class="fa-solid fa-layer-group"></i> Grup Limiti</label><input type="number" name="grup_limiti" class="limit-input" value="<%= ayarlar.grup_limiti %>" min="1"></div>
+                        </div>
+                    </div>
+                    <div class="btn-group"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Limitleri Kaydet</button></div>
+                </div>
+            </form>
+
+            <div class="tab-content" id="tab-sistem">
+                <div class="settings-card">
+                    <div class="card-header">
+                        <div class="icon-box blue"><i class="fa-solid fa-database"></i></div>
+                        <div><h3>Yedekleme</h3><p>Veritabanının yedeğini alın</p></div>
+                    </div>
+                    <p style="color: #64748b; font-size: 13px; margin-bottom: 15px;">Tüm veritabanınızın SQL yedeğini indirin.</p>
+                    <a href="/api/admin/yedekle" class="btn btn-secondary" style="text-decoration: none;"><i class="fa-solid fa-download"></i> Veritabanını Yedekle</a>
+                </div>
+                <div class="danger-section">
+                    <div class="danger-header">
+                        <i class="fa-solid fa-skull-crossbones"></i>
+                        <div><h3>Tehlikeli Bölge</h3><p>Bu işlemler geri alınamaz!</p></div>
+                    </div>
+                    <div class="danger-actions">
+                        <button type="button" class="btn-danger" onclick="toggleResetForm()"><i class="fa-solid fa-rotate-left"></i> Fabrika Ayarlarına Dön</button>
+                    </div>
+                    <div class="reset-form" id="resetForm">
+                        <div class="reset-warning">
+                            <p><strong>⚠️ UYARI:</strong> Bu işlem aşağıdaki verileri kalıcı olarak silecektir:</p>
+                            <ul>
+                                <li>Tüm öğrenci, veli ve aidat kayıtları</li>
+                                <li>Tüm şube, branş ve grup bilgileri</li>
+                                <li>Tüm kullanıcılar (varsayılan yönetici hariç)</li>
+                                <li>Tüm kasa, satış ve yoklama kayıtları</li>
+                            </ul>
+                            <p style="margin-top: 10px; color: #16a34a;"><strong>✓</strong> Sıfırlama öncesi otomatik yedek alınacaktır.</p>
+                        </div>
+                        <form action="/api/admin/sifirla" method="POST" id="resetFormSubmit" onsubmit="return confirmReset()">
+                            <div class="reset-input-group">
+                                <input type="password" name="fabrika_sifresi" placeholder="Fabrika Sıfırlama Şifresi" required>
+                                <button type="submit" class="btn-danger"><i class="fa-solid fa-trash"></i> ONAYLA VE SIFIRLA</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) btn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        }
+        initTheme();
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        document.getElementById('anaRenk').addEventListener('input', function() { document.getElementById('anaRenkValue').textContent = this.value; });
+        document.getElementById('araRenk').addEventListener('input', function() { document.getElementById('araRenkValue').textContent = this.value; });
+
+        function previewLogo(input, type) {
+            const boxId = type === 'default' ? 'defaultLogoBox' : type + 'Box';
+            const placeholderId = type === 'default' ? 'defaultPlaceholder' : type + 'Placeholder';
+            const previewId = type === 'default' ? 'defaultPreview' : type + 'Preview';
+            const box = document.getElementById(boxId);
+            const placeholder = document.getElementById(placeholderId);
+            let preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    if (placeholder) placeholder.remove();
+                    if (!preview) { preview = document.createElement('img'); preview.id = previewId; preview.className = 'logo-preview'; box.insertBefore(preview, box.querySelector('h4')); }
+                    preview.src = e.target.result; box.classList.add('has-preview');
+                    let badge = box.querySelector('.logo-badge');
+                    if (!badge) { badge = document.createElement('span'); badge.className = 'logo-badge new'; box.insertBefore(badge, box.firstChild); }
+                    badge.className = 'logo-badge new'; badge.textContent = 'Yeni';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        const limitInputs = document.querySelectorAll('.limit-input');
+        const limitWarning = document.getElementById('limitWarning');
+        const limitFlag = document.getElementById('limitFlag');
+        const originalValues = {};
+        limitInputs.forEach(input => {
+            originalValues[input.name] = input.value;
+            input.addEventListener('input', () => {
+                let changed = false;
+                limitInputs.forEach(inp => { if (inp.value !== originalValues[inp.name]) changed = true; });
+                if (changed) { limitWarning.classList.add('show'); limitFlag.value = '1'; }
+                else { limitWarning.classList.remove('show'); limitFlag.value = '0'; }
+            });
+        });
+
+        function toggleResetForm() { document.getElementById('resetForm').classList.toggle('show'); }
+
+        // =====================================================
+        // RESULT MODAL FONKSİYONLARI
+        // =====================================================
+        function showResultModal(type, title, message, buttons) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const titleEl = document.getElementById('resultTitle');
+            const messageEl = document.getElementById('resultMessage');
+            const buttonsEl = document.getElementById('resultButtons');
+
+            // İkon ayarla
+            icon.className = 'result-icon ' + type;
+            switch(type) {
+                case 'success':
+                    icon.innerHTML = '<i class="fas fa-check"></i>';
+                    break;
+                case 'error':
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    break;
+                case 'warning':
+                    icon.innerHTML = '<i class="fas fa-exclamation"></i>';
+                    break;
+                case 'info':
+                    icon.innerHTML = '<i class="fas fa-info"></i>';
+                    break;
+                case 'confirm':
+                    icon.innerHTML = '<i class="fas fa-question"></i>';
+                    break;
+            }
+
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+
+            // Butonları ayarla
+            if (buttons) {
+                buttonsEl.innerHTML = buttons;
+            } else {
+                buttonsEl.innerHTML = '<button class="result-btn primary" onclick="closeResultModal()">Tamam</button>';
+            }
+
+            modal.classList.add('show');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.remove('show');
+        }
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('resultModal').addEventListener('click', function(e) {
+            if (e.target === this) closeResultModal();
+        });
+
+        // =====================================================
+        // SUNUCU MESAJLARINI YAKALA
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            <% if (typeof mesaj !== 'undefined' && mesaj) { %>
+                showResultModal('success', 'Başarılı!', '<%= mesaj %>');
+            <% } %>
+
+            <% if (typeof hata !== 'undefined' && hata) { %>
+                showResultModal('error', 'Hata!', '<%= hata %>');
+            <% } %>
+
+            <% if (typeof uyari !== 'undefined' && uyari) { %>
+                showResultModal('warning', 'Uyarı!', '<%= uyari %>');
+            <% } %>
+
+            // URL'den mesaj parametresi kontrol et
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success')) {
+                showResultModal('success', 'Başarılı!', decodeURIComponent(urlParams.get('success')));
+                // URL'i temizle
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            if (urlParams.get('error')) {
+                showResultModal('error', 'Hata!', decodeURIComponent(urlParams.get('error')));
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
+        // =====================================================
+        // FABRİKA SIFIRLAMA ONAY
+        // =====================================================
+        function confirmReset() {
+            const sifre = document.querySelector('input[name="fabrika_sifresi"]').value;
+            if (!sifre) {
+                showResultModal('warning', 'Uyarı!', 'Lütfen fabrika sıfırlama şifresini girin.');
+                return false;
+            }
+            
+            showResultModal('confirm', 'Emin misiniz?', 'Bu işlem TÜM verileri silecek ve geri alınamaz! Devam etmek istiyor musunuz?',
+                '<button class="result-btn cancel" onclick="closeResultModal()">İptal</button>' +
+                '<button class="result-btn confirm-delete" onclick="closeResultModal(); actualResetSubmit();">Evet, Sıfırla</button>'
+            );
+            return false;
+        }
+
+        function actualResetSubmit() {
+            // Onsubmit'i geçici olarak kaldır ve submit et
+            const form = document.getElementById('resetFormSubmit');
+            form.onsubmit = null;
+            form.submit();
+        }
+
+        // =====================================================
+        // LİMİT DEĞİŞİKLİĞİ UYARISI
+        // =====================================================
+        function checkLimitChange(event) {
+            if (limitFlag.value === '1') {
+                const sifreInput = document.querySelector('input[name="limit_guvenlik_sifresi"]');
+                if (!sifreInput || !sifreInput.value) {
+                    event.preventDefault();
+                    showResultModal('warning', 'Şifre Gerekli!', 'Limit değişikliği için güvenlik şifresini girmeniz gerekiyor.');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Form submit kontrolü
+        document.getElementById('settingsForm').addEventListener('submit', checkLimitChange);
+    </script>
+</body>
+</html>

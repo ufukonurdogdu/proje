@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Genel Ayarlar | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .settings-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-header-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .card-header-icon.green { background: linear-gradient(135deg, #25D366, #128C7E); }
+        .card-header-icon.red { background: linear-gradient(135deg, #ea4335, #c5221f); }
+        .card-header-icon.blue { background: linear-gradient(135deg, #1877f2, #0d5bbd); }
+        .card-header-icon.purple { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); }
+        .card-header-icon.cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+
+        .card-header h3 { font-size: 16px; font-weight: 600; }
+
+        .card-body { padding: 24px; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group:last-child { margin-bottom: 0; }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group label i {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Toggle Switch */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 5px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #cbd5e1;
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: var(--success);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .toggle-label.online { color: var(--success); }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-row.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .settings-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Social Icons */
+        .social-icon-preview {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .social-icon-preview span {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .social-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            opacity: 0.3;
+            transition: all 0.3s;
+        }
+
+        .social-icon.active { opacity: 1; }
+        .social-icon.facebook { background: #1877f2; }
+        .social-icon.instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+        .social-icon.youtube { background: #ff0000; }
+        .social-icon.twitter { background: #1da1f2; }
+        .social-icon.tiktok { background: #000000; }
+
+        /* Map Preview */
+        .map-preview {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            margin-top: 15px;
+        }
+
+        .map-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .map-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        .map-placeholder i { font-size: 40px; margin-bottom: 10px; opacity: 0.3; }
+
+        /* Save Section */
+        .save-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+        }
+
+        .toast.error { background: var(--danger); }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+
+        /* ==================== MASAÜSTÜNDE GİZLİ ELEMENTLER ==================== */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .mobile-save-bar { display: none; }
+
+        @media (max-width: 900px) {
+            .settings-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .form-row.three-col { grid-template-columns: 1fr; }
+        }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 80px);
+            }
+
+            /* Masaüstü Header ve Save Gizle */
+            .page-header { display: none; }
+            .save-section { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-header-actions button:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== SETTINGS GRID MOBİL ===== */
+            .settings-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .settings-card {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .settings-card.full-width {
+                grid-column: auto;
+            }
+
+            .card-header {
+                padding: 16px;
+                border-bottom: 1px solid var(--m-border-color);
+            }
+
+            .card-header-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                font-size: 16px;
+            }
+
+            .card-header h3 {
+                font-size: 14px;
+                color: var(--m-text-primary);
+            }
+
+            .card-body {
+                padding: 16px;
+            }
+
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                font-size: 13px;
+                color: var(--m-text-secondary);
+                margin-bottom: 8px;
+            }
+
+            .form-group label i {
+                color: var(--m-text-muted);
+                font-size: 14px;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                background: var(--m-bg-tertiary);
+                border: 1px solid var(--m-border-color);
+                color: var(--m-text-primary);
+                font-size: 16px;
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus {
+                border-color: #06b6d4;
+                background: var(--m-bg-secondary);
+                box-shadow: none;
+            }
+
+            .form-group textarea {
+                min-height: 80px;
+            }
+
+            .form-hint {
+                font-size: 11px;
+                color: var(--m-text-muted);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row.three-col {
+                grid-template-columns: 1fr;
+            }
+
+            /* Toggle Switch Mobile */
+            .toggle-group {
+                padding: 10px 0;
+            }
+
+            .toggle-label {
+                color: var(--m-text-secondary);
+            }
+
+            /* Social Icons Mobile */
+            .social-icon-preview {
+                border-top-color: var(--m-border-color);
+                flex-wrap: wrap;
+            }
+
+            .social-icon-preview span {
+                color: var(--m-text-muted);
+            }
+
+            .social-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            /* Map Preview Mobile */
+            .map-preview {
+                height: 150px;
+                background: var(--m-bg-tertiary);
+                border-color: var(--m-border-color);
+            }
+
+            .map-placeholder {
+                color: var(--m-text-muted);
+            }
+
+            .map-placeholder i {
+                font-size: 30px;
+            }
+
+            /* ===== MOBILE SAVE BAR ===== */
+            .mobile-save-bar {
+                display: flex !important;
+                position: fixed;
+                bottom: var(--nav-height);
+                left: 0;
+                right: 0;
+                padding: 12px 20px;
+                padding-bottom: max(env(safe-area-inset-bottom), 12px);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                gap: 12px;
+                z-index: 100;
+            }
+
+            .mobile-save-bar .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            .mobile-save-bar .btn-secondary {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            .mobile-save-bar .btn-primary {
+                background: linear-gradient(135deg, #06b6d4, #0891b2);
+            }
+
+            /* ===== TOAST MOBİL ===== */
+            .toast {
+                bottom: calc(var(--nav-height) + 80px);
+                left: 20px;
+                right: 20px;
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>Genel Ayarlar</h1>
+                <span>İletişim ve sosyal medya</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Genel Ayarlar</span>
+                    </div>
+                    <h1><i class="fas fa-cog"></i> Genel Ayarlar</h1>
+                </div>
+            </div>
+
+            <form id="settingsForm" onsubmit="saveSettings(event)">
+                <div class="settings-grid">
+                    <!-- İletişim Bilgileri -->
+                    <div class="settings-card full-width">
+                        <div class="card-header">
+                            <div class="card-header-icon cyan">
+                                <i class="fas fa-address-card"></i>
+                            </div>
+                            <h3>İletişim Bilgileri</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row three-col">
+                                <div class="form-group">
+                                    <label><i class="fas fa-phone"></i> Telefon 1</label>
+                                    <input type="text" name="telefon1" id="telefon1" 
+                                           value="<%= ayarlar.telefon1 || '' %>" 
+                                           placeholder="0212 xxx xx xx">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-phone-alt"></i> Telefon 2</label>
+                                    <input type="text" name="telefon2" id="telefon2" 
+                                           value="<%= ayarlar.telefon2 || '' %>" 
+                                           placeholder="0532 xxx xx xx">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-fax"></i> Fax</label>
+                                    <input type="text" name="fax" id="fax" 
+                                           value="<%= ayarlar.fax || '' %>" 
+                                           placeholder="0212 xxx xx xx">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fas fa-envelope"></i> E-posta 1</label>
+                                    <input type="email" name="email1" id="email1" 
+                                           value="<%= ayarlar.email1 || '' %>" 
+                                           placeholder="info@sirket.com">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-envelope-open"></i> E-posta 2</label>
+                                    <input type="email" name="email2" id="email2" 
+                                           value="<%= ayarlar.email2 || '' %>" 
+                                           placeholder="destek@sirket.com">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-map-marker-alt"></i> Adres</label>
+                                <textarea name="adres" id="adres" rows="2"
+                                          placeholder="Mahalle, Cadde, Sokak No, İlçe / İl"><%= ayarlar.adres || '' %></textarea>
+                            </div>
+                            <div class="form-row three-col">
+                                <div class="form-group">
+                                    <label><i class="fas fa-city"></i> İlçe</label>
+                                    <input type="text" name="ilce" id="ilce" 
+                                           value="<%= ayarlar.ilce || '' %>" 
+                                           placeholder="Kadıköy">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-map"></i> İl</label>
+                                    <input type="text" name="il" id="il" 
+                                           value="<%= ayarlar.il || '' %>" 
+                                           placeholder="İstanbul">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fas fa-mail-bulk"></i> Posta Kodu</label>
+                                    <input type="text" name="posta_kodu" id="posta_kodu" 
+                                           value="<%= ayarlar.posta_kodu || '' %>" 
+                                           placeholder="34000">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- netChat -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="card-header-icon" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h3>netChat Ayarları</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label><i class="fas fa-circle"></i> Canlı Destek Durumu</label>
+                                <div class="toggle-group">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" name="chat_aktif" id="chat_aktif" 
+                                               <%= ayarlar.chat_aktif == 1 ? 'checked' : '' %>>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span class="toggle-label" id="chatStatusLabel">
+                                        <%= ayarlar.chat_aktif == 1 ? 'Çevrimiçi' : 'Çevrimdışı' %>
+                                    </span>
+                                </div>
+                                <div class="form-hint">Kapalıyken canlı destek butonu görünmez</div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-comment-dots"></i> Karşılama Mesajı</label>
+                                <textarea name="chat_karsilama" id="chat_karsilama" 
+                                          placeholder="Merhaba! Size nasıl yardımcı olabilirim?"><%= ayarlar.chat_karsilama || '' %></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-clock"></i> Çevrimdışı Mesajı</label>
+                                <textarea name="chat_offline_mesaj" id="chat_offline_mesaj" 
+                                          placeholder="Şu anda çevrimdışıyız..."><%= ayarlar.chat_offline_mesaj || '' %></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Google Maps -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="card-header-icon red">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <h3>Google Maps</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label><i class="fas fa-code"></i> Harita Embed Kodu</label>
+                                <textarea name="google_maps_embed" id="google_maps_embed" 
+                                          placeholder='<iframe src="..."></iframe>' oninput="updateMapPreview()"><%= ayarlar.google_maps_embed || '' %></textarea>
+                                <div class="form-hint">Google Maps'ten "Paylaş > Harita yerleştir"</div>
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fas fa-link"></i> Harita Linki</label>
+                                <input type="url" name="google_maps_link" id="google_maps_link" 
+                                       value="<%= ayarlar.google_maps_link || '' %>" 
+                                       placeholder="https://maps.google.com/...">
+                                <div class="form-hint">"Yol tarifi al" butonu için link</div>
+                            </div>
+                            <div class="map-preview" id="mapPreview">
+                                <% if (ayarlar.google_maps_embed) { %>
+                                    <%- ayarlar.google_maps_embed %>
+                                <% } else { %>
+                                    <div class="map-placeholder">
+                                        <i class="fas fa-map"></i>
+                                        <span>Harita önizlemesi</span>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sosyal Medya -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="card-header-icon blue">
+                                <i class="fas fa-share-alt"></i>
+                            </div>
+                            <h3>Sosyal Medya</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label><i class="fab fa-facebook"></i> Facebook</label>
+                                <input type="url" name="facebook_url" id="facebook_url" 
+                                       value="<%= ayarlar.facebook_url || '' %>" 
+                                       placeholder="https://facebook.com/sayfaniz" oninput="updateSocialPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-instagram"></i> Instagram</label>
+                                <input type="url" name="instagram_url" id="instagram_url" 
+                                       value="<%= ayarlar.instagram_url || '' %>" 
+                                       placeholder="https://instagram.com/hesabiniz" oninput="updateSocialPreview()">
+                            </div>
+                            <div class="form-group">
+                                <label><i class="fab fa-youtube"></i> YouTube</label>
+                                <input type="url" name="youtube_url" id="youtube_url" 
+                                       value="<%= ayarlar.youtube_url || '' %>" 
+                                       placeholder="https://youtube.com/@kanaliniz" oninput="updateSocialPreview()">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label><i class="fab fa-twitter"></i> Twitter / X</label>
+                                    <input type="url" name="twitter_url" id="twitter_url" 
+                                           value="<%= ayarlar.twitter_url || '' %>" 
+                                           placeholder="https://twitter.com/hesabiniz" oninput="updateSocialPreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label><i class="fab fa-tiktok"></i> TikTok</label>
+                                    <input type="url" name="tiktok_url" id="tiktok_url" 
+                                           value="<%= ayarlar.tiktok_url || '' %>" 
+                                           placeholder="https://tiktok.com/@hesabiniz" oninput="updateSocialPreview()">
+                                </div>
+                            </div>
+
+                            <div class="social-icon-preview">
+                                <span>Aktif:</span>
+                                <div class="social-icons">
+                                    <div class="social-icon facebook" id="iconFacebook"><i class="fab fa-facebook-f"></i></div>
+                                    <div class="social-icon instagram" id="iconInstagram"><i class="fab fa-instagram"></i></div>
+                                    <div class="social-icon youtube" id="iconYoutube"><i class="fab fa-youtube"></i></div>
+                                    <div class="social-icon twitter" id="iconTwitter"><i class="fab fa-twitter"></i></div>
+                                    <div class="social-icon tiktok" id="iconTiktok"><i class="fab fa-tiktok"></i></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Çalışma Saatleri -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <div class="card-header-icon purple">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3>Çalışma Saatleri</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label><i class="fas fa-calendar-alt"></i> Çalışma Saatleri Metni</label>
+                                <textarea name="calisma_saatleri" id="calisma_saatleri" 
+                                          placeholder="Pazartesi - Cuma: 09:00 - 21:00&#10;Cumartesi: 10:00 - 18:00&#10;Pazar: Kapalı"><%= ayarlar.calisma_saatleri || '' %></textarea>
+                                <div class="form-hint">Her satır ayrı gösterilir</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button (Desktop) -->
+                <div class="save-section">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Değişiklikleri Kaydet
+                    </button>
+                </div>
+
+                <!-- Mobile Save Bar -->
+                <div class="mobile-save-bar">
+                    <a href="/api/admin/website" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // netChat durumu toggle
+        // =====================================================
+        document.getElementById('chat_aktif').addEventListener('change', function() {
+            const label = document.getElementById('chatStatusLabel');
+            if (this.checked) {
+                label.textContent = 'Çevrimiçi';
+                label.classList.add('online');
+            } else {
+                label.textContent = 'Çevrimdışı';
+                label.classList.remove('online');
+            }
+        });
+
+        // Sayfa yüklendiğinde label durumunu ayarla
+        (function() {
+            const toggle = document.getElementById('chat_aktif');
+            const label = document.getElementById('chatStatusLabel');
+            if (toggle && toggle.checked) {
+                label.classList.add('online');
+            }
+        })();
+
+        // =====================================================
+        // Sosyal medya önizlemesi
+        // =====================================================
+        function updateSocialPreview() {
+            const facebook = document.getElementById('facebook_url').value;
+            const instagram = document.getElementById('instagram_url').value;
+            const youtube = document.getElementById('youtube_url').value;
+            const twitter = document.getElementById('twitter_url').value;
+            const tiktok = document.getElementById('tiktok_url').value;
+
+            document.getElementById('iconFacebook').classList.toggle('active', !!facebook);
+            document.getElementById('iconInstagram').classList.toggle('active', !!instagram);
+            document.getElementById('iconYoutube').classList.toggle('active', !!youtube);
+            document.getElementById('iconTwitter').classList.toggle('active', !!twitter);
+            document.getElementById('iconTiktok').classList.toggle('active', !!tiktok);
+        }
+
+        // Sayfa yüklendiğinde önizlemeyi güncelle
+        updateSocialPreview();
+
+        // =====================================================
+        // Harita önizlemesi
+        // =====================================================
+        function updateMapPreview() {
+            const embed = document.getElementById('google_maps_embed').value;
+            const preview = document.getElementById('mapPreview');
+            
+            if (embed && embed.includes('iframe')) {
+                preview.innerHTML = embed;
+            } else {
+                preview.innerHTML = `
+                    <div class="map-placeholder">
+                        <i class="fas fa-map"></i>
+                        <span>Harita önizlemesi</span>
+                    </div>
+                `;
+            }
+        }
+
+        // =====================================================
+        // KAYDET
+        // =====================================================
+        async function saveSettings(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('settingsForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            // Checkbox değeri
+            data.chat_aktif = document.getElementById('chat_aktif').checked ? 1 : 0;
+
+            try {
+                const res = await fetch('/api/admin/website/ayarlar/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Ayarlar başarıyla kaydedildi');
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

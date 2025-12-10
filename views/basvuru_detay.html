@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= siteAyarlari.tesis_adi %> | Başvuru Detay</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { --primary: <%= siteAyarlari.ana_renk %>; --bg-body: #f3f5f9; --dark-text: #2d3748; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        .sidebar { width: 280px; height: 96vh; margin: 2vh 0 2vh 2vh; background: #1a1f37; border-radius: 24px; display: flex; flex-direction: column; color: white; }
+        .main { flex: 1; margin: 2vh; background: white; border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
+        header { padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .content-scroll { padding: 40px; overflow-y: auto; flex: 1; }
+
+        .back-btn { padding: 10px 20px; background: #f1f5f9; color: var(--dark-text); border-radius: 10px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+
+        .grid-2 { display: grid; grid-template-columns: 300px 1fr; gap: 30px; }
+        .card { background: white; border: 1px solid #f1f5f9; border-radius: 16px; padding: 25px; }
+
+        .profile-img { width: 200px; height: 200px; border-radius: 16px; object-fit: cover; margin-bottom: 20px; }
+
+        .badge { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; display: inline-block; margin-bottom: 15px; }
+        .badge-beklemede { background: #fffbeb; color: #f59e0b; }
+        .badge-onaylandi { background: #f0fdf4; color: #22c55e; }
+        .badge-reddedildi { background: #fef2f2; color: #ef4444; }
+
+        .info-row { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        .info-label { font-weight: 600; color: #64748b; font-size: 14px; }
+        .info-value { font-weight: 600; color: var(--dark-text); }
+
+        .section-title { font-size: 16px; font-weight: 700; margin: 25px 0 15px; color: var(--primary); }
+
+        .ekstra-alan { background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 10px; }
+        .ekstra-alan strong { display: block; font-size: 12px; color: #64748b; margin-bottom: 5px; }
+
+        .actions { display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap; }
+        .btn { padding: 12px 24px; border-radius: 10px; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #f1f5f9; color: var(--dark-text); }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        @media(max-width: 991px) { body { flex-direction: column; } .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <div class="main">
+        <header>
+            <div>
+                <h1 style="font-size: 24px; font-weight: 700;">Başvuru Detayı</h1>
+                <p style="font-size: 13px; color: #a0aec0;">#<%= basvuru.id %> - <%= basvuru.ad_soyad %></p>
+            </div>
+            <div style="font-weight: 600;"><%= user.ad_soyad %></div>
+        </header>
+
+        <div class="content-scroll">
+
+            <a href="/api/admin/basvurular" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i> Listeye Dön
+            </a>
+
+            <div class="grid-2">
+
+                <div class="card">
+                    <% if (basvuru.profil_foto) { %>
+                        <img src="/images/students/<%= basvuru.profil_foto %>" class="profile-img" onerror="this.src='https://via.placeholder.com/200'">
+                    <% } else { %>
+                        <div style="width: 200px; height: 200px; background: #f1f5f9; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <i class="fa-solid fa-user" style="font-size: 64px; color: #cbd5e1;"></i>
+                        </div>
+                    <% } %>
+
+                    <span class="badge badge-<%= basvuru.durum %>"><%= basvuru.durum.toUpperCase() %></span>
+
+                    <div class="actions">
+                        <% if (basvuru.durum === 'beklemede') { %>
+                            <a href="/api/admin/basvuru/ogrenci-olustur/<%= basvuru.id %>" class="btn btn-success" onclick="return confirm('Bu başvurudan öğrenci oluşturulsun mu?')">
+                                <i class="fa-solid fa-user-plus"></i> Öğrenci Oluştur
+                            </a>
+                        <% } %>
+                        <a href="/api/admin/basvuru/sil/<%= basvuru.id %>" class="btn btn-danger" onclick="return confirm('Bu başvuruyu silmek istediğinize emin misiniz?')">
+                            <i class="fa-solid fa-trash"></i> Sil
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 20px;">Başvuru Bilgileri</h3>
+
+                    <div class="info-row">
+                        <span class="info-label">Şube</span>
+                        <span class="info-value"><%= basvuru.sube_adi %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">TC Kimlik No</span>
+                        <span class="info-value"><%= basvuru.tc_kimlik || '-' %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ad Soyad</span>
+                        <span class="info-value"><%= basvuru.ad_soyad %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Doğum Tarihi</span>
+                        <span class="info-value"><%= new Date(basvuru.dogum_tarihi).toLocaleDateString('tr-TR') %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Başvuru Tarihi</span>
+                        <span class="info-value"><%= new Date(basvuru.basvuru_tarihi).toLocaleDateString('tr-TR') %></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">IP Adresi</span>
+                        <span class="info-value"><%= basvuru.ip_adresi || '-' %></span>
+                    </div>
+
+                    <% if (basvuru.aciklama) { %>
+                        <div class="section-title">Açıklama</div>
+                        <p style="padding: 15px; background: #f8fafc; border-radius: 10px;"><%= basvuru.aciklama %></p>
+                    <% } %>
+
+                    <% if (basvuru.ekstra_alanlar) {
+                        const ekstraVeriler = typeof basvuru.ekstra_alanlar === 'string' ? JSON.parse(basvuru.ekstra_alanlar) : basvuru.ekstra_alanlar;
+                        const keys = Object.keys(ekstraVeriler);
+                        if (keys.length > 0) { %>
+                            <div class="section-title">Ek Bilgiler</div>
+                            <% keys.forEach(key => { %>
+                                <div class="ekstra-alan">
+                                    <strong><%= key %></strong>
+                                    <span><%= ekstraVeriler[key] %></span>
+                                </div>
+                            <% }) %>
+                        <% } %>
+                    <% } %>
+
+                    <div class="section-title">Durum Güncelle</div>
+
+                    <form method="POST" action="/api/admin/basvuru/durum-guncelle">
+                        <input type="hidden" name="basvuru_id" value="<%= basvuru.id %>">
+
+                        <div class="form-group">
+                            <label>Durum</label>
+                            <select name="durum" class="form-control" required>
+                                <option value="beklemede" <%= basvuru.durum === 'beklemede' ? 'selected' : '' %>>Beklemede</option>
+                                <option value="onaylandi" <%= basvuru.durum === 'onaylandi' ? 'selected' : '' %>>Onaylandı</option>
+                                <option value="reddedildi" <%= basvuru.durum === 'reddedildi' ? 'selected' : '' %>>Reddedildi</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notlar (Opsiyonel)</label>
+                            <textarea name="notlar" class="form-control" rows="3"><%= basvuru.notlar || '' %></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-save"></i> Güncelle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

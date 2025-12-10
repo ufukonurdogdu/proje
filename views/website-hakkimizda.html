@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hakkımızda Yönetimi | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary { background: var(--border); color: var(--text); }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h3 { font-size: 16px; font-weight: 600; }
+        .card-header i { color: var(--primary); }
+
+        .card-body { padding: 24px; }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 120px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Image Upload */
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .image-upload-area.has-image {
+            padding: 15px;
+            border-style: solid;
+        }
+
+        #uploadPlaceholder {
+            cursor: pointer;
+        }
+
+        #uploadPlaceholder i {
+            font-size: 50px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+
+        #uploadPlaceholder p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        #uploadPlaceholder small {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+
+        .image-preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 32px;
+            height: 32px;
+            background: var(--danger);
+            color: white;
+            border: 3px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .remove-image:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .change-image-link {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--primary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .change-image-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Feature Box - Düzeltilmiş */
+        .feature-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .feature-box-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 200px 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        /* Icon Selector - Düzeltilmiş */
+        .icon-input-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .icon-preview {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .icon-input-group input {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%);
+            border-radius: 12px;
+            padding: 30px;
+            color: white;
+            margin-top: 20px;
+        }
+
+        .preview-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 15px;
+        }
+
+        .preview-heading {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .preview-text {
+            color: rgba(255,255,255,0.7);
+            line-height: 1.7;
+        }
+
+        .preview-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .preview-feature {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .preview-feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 107, 53, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ff6b35;
+        }
+
+        .preview-feature-text strong { display: block; font-size: 13px; }
+        .preview-feature-text span { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+        }
+
+        .toast.error { background: var(--danger); }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+
+        /* Desktop Actions */
+        .desktop-actions { display: flex; }
+
+        /* Mobile Header Hidden by Default */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .mobile-save-bar { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 80px);
+            }
+
+            /* Masaüstü Header Gizle */
+            .page-header { display: none; }
+            .desktop-actions { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-header-actions button:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== CARD MOBİL ===== */
+            .card {
+                background: var(--m-bg-secondary);
+                border-radius: 0;
+                border: none;
+                border-bottom: 8px solid var(--m-bg-primary);
+                margin-bottom: 0;
+            }
+
+            .card-header {
+                padding: 16px 20px;
+                background: var(--m-bg-tertiary);
+                border-bottom: 1px solid var(--m-border-color);
+            }
+
+            .card-header h3 {
+                font-size: 14px;
+                color: var(--m-text-primary);
+            }
+
+            .card-header i {
+                color: #06b6d4;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            /* ===== FORM MOBİL ===== */
+            .form-group {
+                margin-bottom: 16px;
+            }
+
+            .form-group label {
+                font-size: 13px;
+                color: var(--m-text-secondary);
+                margin-bottom: 6px;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                background: var(--m-bg-tertiary);
+                border: 1px solid var(--m-border-color);
+                color: var(--m-text-primary);
+                font-size: 16px;
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus {
+                background: var(--m-bg-secondary);
+                border-color: #06b6d4;
+            }
+
+            .form-group textarea {
+                min-height: 100px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .form-hint {
+                font-size: 11px;
+                color: var(--m-text-muted);
+            }
+
+            /* ===== IMAGE UPLOAD MOBİL ===== */
+            .image-upload-area {
+                border-color: var(--m-border-color);
+                padding: 25px;
+            }
+
+            #uploadPlaceholder i {
+                font-size: 40px;
+                color: var(--m-text-muted);
+            }
+
+            #uploadPlaceholder p,
+            #uploadPlaceholder small {
+                color: var(--m-text-muted);
+            }
+
+            .image-preview {
+                max-height: 200px;
+            }
+
+            /* ===== FEATURE BOX MOBİL ===== */
+            .feature-box {
+                background: var(--m-bg-tertiary);
+                border: 1px solid var(--m-border-color);
+                border-radius: 14px;
+                padding: 16px;
+                margin-bottom: 12px;
+            }
+
+            .feature-box-header {
+                font-size: 13px;
+                margin-bottom: 12px;
+                color: #06b6d4;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .icon-input-group {
+                flex-direction: row;
+            }
+
+            .icon-preview {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+                background: linear-gradient(135deg, #06b6d4, #0891b2);
+            }
+
+            .icon-input-group input {
+                flex: 1;
+            }
+
+            /* ===== PREVIEW MOBİL ===== */
+            .preview-section {
+                padding: 20px;
+                border-radius: 14px;
+                margin-top: 0;
+            }
+
+            .preview-heading {
+                font-size: 20px;
+            }
+
+            .preview-text {
+                font-size: 13px;
+            }
+
+            .preview-features {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .preview-feature {
+                padding: 10px;
+            }
+
+            .preview-feature-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .preview-feature-text strong {
+                font-size: 12px;
+            }
+
+            .preview-feature-text span {
+                font-size: 10px;
+            }
+
+            /* ===== MOBİL KAYDET BAR ===== */
+            .mobile-save-bar {
+                display: flex;
+                position: fixed;
+                bottom: var(--nav-height);
+                left: 0;
+                right: 0;
+                padding: 12px 20px;
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                gap: 12px;
+                z-index: 999;
+            }
+
+            .mobile-save-bar .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 14px;
+                border-radius: 12px;
+            }
+
+            .mobile-save-bar .btn-secondary {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            .mobile-save-bar .btn-primary {
+                background: linear-gradient(135deg, #06b6d4, #0891b2);
+            }
+
+            /* ===== TOAST MOBİL ===== */
+            .toast {
+                bottom: calc(var(--nav-height) + 80px);
+                left: 20px;
+                right: 20px;
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>Hakkımızda</h1>
+                <span>Bölüm içeriğini düzenle</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Hakkımızda</span>
+                    </div>
+                    <h1><i class="fas fa-info-circle"></i> Hakkımızda Bölümü</h1>
+                </div>
+                <button class="btn btn-primary" onclick="saveHakkimizda()">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+            </div>
+
+            <form id="hakkimizdaForm" enctype="multipart/form-data">
+                <input type="hidden" name="mevcut_resim" id="mevcutResim" value="<%= hakkimizda.resim || '' %>">
+
+                <!-- Bölüm Görseli -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-image"></i>
+                        <h3>Bölüm Görseli</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Hakkımızda Görseli</label>
+                            <div class="image-upload-area <%= hakkimizda.resim ? 'has-image' : '' %>" id="imageUploadArea">
+                                <input type="file" name="resim" id="resimInput" accept="image/*" onchange="previewImage(this)" style="display:none;">
+                                <div id="uploadPlaceholder" onclick="document.getElementById('resimInput').click()" style="<%= hakkimizda.resim ? 'display:none' : '' %>">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Görsel yüklemek için tıklayın</p>
+                                    <small>PNG, JPG, WEBP (Max: 5MB) - Önerilen: 600x400px</small>
+                                </div>
+                                <div id="imagePreviewContainer" style="<%= hakkimizda.resim ? '' : 'display:none' %>">
+                                    <div class="image-preview-container">
+                                        <img id="imagePreview" class="image-preview" src="<%= hakkimizda.resim ? '/images/hakkimizda/' + hakkimizda.resim : '' %>" alt="">
+                                        <button type="button" class="remove-image" onclick="removeImage(event)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="change-image-link" onclick="document.getElementById('resimInput').click()">
+                                        <i class="fas fa-sync-alt"></i> Görseli değiştir
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-hint">Bu görsel landing sayfasındaki "Hakkımızda" bölümünde sol tarafta gösterilir.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ana Bilgiler -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-heading"></i>
+                        <h3>Ana Bilgiler</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Bölüm Başlığı</label>
+                                <input type="text" name="baslik" id="baslik" 
+                                       value="<%= hakkimizda.baslik || 'BİZ KİMİZ?' %>" 
+                                       placeholder="BİZ KİMİZ?">
+                            </div>
+                            <div class="form-group">
+                                <label>Deneyim Yılı</label>
+                                <input type="number" name="deneyim_yili" id="deneyim_yili" 
+                                       value="<%= hakkimizda.deneyim_yili || 15 %>" min="1">
+                                <div class="form-hint">Badge'de "X+ Yıllık Deneyim" olarak gösterilir</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ana Açıklama</label>
+                            <textarea name="aciklama" id="aciklama" 
+                                      placeholder="Akademinizi tanıtan ana açıklama..."><%= hakkimizda.aciklama || '' %></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>İkinci Açıklama (Opsiyonel)</label>
+                            <textarea name="aciklama_2" id="aciklama_2" 
+                                      placeholder="Ek açıklama..."><%= hakkimizda.aciklama_2 || '' %></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Özellikler -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-star"></i>
+                        <h3>Özellik Kutuları (4 Adet)</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Özellik 1 -->
+                        <div class="feature-box">
+                            <div class="feature-box-header">
+                                <i class="fas fa-1"></i> 1. Özellik
+                            </div>
+                            <div class="feature-grid">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>İkon Adı</label>
+                                    <div class="icon-input-group">
+                                        <div class="icon-preview" id="icon1Preview">
+                                            <i class="fas fa-<%= hakkimizda.ozellik_1_ikon || 'certificate' %>"></i>
+                                        </div>
+                                        <input type="text" name="ozellik_1_ikon" id="ozellik_1_ikon" 
+                                               value="<%= hakkimizda.ozellik_1_ikon || 'certificate' %>"
+                                               placeholder="certificate"
+                                               onchange="updateIconPreview(1)">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Başlık</label>
+                                    <input type="text" name="ozellik_1_baslik" 
+                                           value="<%= hakkimizda.ozellik_1_baslik || 'Lisanslı Eğitim' %>"
+                                           placeholder="Lisanslı Eğitim">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Açıklama</label>
+                                    <input type="text" name="ozellik_1_aciklama" 
+                                           value="<%= hakkimizda.ozellik_1_aciklama || 'Sertifikalı antrenörler' %>"
+                                           placeholder="Sertifikalı antrenörler">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Özellik 2 -->
+                        <div class="feature-box">
+                            <div class="feature-box-header">
+                                <i class="fas fa-2"></i> 2. Özellik
+                            </div>
+                            <div class="feature-grid">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>İkon Adı</label>
+                                    <div class="icon-input-group">
+                                        <div class="icon-preview" id="icon2Preview">
+                                            <i class="fas fa-<%= hakkimizda.ozellik_2_ikon || 'users' %>"></i>
+                                        </div>
+                                        <input type="text" name="ozellik_2_ikon" id="ozellik_2_ikon" 
+                                               value="<%= hakkimizda.ozellik_2_ikon || 'users' %>"
+                                               placeholder="users"
+                                               onchange="updateIconPreview(2)">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Başlık</label>
+                                    <input type="text" name="ozellik_2_baslik" 
+                                           value="<%= hakkimizda.ozellik_2_baslik || 'Yaşa Özel' %>"
+                                           placeholder="Yaşa Özel">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Açıklama</label>
+                                    <input type="text" name="ozellik_2_aciklama" 
+                                           value="<%= hakkimizda.ozellik_2_aciklama || 'Her yaş grubuna program' %>"
+                                           placeholder="Her yaş grubuna program">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Özellik 3 -->
+                        <div class="feature-box">
+                            <div class="feature-box-header">
+                                <i class="fas fa-3"></i> 3. Özellik
+                            </div>
+                            <div class="feature-grid">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>İkon Adı</label>
+                                    <div class="icon-input-group">
+                                        <div class="icon-preview" id="icon3Preview">
+                                            <i class="fas fa-<%= hakkimizda.ozellik_3_ikon || 'chart-line' %>"></i>
+                                        </div>
+                                        <input type="text" name="ozellik_3_ikon" id="ozellik_3_ikon" 
+                                               value="<%= hakkimizda.ozellik_3_ikon || 'chart-line' %>"
+                                               placeholder="chart-line"
+                                               onchange="updateIconPreview(3)">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Başlık</label>
+                                    <input type="text" name="ozellik_3_baslik" 
+                                           value="<%= hakkimizda.ozellik_3_baslik || 'Gelişim Takibi' %>"
+                                           placeholder="Gelişim Takibi">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Açıklama</label>
+                                    <input type="text" name="ozellik_3_aciklama" 
+                                           value="<%= hakkimizda.ozellik_3_aciklama || 'Düzenli raporlama' %>"
+                                           placeholder="Düzenli raporlama">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Özellik 4 -->
+                        <div class="feature-box">
+                            <div class="feature-box-header">
+                                <i class="fas fa-4"></i> 4. Özellik
+                            </div>
+                            <div class="feature-grid">
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>İkon Adı</label>
+                                    <div class="icon-input-group">
+                                        <div class="icon-preview" id="icon4Preview">
+                                            <i class="fas fa-<%= hakkimizda.ozellik_4_ikon || 'shield-alt' %>"></i>
+                                        </div>
+                                        <input type="text" name="ozellik_4_ikon" id="ozellik_4_ikon" 
+                                               value="<%= hakkimizda.ozellik_4_ikon || 'shield-alt' %>"
+                                               placeholder="shield-alt"
+                                               onchange="updateIconPreview(4)">
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Başlık</label>
+                                    <input type="text" name="ozellik_4_baslik" 
+                                           value="<%= hakkimizda.ozellik_4_baslik || 'Güvenli Ortam' %>"
+                                           placeholder="Güvenli Ortam">
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label>Açıklama</label>
+                                    <input type="text" name="ozellik_4_aciklama" 
+                                           value="<%= hakkimizda.ozellik_4_aciklama || 'Sigortalı eğitim' %>"
+                                           placeholder="Sigortalı eğitim">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-hint" style="margin-top: 15px; padding: 12px; background: #f0f9ff; border-radius: 8px; border-left: 3px solid var(--primary);">
+                            <i class="fas fa-lightbulb" style="color: var(--primary);"></i> 
+                            <strong>İkon önerileri:</strong> certificate, users, chart-line, shield-alt, trophy, medal, star, heart, graduation-cap, running, futbol, basketball, dumbbell
+                            <br><a href="https://fontawesome.com/icons" target="_blank" style="color: var(--primary);">Tüm ikonları görüntüle →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Önizleme -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-eye"></i>
+                        <h3>Önizleme</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="preview-section">
+                            <div class="preview-title">Hakkımızda</div>
+                            <div class="preview-heading" id="previewTitle"><%= hakkimizda.baslik || 'BİZ KİMİZ?' %></div>
+                            <p class="preview-text" id="previewText"><%= hakkimizda.aciklama || 'Akademinizi tanıtan açıklama burada görünecek.' %></p>
+                            
+                            <div class="preview-features" id="previewFeatures">
+                                <div class="preview-feature">
+                                    <div class="preview-feature-icon" id="previewIcon1"><i class="fas fa-<%= hakkimizda.ozellik_1_ikon || 'certificate' %>"></i></div>
+                                    <div class="preview-feature-text">
+                                        <strong><%= hakkimizda.ozellik_1_baslik || 'Lisanslı Eğitim' %></strong>
+                                        <span><%= hakkimizda.ozellik_1_aciklama || 'Sertifikalı antrenörler' %></span>
+                                    </div>
+                                </div>
+                                <div class="preview-feature">
+                                    <div class="preview-feature-icon" id="previewIcon2"><i class="fas fa-<%= hakkimizda.ozellik_2_ikon || 'users' %>"></i></div>
+                                    <div class="preview-feature-text">
+                                        <strong><%= hakkimizda.ozellik_2_baslik || 'Yaşa Özel' %></strong>
+                                        <span><%= hakkimizda.ozellik_2_aciklama || 'Her yaş grubuna program' %></span>
+                                    </div>
+                                </div>
+                                <div class="preview-feature">
+                                    <div class="preview-feature-icon" id="previewIcon3"><i class="fas fa-<%= hakkimizda.ozellik_3_ikon || 'chart-line' %>"></i></div>
+                                    <div class="preview-feature-text">
+                                        <strong><%= hakkimizda.ozellik_3_baslik || 'Gelişim Takibi' %></strong>
+                                        <span><%= hakkimizda.ozellik_3_aciklama || 'Düzenli raporlama' %></span>
+                                    </div>
+                                </div>
+                                <div class="preview-feature">
+                                    <div class="preview-feature-icon" id="previewIcon4"><i class="fas fa-<%= hakkimizda.ozellik_4_ikon || 'shield-alt' %>"></i></div>
+                                    <div class="preview-feature-text">
+                                        <strong><%= hakkimizda.ozellik_4_baslik || 'Güvenli Ortam' %></strong>
+                                        <span><%= hakkimizda.ozellik_4_aciklama || 'Sigortalı eğitim' %></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kaydet Butonu (Desktop) -->
+                <div class="desktop-actions" style="justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                    <a href="/api/admin/website" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Geri
+                    </a>
+                    <button type="button" class="btn btn-primary" onclick="saveHakkimizda()">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== MOBİL KAYDET BAR ===== -->
+        <div class="mobile-save-bar">
+            <a href="/api/admin/website" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Geri
+            </a>
+            <button type="button" class="btn btn-primary" onclick="saveHakkimizda()">
+                <i class="fas fa-save"></i> Kaydet
+            </button>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // RESİM YÜKLEME
+        // =====================================================
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Dosya boyutu 5MB\'dan küçük olmalı', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    document.getElementById('imagePreviewContainer').style.display = 'block';
+                    document.getElementById('imageUploadArea').classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('resimInput').value = '';
+            document.getElementById('mevcutResim').value = '';
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('imageUploadArea').classList.remove('has-image');
+        }
+
+        // =====================================================
+        // İKON ÖNİZLEME
+        // =====================================================
+        function updateIconPreview(num) {
+            const iconName = document.getElementById(`ozellik_${num}_ikon`).value || 'star';
+            document.getElementById(`icon${num}Preview`).innerHTML = `<i class="fas fa-${iconName}"></i>`;
+            document.getElementById(`previewIcon${num}`).innerHTML = `<i class="fas fa-${iconName}"></i>`;
+        }
+
+        // Canlı önizleme
+        document.getElementById('baslik').addEventListener('input', function() {
+            document.getElementById('previewTitle').textContent = this.value || 'BİZ KİMİZ?';
+        });
+
+        document.getElementById('aciklama').addEventListener('input', function() {
+            document.getElementById('previewText').textContent = this.value || 'Açıklama burada görünecek.';
+        });
+
+        // =====================================================
+        // KAYDETME
+        // =====================================================
+        async function saveHakkimizda() {
+            const form = document.getElementById('hakkimizdaForm');
+            const formData = new FormData(form);
+
+            try {
+                const res = await fetch('/api/admin/website/hakkimizda/save', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Hakkımızda bölümü kaydedildi');
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WhatsApp Toplu İşlemler - <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk || '#6366f1' %> 85%, #000);
+            --primary-light: color-mix(in srgb, <%= siteAyarlari.ana_renk || '#6366f1' %> 15%, #fff);
+            --success: #22c55e;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --whatsapp: #25D366;
+            --whatsapp-dark: #128C7E;
+            --push-color: #8b5cf6;
+            --push-dark: #7c3aed;
+            --nav-height: 70px;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f1f5f9; min-height: 100vh; display: flex; }
+        
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; padding-bottom: 100px; }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .page-title { font-size: 24px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 12px; }
+        .page-title i { color: var(--whatsapp); }
+        
+        .sube-select-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .sube-select-wrapper label { font-weight: 600; color: #64748b; font-size: 13px; }
+        .sube-select-wrapper select {
+            padding: 8px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 200px;
+            background: white;
+        }
+        
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .connection-status.connected { background: #f0fdf4; color: #16a34a; }
+        .connection-status.disconnected { background: #fef2f2; color: #dc2626; }
+        .connection-status .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .connected .dot { background: #22c55e; }
+        .disconnected .dot { background: #ef4444; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        .action-boxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .action-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .action-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .action-box.manuel:hover { border-color: var(--primary); }
+        .action-box.toplu:hover { border-color: var(--whatsapp); }
+        .action-box.push:hover { border-color: var(--push-color); }
+        
+        .action-box .icon {
+            width: 80px; height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+        }
+        .action-box.manuel .icon { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .action-box.toplu .icon { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .action-box.push .icon { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; }
+        .action-box h3 { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .action-box p { color: #64748b; font-size: 14px; }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        .stat-card .value { font-size: 28px; font-weight: 800; color: #1e293b; }
+        .stat-card .label { font-size: 12px; color: #64748b; font-weight: 600; margin-top: 5px; }
+        .stat-card.success .value { color: var(--success); }
+        .stat-card.danger .value { color: var(--danger); }
+        .stat-card.primary .value { color: var(--primary); }
+        .stat-card.warning .value { color: var(--warning); }
+        .stat-card.purple .value { color: var(--push-color); }
+        
+        .messages-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-header h3 { font-size: 18px; font-weight: 700; color: #1e293b; }
+        
+        .messages-table-wrapper {
+            max-height: 500px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .messages-table-wrapper::-webkit-scrollbar { width: 6px; }
+        .messages-table-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        .messages-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .messages-table th {
+            background: #f8fafc;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 700;
+            color: #64748b;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .messages-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .messages-table tr:hover { background: #f8fafc; }
+        
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .status-badge.gonderildi { background: #f0fdf4; color: #16a34a; }
+        .status-badge.bekliyor { background: #fffbeb; color: #d97706; }
+        .status-badge.hata { background: #fef2f2; color: #dc2626; }
+        
+        .tip-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .tip-badge.manuel { background: #f0f9ff; color: #0284c7; }
+        .tip-badge.toplu { background: #f0fdf4; color: #16a34a; }
+        
+        .btn-icerik {
+            background: #f1f5f9;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            transition: 0.2s;
+        }
+        .btn-icerik:hover { background: var(--primary); color: white; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h3 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .modal-close {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            border: none;
+            background: #f1f5f9;
+            cursor: pointer;
+            font-size: 20px;
+            color: #64748b;
+            transition: 0.2s;
+        }
+        .modal-close:hover { background: #fee2e2; color: #dc2626; }
+        
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px; }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: 0.2s;
+            background: white;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        
+        .telefon-list {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .telefon-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .telefon-item:last-child { margin-bottom: 0; }
+        .telefon-item .remove {
+            width: 24px; height: 24px;
+            border-radius: 6px;
+            border: none;
+            background: #fee2e2;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .telefon-add-row {
+            display: flex;
+            gap: 10px;
+        }
+        .telefon-add-row input { flex: 1; }
+        .btn-add {
+            padding: 12px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .bulk-phone-section {
+            background: #f0fdf4;
+            border: 2px dashed #22c55e;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .bulk-phone-section h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #16a34a;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bulk-phone-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+            resize: vertical;
+            background: white;
+        }
+        .bulk-phone-textarea:focus {
+            outline: none;
+            border-color: #22c55e;
+        }
+        .bulk-phone-info {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        .btn-bulk-add {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #22c55e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .btn-bulk-add:hover {
+            background: #16a34a;
+        }
+        
+        .telefon-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+        
+        .excel-upload {
+            border: 2px dashed #e5e7eb;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 15px;
+        }
+        .excel-upload:hover { border-color: var(--success); background: #f0fdf4; }
+        .excel-upload i { font-size: 32px; color: #22c55e; margin-bottom: 10px; }
+        .excel-upload p { color: #64748b; font-size: 13px; }
+        .excel-upload input { display: none; }
+        
+        .image-preview {
+            margin-top: 15px;
+            position: relative;
+            display: inline-block;
+        }
+        .image-preview img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+        }
+        .image-preview .remove-image {
+            position: absolute;
+            top: -8px; right: -8px;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: #dc2626;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .planli-section {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .planli-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .planli-toggle input[type="checkbox"] {
+            width: 20px; height: 20px;
+            accent-color: var(--primary);
+        }
+        .planli-fields {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .planli-fields.active { display: grid; }
+        
+        .selection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .selection-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .selection-box h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .checkbox-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .checkbox-item:hover { background: #f0f9ff; }
+        .checkbox-item input { width: 18px; height: 18px; accent-color: var(--primary); }
+        .checkbox-item label { cursor: pointer; flex: 1; font-size: 14px; }
+        .checkbox-item .count {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-whatsapp {
+            background: var(--whatsapp);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-whatsapp:hover { background: #20BA5C; }
+        .btn-whatsapp:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .btn-push {
+            background: linear-gradient(135deg, var(--push-color), var(--push-dark));
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-push:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3); }
+        .btn-push:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        
+        .btn-clear {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .btn-clear:hover { background: #fecaca; }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        
+        .icerik-modal-body {
+            padding: 25px;
+        }
+        .icerik-mesaj {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .icerik-medya {
+            margin-top: 15px;
+        }
+        .icerik-medya img {
+            max-width: 100%;
+            border-radius: 12px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 15px; }
+        .empty-state p { font-size: 16px; }
+        
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: #22c55e; }
+        .toast.error { background: #ef4444; }
+        
+        .input-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 10px;
+        }
+        .input-tab {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            color: #64748b;
+            transition: 0.2s;
+        }
+        .input-tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .input-tab:hover:not(.active) {
+            background: rgba(255,255,255,0.5);
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Push Bildirim Stats */
+        .push-stats-box {
+            background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #ddd6fe;
+        }
+        .push-stats-box h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--push-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .push-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .push-stat-item {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .push-stat-item .value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--push-color);
+        }
+        .push-stat-item .label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Hedef Kitle Seçimi */
+        .target-selector {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .target-selector h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        .target-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .target-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .target-option:hover {
+            border-color: var(--push-color);
+        }
+        .target-option.selected {
+            border-color: var(--push-color);
+            background: #f5f3ff;
+        }
+        .target-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--push-color);
+        }
+        .target-option label {
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .target-option .count {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        /* Bottom Nav varsayılan gizli */
+        .bottom-nav { display: none; }
+
+        /* Mobil Header varsayılan gizli */
+        .mobile-header { display: none; }
+
+        /* ==================== MOBİL TEMA SİSTEMİ ==================== */
+        @media (max-width: 991px) {
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--whatsapp) 0%, var(--whatsapp-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            }
+
+            body { 
+                flex-direction: column;
+                background: var(--m-bg-primary) !important;
+                transition: background 0.3s ease;
+            }
+                        
+            .main-content { 
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 20px);
+                background: var(--m-bg-primary) !important;
+            }
+
+            /* Mobil Header */
+            .mobile-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                padding: 20px;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                background: var(--m-header-bg) !important;
+                color: white;
+                border-radius: 0 0 24px 24px;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .mobile-header::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -10%;
+                width: 200px;
+                height: 200px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50%;
+            }
+
+            .mobile-header-left h1 {
+                font-size: 18px;
+                font-weight: 800;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .mobile-header-left p {
+                font-size: 12px;
+                opacity: 0.9;
+                margin-top: 4px;
+                position: relative;
+                z-index: 1;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+                position: relative;
+                z-index: 5;
+            }
+
+            .btn-header-icon {
+                width: 38px; height: 38px;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: white;
+                font-size: 15px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* Masaüstü Header Gizle */
+            .page-header { display: none !important; }
+
+            /* İçerik Alanı */
+            .mobile-content {
+                padding: 20px;
+            }
+
+            /* Şube Seçici Mobil */
+            .sube-select-mobile {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                padding: 15px;
+                margin-bottom: 20px;
+                box-shadow: var(--m-card-shadow);
+                border: 1px solid var(--m-border-color);
+            }
+
+            .sube-select-mobile label {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--m-text-muted);
+                margin-bottom: 8px;
+            }
+
+            .sube-select-mobile select {
+                width: 100%;
+                padding: 12px 15px;
+                border: 2px solid var(--m-border-color);
+                border-radius: 12px;
+                font-size: 14px;
+                font-weight: 600;
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+                height: 44px;
+                -webkit-appearance: none;
+            }
+
+            /* Bağlantı Durumu Mobil */
+            .connection-status-mobile {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 12px;
+                border-radius: 12px;
+                font-weight: 600;
+                font-size: 13px;
+                margin-bottom: 20px;
+            }
+
+            .connection-status-mobile.connected {
+                background: rgba(34, 197, 94, 0.15);
+                color: #22c55e;
+            }
+
+            .connection-status-mobile.disconnected {
+                background: rgba(239, 68, 68, 0.15);
+                color: #ef4444;
+            }
+
+            [data-theme="dark"] .connection-status-mobile.connected {
+                background: rgba(34, 197, 94, 0.2);
+            }
+
+            [data-theme="dark"] .connection-status-mobile.disconnected {
+                background: rgba(239, 68, 68, 0.2);
+            }
+
+            /* Action Boxes Mobil - 3'lü grid */
+            .action-boxes {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .action-box {
+                padding: 15px 10px;
+                border-radius: 16px;
+                background: var(--m-bg-secondary) !important;
+                border: 1px solid var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+            }
+
+            .action-box:hover {
+                transform: none;
+            }
+
+            .action-box .icon {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .action-box h3 {
+                font-size: 12px;
+                color: var(--m-text-primary) !important;
+            }
+
+            .action-box p {
+                display: none;
+            }
+
+            /* Stats Row Mobil */
+            .stats-row {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .stat-card {
+                padding: 15px 10px;
+                border-radius: 12px;
+                background: var(--m-bg-secondary) !important;
+                box-shadow: var(--m-card-shadow) !important;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .stat-card .value {
+                font-size: 20px;
+                color: var(--m-text-primary) !important;
+            }
+
+            .stat-card .label {
+                font-size: 10px;
+                color: var(--m-text-muted) !important;
+            }
+
+            .stat-card.success .value { color: var(--success) !important; }
+            .stat-card.danger .value { color: var(--danger) !important; }
+            .stat-card.primary .value { color: var(--primary) !important; }
+            .stat-card.warning .value { color: var(--warning) !important; }
+            .stat-card.purple .value { color: var(--push-color) !important; }
+
+            /* Messages Section Mobil */
+            .messages-section {
+                border-radius: 16px;
+                padding: 15px;
+                background: var(--m-bg-secondary) !important;
+                box-shadow: var(--m-card-shadow) !important;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .section-header h3 {
+                font-size: 15px;
+                color: var(--m-text-primary) !important;
+            }
+
+            /* Tablo → Kart Dönüşümü */
+            .messages-table { display: none !important; }
+
+            .mobile-message-cards {
+                display: flex !important;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .mobile-message-card {
+                background: var(--m-bg-tertiary);
+                border-radius: 12px;
+                padding: 15px;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .mobile-message-card-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 10px;
+            }
+
+            .mobile-message-card-header .telefon {
+                font-weight: 700;
+                font-size: 14px;
+                color: var(--m-text-primary);
+            }
+
+            .mobile-message-card-header .ogrenci {
+                font-size: 12px;
+                color: var(--m-text-muted);
+                margin-top: 2px;
+            }
+
+            .mobile-message-card-footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 10px;
+                padding-top: 10px;
+                border-top: 1px solid var(--m-border-color);
+            }
+
+            .mobile-message-card-footer .tarih {
+                font-size: 11px;
+                color: var(--m-text-muted);
+            }
+
+            /* Empty State */
+            .empty-state {
+                color: var(--m-text-muted) !important;
+            }
+
+            .empty-state i {
+                color: var(--m-text-muted) !important;
+            }
+
+            /* Modal Dark Mode */
+            [data-theme="dark"] .modal-content {
+                background: var(--m-bg-secondary) !important;
+            }
+
+            [data-theme="dark"] .modal-header {
+                border-color: var(--m-border-color) !important;
+            }
+
+            [data-theme="dark"] .modal-header h3 {
+                color: var(--m-text-primary) !important;
+            }
+
+            [data-theme="dark"] .modal-close {
+                background: var(--m-bg-tertiary) !important;
+                color: var(--m-text-muted) !important;
+            }
+
+            [data-theme="dark"] .modal-body {
+                background: var(--m-bg-secondary) !important;
+            }
+
+            [data-theme="dark"] .modal-footer {
+                border-color: var(--m-border-color) !important;
+                background: var(--m-bg-secondary) !important;
+            }
+
+            [data-theme="dark"] .form-label {
+                color: var(--m-text-secondary) !important;
+            }
+
+            [data-theme="dark"] .form-input,
+            [data-theme="dark"] .form-select,
+            [data-theme="dark"] .form-textarea,
+            [data-theme="dark"] .bulk-phone-textarea {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+            }
+
+            [data-theme="dark"] .telefon-list,
+            [data-theme="dark"] .selection-box,
+            [data-theme="dark"] .planli-section,
+            [data-theme="dark"] .target-selector {
+                background: var(--m-bg-tertiary) !important;
+            }
+
+            [data-theme="dark"] .telefon-item,
+            [data-theme="dark"] .checkbox-item,
+            [data-theme="dark"] .target-option {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+            }
+
+            [data-theme="dark"] .telefon-item span,
+            [data-theme="dark"] .checkbox-item label,
+            [data-theme="dark"] .target-option label {
+                color: var(--m-text-primary) !important;
+            }
+
+            [data-theme="dark"] .input-tabs {
+                background: var(--m-bg-tertiary) !important;
+            }
+
+            [data-theme="dark"] .input-tab {
+                color: var(--m-text-muted) !important;
+            }
+
+            [data-theme="dark"] .input-tab.active {
+                background: var(--m-bg-secondary) !important;
+                color: var(--primary) !important;
+            }
+
+            [data-theme="dark"] .excel-upload {
+                border-color: var(--m-border-color) !important;
+                background: var(--m-bg-tertiary) !important;
+            }
+
+            [data-theme="dark"] .excel-upload p {
+                color: var(--m-text-muted) !important;
+            }
+
+            [data-theme="dark"] .bulk-phone-section {
+                background: rgba(34, 197, 94, 0.1) !important;
+                border-color: rgba(34, 197, 94, 0.3) !important;
+            }
+
+            [data-theme="dark"] .bulk-phone-info {
+                color: var(--m-text-muted) !important;
+            }
+
+            [data-theme="dark"] .icerik-mesaj {
+                background: var(--m-bg-tertiary) !important;
+                color: var(--m-text-primary) !important;
+            }
+
+            [data-theme="dark"] .selection-box h4,
+            [data-theme="dark"] .target-selector h4 {
+                color: var(--m-text-secondary) !important;
+            }
+
+            [data-theme="dark"] .push-stats-box {
+                background: rgba(139, 92, 246, 0.1) !important;
+                border-color: rgba(139, 92, 246, 0.3) !important;
+            }
+
+            [data-theme="dark"] .push-stat-item {
+                background: var(--m-bg-secondary) !important;
+            }
+
+            /* Modal içi responsive */
+            .modal-content {
+                max-width: 100% !important;
+                max-height: 85vh !important;
+                border-radius: 20px 20px 0 0 !important;
+                margin-top: auto;
+            }
+
+            .selection-grid {
+                grid-template-columns: 1fr !important;
+                gap: 15px;
+            }
+
+            .planli-fields {
+                grid-template-columns: 1fr !important;
+            }
+
+            .push-stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 10px;
+            }
+
+            .push-stat-item {
+                padding: 10px;
+            }
+
+            .push-stat-item .value {
+                font-size: 18px;
+            }
+
+            .target-options {
+                flex-direction: column;
+            }
+
+            .target-option {
+                width: 100%;
+            }
+
+            /* Form Input Düzeltmeleri */
+            .form-input, .form-select, .form-textarea {
+                height: 44px !important;
+                min-height: 44px !important;
+                font-size: 16px !important;
+                -webkit-appearance: none !important;
+            }
+
+            .form-textarea {
+                height: auto !important;
+                min-height: 100px !important;
+            }
+
+            input[type="date"], input[type="time"] {
+                height: 44px !important;
+            }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+            }
+
+            .nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                padding: 8px 12px;
+                border-radius: 12px;
+                color: var(--m-text-muted);
+                text-decoration: none;
+                transition: all 0.2s;
+                cursor: pointer;
+            }
+
+            .nav-item.active {
+                color: var(--whatsapp);
+                background: rgba(37, 211, 102, 0.1);
+            }
+
+            .nav-item i { font-size: 18px; }
+            .nav-item span { font-size: 10px; font-weight: 600; }
+
+            /* Toast pozisyonu */
+            .toast {
+                bottom: calc(var(--nav-height) + 20px) !important;
+            }
+        }
+
+        /* ==================== MASAÜSTÜ ==================== */
+        @media (min-width: 992px) {
+            .mobile-header { display: none !important; }
+            .mobile-content { display: contents; }
+            .sube-select-mobile { display: none !important; }
+            .connection-status-mobile { display: none !important; }
+            .mobile-message-cards { display: none !important; }
+            .bottom-nav { display: none !important; }
+        }
+
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+    
+    <!-- MOBİL HEADER -->
+    <header class="mobile-header">
+        <div class="mobile-header-left">
+            <h1><i class="fa-brands fa-whatsapp"></i> Toplu İşlemler</h1>
+            <p>Mesaj & bildirim merkezi</p>
+        </div>
+        <div class="mobile-header-actions">
+            <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                <i class="fa-solid fa-moon" id="themeIcon"></i>
+            </button>
+            <a href="/api/dashboard" class="btn-header-icon" title="Ana Sayfa">
+                <i class="fa-solid fa-house"></i>
+            </a>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <!-- MASAÜSTÜ HEADER -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fa-brands fa-whatsapp"></i> Toplu İşlemler
+            </h1>
+            
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <% if (user.rol === 'yonetici' && subeler.length > 0) { %>
+                <div class="sube-select-wrapper">
+                    <label>Şube:</label>
+                    <select id="subeSelect" onchange="subeChange(this)">
+                        <% subeler.forEach(s => { %>
+                            <option value="<%= s.id %>" <%= s.id == secilenSubeId ? 'selected' : '' %>><%= s.sube_adi %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <% } %>
+                
+                <div class="connection-status <%= isConnected ? 'connected' : 'disconnected' %>">
+                    <span class="dot"></span>
+                    <%= isConnected ? 'WhatsApp Bağlı' : 'Bağlantı Yok' %>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBİL İÇERİK -->
+        <div class="mobile-content">
+            <!-- Mobil Şube Seçici -->
+            <% if (user.rol === 'yonetici' && subeler.length > 0) { %>
+            <div class="sube-select-mobile">
+                <label><i class="fa-solid fa-building"></i> Şube Seçin</label>
+                <select id="subeSelectMobile" onchange="subeChange(this)">
+                    <% subeler.forEach(s => { %>
+                        <option value="<%= s.id %>" <%= s.id == secilenSubeId ? 'selected' : '' %>><%= s.sube_adi %></option>
+                    <% }) %>
+                </select>
+            </div>
+            <% } %>
+
+            <!-- Mobil Bağlantı Durumu -->
+            <div class="connection-status-mobile <%= isConnected ? 'connected' : 'disconnected' %>">
+                <span class="dot"></span>
+                <%= isConnected ? 'WhatsApp Bağlı' : 'Bağlantı Yok' %>
+            </div>
+        
+            <!-- ACTION BOXES - 3'lü -->
+            <div class="action-boxes">
+                <div class="action-box manuel" onclick="openModal('modalManuel')">
+                    <div class="icon"><i class="fa-solid fa-paper-plane"></i></div>
+                    <h3>Manuel Gönderim</h3>
+                    <p>Toplu veya bireysel mesaj gönder</p>
+                </div>
+                
+                <div class="action-box toplu" onclick="openModal('modalToplu')">
+                    <div class="icon"><i class="fa-solid fa-users"></i></div>
+                    <h3>Branş / Grup</h3>
+                    <p>Seçili gruplara toplu mesaj gönder</p>
+                </div>
+
+                <!-- ⭐ YENİ: Push Bildirim Kutusu -->
+                <div class="action-box push" onclick="openModal('modalPush')">
+                    <div class="icon"><i class="fa-solid fa-bell"></i></div>
+                    <h3>Push Bildirim</h3>
+                    <p>Anlık bildirim gönder</p>
+                </div>
+            </div>
+            
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value"><%= stats.bugun %></div>
+                    <div class="label">Bugün</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value"><%= stats.buHafta %></div>
+                    <div class="label">Bu Hafta</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value"><%= stats.buAy %></div>
+                    <div class="label">Bu Ay</div>
+                </div>
+                <div class="stat-card success">
+                    <div class="value"><%= stats.basarili %></div>
+                    <div class="label">Başarılı</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="value"><%= stats.hatali %></div>
+                    <div class="label">Hatalı</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="value" id="pushAboneSayisi">-</div>
+                    <div class="label">Push Abone</div>
+                </div>
+            </div>
+            
+            <div class="messages-section">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Son Mesajlar</h3>
+                </div>
+                
+                <% if (mesajlar.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>Henüz gönderilen mesaj yok</p>
+                </div>
+                <% } else { %>
+                
+                <!-- Masaüstü Tablo -->
+                <div class="messages-table-wrapper">
+                    <table class="messages-table">
+                        <thead>
+                            <tr>
+                                <th>Telefon</th>
+                                <th>Öğrenci</th>
+                                <th>Tip</th>
+                                <th>İçerik</th>
+                                <th>Durum</th>
+                                <th>Tarih</th>
+                                <th>Saat</th>
+                                <th>Görüntüle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% mesajlar.forEach(m => { %>
+                            <tr>
+                                <td><%= m.telefon %></td>
+                                <td><%= m.ogrenci_adi || '-' %></td>
+                                <td><span class="tip-badge <%= m.tip %>"><%= m.tip === 'manuel' ? 'Manuel' : 'Toplu' %></span></td>
+                                <td>
+                                    <% if (m.medya_url) { %>
+                                        <i class="fa-solid fa-image" style="color: #22c55e;"></i> Medya
+                                    <% } else { %>
+                                        <i class="fa-solid fa-message" style="color: #64748b;"></i> Metin
+                                    <% } %>
+                                </td>
+                                <td><span class="status-badge <%= m.durum %>"><%= m.durum === 'gonderildi' ? 'Gönderildi' : m.durum === 'bekliyor' ? 'Bekliyor' : 'Hata' %></span></td>
+                                <td><%= new Date(m.created_at).toLocaleDateString('tr-TR') %></td>
+                                <td><%= new Date(m.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %></td>
+                                <td>
+                                    <button class="btn-icerik" onclick='showIcerik(<%- JSON.stringify(m) %>)'>
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobil Kartlar -->
+                <div class="mobile-message-cards">
+                    <% mesajlar.forEach(m => { %>
+                    <div class="mobile-message-card">
+                        <div class="mobile-message-card-header">
+                            <div>
+                                <div class="telefon"><%= m.telefon %></div>
+                                <div class="ogrenci"><%= m.ogrenci_adi || 'Bilinmeyen' %></div>
+                            </div>
+                            <span class="status-badge <%= m.durum %>">
+                                <%= m.durum === 'gonderildi' ? 'Gönderildi' : m.durum === 'bekliyor' ? 'Bekliyor' : 'Hata' %>
+                            </span>
+                        </div>
+                        <div class="mobile-message-card-footer">
+                            <div class="tarih">
+                                <i class="fa-solid fa-calendar"></i>
+                                <%= new Date(m.created_at).toLocaleDateString('tr-TR') %> 
+                                <%= new Date(m.created_at).toLocaleTimeString('tr-TR', {hour: '2-digit', minute: '2-digit'}) %>
+                            </div>
+                            <button class="btn-icerik" onclick='showIcerik(<%- JSON.stringify(m) %>)'>
+                                <i class="fa-solid fa-eye"></i> Görüntüle
+                            </button>
+                        </div>
+                    </div>
+                    <% }) %>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/whatsapp/toplu-islemler" class="nav-item active">
+            <i class="fa-brands fa-whatsapp"></i>
+            <span>WhatsApp</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+    
+    <!-- MANUEL GÖNDERİM MODAL -->
+    <div id="modalManuel" class="modal" onclick="if(event.target==this) closeModal('modalManuel')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-paper-plane" style="color: var(--primary);"></i> Manuel Gönderim</h3>
+                <button class="modal-close" onclick="closeModal('modalManuel')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">
+                        Telefon Numaraları
+                        <span class="telefon-count" id="telefonSayisi">0 numara</span>
+                    </label>
+                    
+                    <div class="input-tabs">
+                        <button class="input-tab active" onclick="switchTab('tek')" type="button">
+                            <i class="fa-solid fa-phone"></i> Tek Tek
+                        </button>
+                        <button class="input-tab" onclick="switchTab('toplu')" type="button">
+                            <i class="fa-solid fa-list"></i> Toplu
+                        </button>
+                        <button class="input-tab" onclick="switchTab('excel')" type="button">
+                            <i class="fa-solid fa-file-excel"></i> Excel
+                        </button>
+                    </div>
+                    
+                    <div id="tabTek" class="tab-content active">
+                        <div class="telefon-list" id="telefonList">
+                            <p style="color: #94a3b8; font-size: 13px; text-align: center;">Henüz numara eklenmedi</p>
+                        </div>
+                        <div class="telefon-add-row">
+                            <input type="text" id="yeniTelefon" class="form-input" placeholder="Ör: 905321234567" maxlength="20" onkeypress="if(event.key==='Enter') telefonEkle()">
+                            <button type="button" class="btn-add" onclick="telefonEkle()">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="tabToplu" class="tab-content">
+                        <div class="bulk-phone-section">
+                            <h4><i class="fa-solid fa-list-ol"></i> Alt Alta Numara Yazın</h4>
+                            <textarea id="topluNumaralar" class="bulk-phone-textarea" placeholder="Her satıra bir numara yazın:
+905321234567
++905551234567
+..."></textarea>
+                            <div class="bulk-phone-info">
+                                <i class="fa-solid fa-info-circle"></i> 
+                                Her satıra bir numara yazın. Tüm ülke kodları desteklenir.
+                            </div>
+                            <button type="button" class="btn-bulk-add" onclick="topluNumaraEkle()">
+                                <i class="fa-solid fa-plus"></i> Tümünü Ekle
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="tabExcel" class="tab-content">
+                        <div class="excel-upload" onclick="document.getElementById('excelInput').click()">
+                            <i class="fa-solid fa-file-excel"></i>
+                            <p>Excel dosyası yükle</p>
+                            <p style="font-size: 11px; margin-top: 5px;">İlk sütunda telefon numaraları</p>
+                            <input type="file" id="excelInput" accept=".xlsx,.xls,.csv" onchange="excelYukle(this)">
+                        </div>
+                    </div>
+                    
+                    <div id="listeOzeti" style="display: none; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 13px; color: #64748b;">
+                                <i class="fa-solid fa-check-circle" style="color: #22c55e;"></i>
+                                <span id="eklenenSayi">0</span> numara eklendi
+                            </span>
+                            <button type="button" class="btn-clear" onclick="listeTemizle()">
+                                <i class="fa-solid fa-trash"></i> Temizle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Mesaj İçeriği</label>
+                    <textarea id="manuelMesaj" class="form-textarea" placeholder="Mesajınızı yazın..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Resim (Opsiyonel)</label>
+                    <input type="file" id="manuelResim" class="form-input" accept="image/*" onchange="resimOnizle(this, 'manuelResimPreview')">
+                    <div class="image-preview" id="manuelResimPreview"></div>
+                </div>
+                
+                <div class="planli-section">
+                    <div class="planli-toggle">
+                        <input type="checkbox" id="manuelPlanli" onchange="togglePlanli('manuel')">
+                        <label for="manuelPlanli" style="font-weight: 600;">Planlı Gönderim</label>
+                    </div>
+                    <div class="planli-fields" id="manuelPlanliFields">
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Tarih</label>
+                            <input type="date" id="manuelTarih" class="form-input">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Saat</label>
+                            <input type="time" id="manuelSaat" class="form-input">
+                        </div>
+                    </div>
+                    <p style="font-size: 12px; color: #64748b; margin-top: 10px;">
+                        <i class="fa-solid fa-info-circle"></i> Mesajlar 2 saniye aralıklarla gönderilir.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-whatsapp" onclick="manuelGonder()" id="btnManuelGonder">
+                    <i class="fa-brands fa-whatsapp"></i> Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TOPLU GÖNDERİM MODAL -->
+    <div id="modalToplu" class="modal" onclick="if(event.target==this) closeModal('modalToplu')">
+        <div class="modal-content" style="max-width: 750px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-users" style="color: var(--success);"></i> Branş / Grup Gönderimi</h3>
+                <button class="modal-close" onclick="closeModal('modalToplu')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="selection-grid">
+                    <div class="selection-box">
+                        <h4><i class="fa-solid fa-layer-group"></i> Branşlar</h4>
+                        <div class="checkbox-list" id="bransListesi">
+                            <% if (branslar.length === 0) { %>
+                                <p style="color: #94a3b8; font-size: 13px; padding: 10px;">Branş bulunamadı</p>
+                            <% } else { %>
+                                <% branslar.forEach(b => { %>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="brans_<%= b.id %>" value="<%= b.id %>" onchange="bransSecildi()">
+                                    <label for="brans_<%= b.id %>"><%= b.brans_adi %></label>
+                                </div>
+                                <% }) %>
+                            <% } %>
+                        </div>
+                    </div>
+                    
+                    <div class="selection-box">
+                        <h4><i class="fa-solid fa-users-rectangle"></i> Gruplar</h4>
+                        <div class="checkbox-list" id="grupListesi">
+                            <p style="color: #94a3b8; font-size: 13px; padding: 10px;">Önce branş seçin</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="seciliOgrenciSayisi" style="margin: 15px 0; padding: 12px; background: #f0fdf4; border-radius: 10px; display: none;">
+                    <i class="fa-solid fa-users" style="color: #22c55e;"></i>
+                    <span style="font-weight: 600;">Seçili öğrenci sayısı: <span id="ogrenciSayisi">0</span></span>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label">Mesaj İçeriği</label>
+                    <textarea id="topluMesaj" class="form-textarea" placeholder="Mesajınızı yazın..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Resim (Opsiyonel)</label>
+                    <input type="file" id="topluResim" class="form-input" accept="image/*" onchange="resimOnizle(this, 'topluResimPreview')">
+                    <div class="image-preview" id="topluResimPreview"></div>
+                </div>
+                
+                <div class="planli-section">
+                    <div class="planli-toggle">
+                        <input type="checkbox" id="topluPlanli" onchange="togglePlanli('toplu')">
+                        <label for="topluPlanli" style="font-weight: 600;">Planlı Gönderim</label>
+                    </div>
+                    <div class="planli-fields" id="topluPlanliFields">
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Tarih</label>
+                            <input type="date" id="topluTarih" class="form-input">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label class="form-label">Saat</label>
+                            <input type="time" id="topluSaat" class="form-input">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-whatsapp" onclick="topluGonder()" id="btnTopluGonder">
+                    <i class="fa-brands fa-whatsapp"></i> Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⭐ PUSH BİLDİRİM MODAL -->
+    <div id="modalPush" class="modal" onclick="if(event.target==this) closeModal('modalPush')">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-bell" style="color: var(--push-color);"></i> Push Bildirim Gönder</h3>
+                <button class="modal-close" onclick="closeModal('modalPush')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Push Stats -->
+                <div class="push-stats-box">
+                    <h4><i class="fa-solid fa-chart-pie"></i> Abone İstatistikleri</h4>
+                    <div class="push-stats-grid">
+                        <div class="push-stat-item">
+                            <div class="value" id="pushToplam">-</div>
+                            <div class="label">Toplam</div>
+                        </div>
+                        <div class="push-stat-item">
+                            <div class="value" id="pushVeli">-</div>
+                            <div class="label">Veli</div>
+                        </div>
+                        <div class="push-stat-item">
+                            <div class="value" id="pushYonetici">-</div>
+                            <div class="label">Yönetici</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hedef Kitle -->
+                <div class="target-selector">
+                    <h4><i class="fa-solid fa-bullseye"></i> Hedef Kitle</h4>
+                    <div class="target-options">
+                        <div class="target-option selected" onclick="selectTarget(this, 'hepsi')">
+                            <input type="radio" name="pushTarget" value="hepsi" checked>
+                            <label>Tüm Aboneler</label>
+                            <span class="count" id="countHepsi">-</span>
+                        </div>
+                        <div class="target-option" onclick="selectTarget(this, 'veli')">
+                            <input type="radio" name="pushTarget" value="veli">
+                            <label>Sadece Veliler</label>
+                            <span class="count" id="countVeli">-</span>
+                        </div>
+                        <div class="target-option" onclick="selectTarget(this, 'yonetici')">
+                            <input type="radio" name="pushTarget" value="yonetici">
+                            <label>Sadece Yöneticiler</label>
+                            <span class="count" id="countYonetici">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Bildirim Başlığı</label>
+                    <input type="text" id="pushBaslik" class="form-input" placeholder="Örn: Önemli Duyuru" maxlength="100">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Bildirim Mesajı</label>
+                    <textarea id="pushMesaj" class="form-textarea" placeholder="Bildirim içeriğini yazın..." maxlength="500"></textarea>
+                    <p style="font-size: 11px; color: #94a3b8; margin-top: 5px;">
+                        <span id="pushKarakterSayisi">0</span>/500 karakter
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Bildirim Türü (Opsiyonel)</label>
+                    <select id="pushTur" class="form-select">
+                        <option value="genel">Genel Duyuru</option>
+                        <option value="aidat">Aidat Hatırlatma</option>
+                        <option value="yoklama">Yoklama Bildirimi</option>
+                        <option value="ders">Ders Programı</option>
+                        <option value="etkinlik">Etkinlik</option>
+                    </select>
+                </div>
+
+                <div style="background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px; padding: 12px; margin-top: 15px;">
+                    <p style="font-size: 12px; color: #92400e; display: flex; align-items: flex-start; gap: 8px;">
+                        <i class="fa-solid fa-info-circle" style="margin-top: 2px;"></i>
+                        <span>Push bildirimleri anlık olarak gönderilir. Bildirim, kullanıcının cihazına ulaştığında ekranda görünür.</span>
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-push" onclick="pushBildirimGonder()" id="btnPushGonder">
+                    <i class="fa-solid fa-paper-plane"></i> Bildirim Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- İÇERİK GÖRÜNTÜLEME MODAL -->
+    <div id="modalIcerik" class="modal" onclick="if(event.target==this) closeModal('modalIcerik')">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-message" style="color: var(--primary);"></i> Mesaj İçeriği</h3>
+                <button class="modal-close" onclick="closeModal('modalIcerik')">&times;</button>
+            </div>
+            <div class="icerik-modal-body">
+                <div class="icerik-mesaj" id="icerikMesaj"></div>
+                <div class="icerik-medya" id="icerikMedya"></div>
+                <div id="icerikHata" style="margin-top: 15px; padding: 12px; background: #fef2f2; border-radius: 8px; color: #dc2626; display: none;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // ==================== TEMA YÖNETİMİ ====================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // ==================== WHATSAPP FONKSİYONLARI ====================
+        let telefonListesi = [];
+        const gruplarData = <%- JSON.stringify(gruplar) %>;
+        const subeId = <%= secilenSubeId || 'null' %>;
+        
+        // ==================== PUSH BİLDİRİM DEĞİŞKENLERİ ====================
+        let pushStats = { toplam: 0, veli: 0, yonetici: 0 };
+        
+        function subeChange(selectElement) {
+            let id;
+            
+            if (selectElement && selectElement.value) {
+                id = selectElement.value;
+            } else {
+                const isMobile = window.innerWidth <= 991;
+                if (isMobile) {
+                    id = document.getElementById('subeSelectMobile')?.value;
+                } else {
+                    id = document.getElementById('subeSelect')?.value;
+                }
+            }
+            
+            if (id) {
+                window.location.href = '/api/whatsapp/toplu-islemler?sube_id=' + id;
+            }
+        }
+        
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            
+            // Push modal açılınca istatistikleri yükle
+            if (id === 'modalPush') {
+                loadPushStats();
+            }
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.input-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1)).classList.add('active');
+        }
+        
+        function updateTelefonSayisi() {
+            const sayiElement = document.getElementById('telefonSayisi');
+            const eklenenSayi = document.getElementById('eklenenSayi');
+            const listeOzeti = document.getElementById('listeOzeti');
+            
+            sayiElement.textContent = telefonListesi.length + ' numara';
+            
+            if (telefonListesi.length > 0) {
+                eklenenSayi.textContent = telefonListesi.length;
+                listeOzeti.style.display = 'block';
+            } else {
+                listeOzeti.style.display = 'none';
+            }
+        }
+        
+        function normalizePhone(telefon) {
+            let phone = telefon.toString().replace(/[^\d]/g, '');
+            
+            if (!phone || phone.length < 7) return null;
+            
+            if (phone.startsWith('00')) {
+                phone = phone.substring(2);
+            }
+            
+            if (phone.length === 10 && ['5'].includes(phone[0])) {
+                phone = '90' + phone;
+            }
+            else if (phone.length === 11 && phone[0] === '0') {
+                phone = '90' + phone.substring(1);
+            }
+            
+            if (phone.length < 10 || phone.length > 15) {
+                return null;
+            }
+            
+            return phone;
+        }
+        
+        function telefonEkle() {
+            const input = document.getElementById('yeniTelefon');
+            const telefon = normalizePhone(input.value);
+            
+            if (!telefon) {
+                showToast('Geçerli bir telefon numarası girin', 'error');
+                return;
+            }
+            
+            if (!telefonListesi.includes(telefon)) {
+                telefonListesi.push(telefon);
+                renderTelefonList();
+                updateTelefonSayisi();
+                showToast('Numara eklendi: ' + telefon, 'success');
+            } else {
+                showToast('Bu numara zaten listede', 'error');
+            }
+            
+            input.value = '';
+            input.focus();
+        }
+        
+        function topluNumaraEkle() {
+            const textarea = document.getElementById('topluNumaralar');
+            const satirlar = textarea.value.split('\n');
+            
+            let eklenen = 0;
+            let hatali = 0;
+            
+            satirlar.forEach(satir => {
+                const telefon = normalizePhone(satir.trim());
+                if (telefon) {
+                    if (!telefonListesi.includes(telefon)) {
+                        telefonListesi.push(telefon);
+                        eklenen++;
+                    }
+                } else if (satir.trim()) {
+                    hatali++;
+                }
+            });
+            
+            if (eklenen > 0) {
+                renderTelefonList();
+                updateTelefonSayisi();
+                textarea.value = '';
+                
+                let mesaj = `${eklenen} numara eklendi`;
+                if (hatali > 0) mesaj += `, ${hatali} geçersiz numara atlandı`;
+                showToast(mesaj, 'success');
+            } else if (hatali > 0) {
+                showToast(`${hatali} geçersiz numara bulundu`, 'error');
+            } else {
+                showToast('Eklenecek numara bulunamadı', 'error');
+            }
+        }
+        
+        function listeTemizle() {
+            if (confirm('Tüm numaralar silinecek. Emin misiniz?')) {
+                telefonListesi = [];
+                renderTelefonList();
+                updateTelefonSayisi();
+                showToast('Liste temizlendi', 'success');
+            }
+        }
+        
+        function renderTelefonList() {
+            const container = document.getElementById('telefonList');
+            if (telefonListesi.length === 0) {
+                container.innerHTML = '<p style="color: #94a3b8; font-size: 13px; text-align: center;">Henüz numara eklenmedi</p>';
+                return;
+            }
+            
+            container.innerHTML = telefonListesi.map((tel, i) => `
+                <div class="telefon-item">
+                    <span>${formatPhoneDisplay(tel)}</span>
+                    <button class="remove" onclick="telefonSil(${i})"><i class="fa-solid fa-times"></i></button>
+                </div>
+            `).join('');
+        }
+        
+        function formatPhoneDisplay(phone) {
+            if (phone.startsWith('90') && phone.length === 12) {
+                return '+90 ' + phone.substring(2, 5) + ' ' + phone.substring(5, 8) + ' ' + phone.substring(8, 10) + ' ' + phone.substring(10);
+            }
+            return '+' + phone;
+        }
+        
+        function telefonSil(index) {
+            telefonListesi.splice(index, 1);
+            renderTelefonList();
+            updateTelefonSayisi();
+        }
+        
+        function excelYukle(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                    
+                    let eklenen = 0;
+                    let hatali = 0;
+                    
+                    rows.forEach(row => {
+                        if (row[0]) {
+                            const telefon = normalizePhone(row[0]);
+                            if (telefon) {
+                                if (!telefonListesi.includes(telefon)) {
+                                    telefonListesi.push(telefon);
+                                    eklenen++;
+                                }
+                            } else {
+                                hatali++;
+                            }
+                        }
+                    });
+                    
+                    renderTelefonList();
+                    updateTelefonSayisi();
+                    
+                    let mesaj = `${eklenen} numara eklendi`;
+                    if (hatali > 0) mesaj += `, ${hatali} geçersiz numara atlandı`;
+                    showToast(mesaj, 'success');
+                    
+                    document.querySelectorAll('.input-tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    document.querySelector('.input-tab').classList.add('active');
+                    document.getElementById('tabTek').classList.add('active');
+                    
+                } catch (err) {
+                    showToast('Excel okuma hatası: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            input.value = '';
+        }
+        
+        function resimOnizle(input, previewId) {
+            const preview = document.getElementById(previewId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <img src="${e.target.result}">
+                        <button class="remove-image" onclick="resimSil('${input.id}', '${previewId}')"><i class="fa-solid fa-times"></i></button>
+                    `;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        
+        function resimSil(inputId, previewId) {
+            document.getElementById(inputId).value = '';
+            document.getElementById(previewId).innerHTML = '';
+        }
+        
+        function togglePlanli(tip) {
+            const checkbox = document.getElementById(tip + 'Planli');
+            const fields = document.getElementById(tip + 'PlanliFields');
+            fields.classList.toggle('active', checkbox.checked);
+        }
+        
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+        
+        async function manuelGonder() {
+            const mesaj = document.getElementById('manuelMesaj').value.trim();
+            const resimInput = document.getElementById('manuelResim');
+            const planli = document.getElementById('manuelPlanli').checked;
+            const tarih = document.getElementById('manuelTarih').value;
+            const saat = document.getElementById('manuelSaat').value;
+            
+            if (telefonListesi.length === 0) {
+                showToast('En az bir telefon numarası ekleyin', 'error');
+                return;
+            }
+            
+            if (!mesaj && !resimInput.files[0]) {
+                showToast('Mesaj veya resim ekleyin', 'error');
+                return;
+            }
+            
+            if (planli && (!tarih || !saat)) {
+                showToast('Planlı gönderim için tarih ve saat seçin', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('btnManuelGonder');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
+            
+            try {
+                let resimBase64 = null;
+                if (resimInput.files[0]) {
+                    resimBase64 = await fileToBase64(resimInput.files[0]);
+                }
+                
+                const response = await fetch('/api/whatsapp/toplu-islemler/manuel-gonder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sube_id: subeId,
+                        telefonlar: telefonListesi,
+                        mesaj: mesaj,
+                        resim: resimBase64,
+                        planli: planli,
+                        planli_tarih: planli ? `${tarih} ${saat}` : null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('modalManuel');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message || 'Hata oluştu', 'error');
+                }
+            } catch (error) {
+                showToast('Sunucu hatası', 'error');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Gönder';
+        }
+        
+        function bransSecildi() {
+            const seciliBranslar = [];
+            document.querySelectorAll('#bransListesi input:checked').forEach(cb => {
+                seciliBranslar.push(parseInt(cb.value));
+            });
+            
+            const grupListesi = document.getElementById('grupListesi');
+            
+            if (seciliBranslar.length === 0) {
+                grupListesi.innerHTML = '<p style="color: #94a3b8; font-size: 13px; padding: 10px;">Önce branş seçin</p>';
+                document.getElementById('seciliOgrenciSayisi').style.display = 'none';
+                return;
+            }
+            
+            const filtreliGruplar = gruplarData.filter(g => seciliBranslar.includes(g.brans_id));
+            
+            if (filtreliGruplar.length === 0) {
+                grupListesi.innerHTML = '<p style="color: #94a3b8; font-size: 13px; padding: 10px;">Bu branşlarda grup yok</p>';
+                return;
+            }
+            
+            grupListesi.innerHTML = filtreliGruplar.map(g => `
+                <div class="checkbox-item">
+                    <input type="checkbox" id="grup_${g.id}" value="${g.id}" data-ogrenci="${g.ogrenci_sayisi}" onchange="grupSecildi()">
+                    <label for="grup_${g.id}">${g.grup_adi}</label>
+                    <span class="count">${g.ogrenci_sayisi} öğr.</span>
+                </div>
+            `).join('');
+            
+            grupSecildi();
+        }
+        
+        function grupSecildi() {
+            let toplam = 0;
+            document.querySelectorAll('#grupListesi input:checked').forEach(cb => {
+                toplam += parseInt(cb.dataset.ogrenci) || 0;
+            });
+            
+            const sayiDiv = document.getElementById('seciliOgrenciSayisi');
+            document.getElementById('ogrenciSayisi').textContent = toplam;
+            sayiDiv.style.display = toplam > 0 ? 'block' : 'none';
+        }
+        
+        async function topluGonder() {
+            const seciliGruplar = [];
+            document.querySelectorAll('#grupListesi input:checked').forEach(cb => {
+                seciliGruplar.push(parseInt(cb.value));
+            });
+            
+            const mesaj = document.getElementById('topluMesaj').value.trim();
+            const resimInput = document.getElementById('topluResim');
+            const planli = document.getElementById('topluPlanli').checked;
+            const tarih = document.getElementById('topluTarih').value;
+            const saat = document.getElementById('topluSaat').value;
+            
+            if (seciliGruplar.length === 0) {
+                showToast('En az bir grup seçin', 'error');
+                return;
+            }
+            
+            if (!mesaj && !resimInput.files[0]) {
+                showToast('Mesaj veya resim ekleyin', 'error');
+                return;
+            }
+            
+            if (planli && (!tarih || !saat)) {
+                showToast('Planlı gönderim için tarih ve saat seçin', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('btnTopluGonder');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
+            
+            try {
+                let resimBase64 = null;
+                if (resimInput.files[0]) {
+                    resimBase64 = await fileToBase64(resimInput.files[0]);
+                }
+                
+                const response = await fetch('/api/whatsapp/toplu-islemler/toplu-gonder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sube_id: subeId,
+                        gruplar: seciliGruplar,
+                        mesaj: mesaj,
+                        resim: resimBase64,
+                        planli: planli,
+                        planli_tarih: planli ? `${tarih} ${saat}` : null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    closeModal('modalToplu');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.message || 'Hata oluştu', 'error');
+                }
+            } catch (error) {
+                showToast('Sunucu hatası', 'error');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-brands fa-whatsapp"></i> Gönder';
+        }
+        
+        function showIcerik(mesaj) {
+            document.getElementById('icerikMesaj').textContent = mesaj.mesaj || '(Mesaj yok)';
+            
+            const medyaDiv = document.getElementById('icerikMedya');
+            if (mesaj.medya_url) {
+                medyaDiv.innerHTML = `<img src="${mesaj.medya_url}" alt="Medya" onerror="this.style.display='none'">`;
+            } else {
+                medyaDiv.innerHTML = '';
+            }
+            
+            const hataDiv = document.getElementById('icerikHata');
+            if (mesaj.hata_mesaji) {
+                hataDiv.textContent = 'Hata: ' + mesaj.hata_mesaji;
+                hataDiv.style.display = 'block';
+            } else {
+                hataDiv.style.display = 'none';
+            }
+            
+            openModal('modalIcerik');
+        }
+
+        // ==================== PUSH BİLDİRİM FONKSİYONLARI ====================
+        
+        // Push istatistiklerini yükle
+        async function loadPushStats() {
+            try {
+                const response = await fetch('/api/push/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    pushStats = data.stats;
+                    
+                    // Modal içi
+                    document.getElementById('pushToplam').textContent = pushStats.toplam;
+                    document.getElementById('pushVeli').textContent = pushStats.veli;
+                    document.getElementById('pushYonetici').textContent = pushStats.yonetici;
+                    
+                    // Count badge'ları
+                    document.getElementById('countHepsi').textContent = pushStats.toplam;
+                    document.getElementById('countVeli').textContent = pushStats.veli;
+                    document.getElementById('countYonetici').textContent = pushStats.yonetici;
+                    
+                    // Ana sayfadaki stat card
+                    document.getElementById('pushAboneSayisi').textContent = pushStats.toplam;
+                }
+            } catch (e) {
+                console.error('Push stats yükleme hatası:', e);
+            }
+        }
+        
+        // Hedef kitle seçimi
+        function selectTarget(element, value) {
+            document.querySelectorAll('.target-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            element.querySelector('input').checked = true;
+        }
+        
+        // Karakter sayacı
+        document.getElementById('pushMesaj').addEventListener('input', function() {
+            document.getElementById('pushKarakterSayisi').textContent = this.value.length;
+        });
+        
+        // Push bildirim gönder
+        async function pushBildirimGonder() {
+            const baslik = document.getElementById('pushBaslik').value.trim();
+            const mesaj = document.getElementById('pushMesaj').value.trim();
+            const tur = document.getElementById('pushTur').value;
+            const hedef = document.querySelector('input[name="pushTarget"]:checked').value;
+            
+            if (!baslik) {
+                showToast('Bildirim başlığı girin', 'error');
+                return;
+            }
+            
+            if (!mesaj) {
+                showToast('Bildirim mesajı girin', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('btnPushGonder');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gönderiliyor...';
+            
+            try {
+                const response = await fetch('/api/push/toplu-bildirim', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        baslik: baslik,
+                        mesaj: mesaj,
+                        tur: tur,
+                        hedef: hedef
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(`${data.gonderilen} kişiye bildirim gönderildi`, 'success');
+                    closeModal('modalPush');
+                    
+                    // Formu temizle
+                    document.getElementById('pushBaslik').value = '';
+                    document.getElementById('pushMesaj').value = '';
+                    document.getElementById('pushKarakterSayisi').textContent = '0';
+                } else {
+                    showToast(data.message || 'Hata oluştu', 'error');
+                }
+            } catch (error) {
+                showToast('Sunucu hatası', 'error');
+                console.error('Push gönderim hatası:', error);
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Bildirim Gönder';
+        }
+        
+        // Sayfa yüklendiğinde push abone sayısını al
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPushStats();
+        });
+    </script>
+</body>
+</html>

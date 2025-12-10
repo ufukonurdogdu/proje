@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | WhatsApp QR Bağlantısı</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk || '#3b82f6' %>; 
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk || '#3b82f6' %> 85%, #000);
+            --primary-light: color-mix(in srgb, <%= siteAyarlari.ana_renk || '#3b82f6' %> 15%, #fff);
+            --wa-green: #25D366;
+            --wa-dark: #128C7E;
+            --wa-light: #DCF8C6;
+            --bg-body: #f0f2f5; 
+            --dark-text: #1e293b; 
+            --gray-text: #64748b;
+            --radius-xl: 24px; 
+            --radius-md: 16px; 
+            --green: #22c55e;
+            --red: #ef4444;
+            --orange: #f97316;
+            --nav-height: 70px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background-color: var(--bg-body); color: var(--dark-text); display: flex; height: 100vh; overflow: hidden; }
+        
+        .main { 
+            flex: 1; margin: 2vh 2vh 2vh 0; 
+            background: white; border-radius: var(--radius-xl); 
+            display: flex; flex-direction: column; 
+            overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        /* HEADER */
+        .wa-header {
+            background: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-dark) 100%);
+            padding: 25px 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        .wa-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+        .wa-header h1 { font-size: 24px; font-weight: 800; margin-bottom: 5px; position: relative; z-index: 1; }
+        .wa-header p { opacity: 0.9; font-size: 14px; position: relative; z-index: 1; }
+        .wa-header-icon {
+            position: absolute;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 80px;
+            opacity: 0.15;
+        }
+        .header-actions-mobile { display: none; }
+
+        .content-scroll { padding: 30px; overflow-y: auto; flex: 1; }
+
+        /* ŞUBE SEÇİM KARTI */
+        .sube-select-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .sube-select-card label {
+            font-weight: 600;
+            color: var(--dark-text);
+            white-space: nowrap;
+        }
+        .sube-select-card select {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .sube-select-card select:focus {
+            outline: none;
+            border-color: var(--wa-green);
+        }
+        .sube-badge {
+            background: var(--wa-light);
+            color: var(--wa-dark);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ŞUBE SEÇİM EKRANI */
+        .sube-secim-container {
+            text-align: center;
+            padding: 60px 30px;
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            border-radius: var(--radius-md);
+            border: 2px dashed #e2e8f0;
+        }
+        .sube-secim-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--wa-light), #b8f5d0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--wa-dark);
+        }
+        .sube-secim-container h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+        .sube-secim-container p { color: var(--gray-text); margin-bottom: 25px; }
+        .sube-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .sube-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .sube-card:hover {
+            border-color: var(--wa-green);
+            box-shadow: 0 5px 20px rgba(37, 211, 102, 0.15);
+            transform: translateY(-2px);
+        }
+        .sube-card i { font-size: 24px; color: var(--wa-green); margin-bottom: 10px; }
+        .sube-card h4 { font-size: 16px; font-weight: 600; }
+
+        /* DURUM KARTI */
+        .status-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: var(--radius-md);
+            padding: 25px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .status-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+        .status-icon.connected { background: linear-gradient(135deg, var(--wa-green), var(--wa-dark)); color: white; }
+        .status-icon.disconnected { background: linear-gradient(135deg, #fee2e2, #fecaca); color: var(--red); }
+        .status-icon.no-device { background: linear-gradient(135deg, #fef3c7, #fde68a); color: var(--orange); }
+        
+        .status-info h3 { font-size: 18px; font-weight: 700; margin-bottom: 5px; }
+        .status-info p { color: var(--gray-text); font-size: 13px; }
+        .status-badge {
+            margin-left: auto;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .status-badge.connected { background: var(--wa-light); color: var(--wa-dark); }
+        .status-badge.disconnected { background: #fee2e2; color: var(--red); }
+
+        /* CİHAZ KARTI */
+        .device-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .device-card:hover {
+            border-color: var(--wa-green);
+            box-shadow: 0 10px 40px rgba(37, 211, 102, 0.15);
+        }
+        .device-card.connected {
+            border-color: var(--wa-green);
+            background: linear-gradient(135deg, rgba(37, 211, 102, 0.03) 0%, white 100%);
+        }
+        .device-card.connected::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--wa-green), var(--wa-dark));
+        }
+
+        .device-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .device-avatar {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--wa-green), var(--wa-dark));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        .device-name { font-size: 18px; font-weight: 700; }
+        .device-phone { color: var(--gray-text); font-size: 13px; font-family: monospace; }
+
+        .device-status {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .device-status.online {
+            background: var(--wa-light);
+            color: var(--wa-dark);
+        }
+        .device-status.offline {
+            background: #fee2e2;
+            color: var(--red);
+        }
+        .device-status i { font-size: 10px; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .device-status.online i { animation: pulse 2s infinite; }
+
+        .device-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* BUTONLAR */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+
+        .btn-wa {
+            background: linear-gradient(135deg, var(--wa-green), var(--wa-dark));
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+        .btn-wa:hover { box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4); }
+
+        .btn-outline-wa {
+            background: white;
+            border: 2px solid var(--wa-green);
+            color: var(--wa-dark);
+        }
+        .btn-outline-wa:hover { background: var(--wa-light); }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        .btn-outline-danger {
+            background: white;
+            border: 2px solid var(--red);
+            color: var(--red);
+        }
+        .btn-outline-danger:hover { background: #fef2f2; }
+
+        .btn-sm { padding: 10px 18px; font-size: 13px; }
+
+        /* BOŞ DURUM */
+        .empty-state {
+            text-align: center;
+            padding: 60px 30px;
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            border-radius: var(--radius-md);
+            border: 2px dashed #e2e8f0;
+        }
+        .empty-state-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--wa-light), #b8f5d0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--wa-dark);
+        }
+        .empty-state h3 { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
+        .empty-state p { color: var(--gray-text); margin-bottom: 25px; }
+
+        /* MODAL */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-header h3 { font-size: 18px; font-weight: 700; }
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--gray-text);
+            transition: all 0.2s;
+        }
+        .modal-close:hover { background: #e2e8f0; }
+
+        .modal-body { padding: 25px; }
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* FORM */
+        .form-group { margin-bottom: 20px; }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark-text);
+        }
+        .form-input, .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--wa-green);
+            box-shadow: 0 0 0 4px rgba(37, 211, 102, 0.1);
+        }
+        .form-hint {
+            margin-top: 8px;
+            padding: 12px;
+            background: #fef3c7;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #92400e;
+        }
+        .form-hint i { margin-right: 6px; }
+
+        /* QR BAĞLANTI MODAL */
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+        .qr-loading {
+            padding: 40px;
+        }
+        .qr-loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f1f5f9;
+            border-top-color: var(--wa-green);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .qr-image {
+            max-width: 250px;
+            margin: 0 auto;
+            padding: 15px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 2px solid #f1f5f9;
+        }
+        .qr-image img { width: 100%; height: auto; display: block; }
+
+        .pairing-code {
+            font-size: 32px;
+            font-weight: 800;
+            font-family: monospace;
+            letter-spacing: 4px;
+            color: var(--wa-dark);
+            background: var(--wa-light);
+            padding: 20px 30px;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        .qr-success {
+            padding: 40px;
+        }
+        .qr-success i {
+            font-size: 60px;
+            color: var(--wa-green);
+            margin-bottom: 20px;
+        }
+
+        .qr-instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            text-align: left;
+        }
+        .qr-instructions h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--dark-text);
+        }
+        .qr-instructions ol {
+            padding-left: 20px;
+            color: var(--gray-text);
+            font-size: 13px;
+        }
+        .qr-instructions li { margin-bottom: 5px; }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: #1e293b;
+            color: white;
+            font-weight: 600;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            z-index: 6000;
+            animation: slideIn 0.3s;
+        }
+        .toast.success { background: var(--wa-green); }
+        .toast.error { background: var(--red); }
+        .toast.show { display: flex; }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Bottom Nav varsayılan gizli */
+        .bottom-nav { display: none; }
+
+        /* ==================== MOBİL TEMA SİSTEMİ ==================== */
+        @media (max-width: 991px) {
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--wa-green) 0%, var(--wa-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            }
+
+            body { 
+                flex-direction: column; 
+                height: auto; 
+                min-height: 100vh; 
+                overflow-y: auto;
+                background: var(--m-bg-primary) !important;
+                transition: background 0.3s ease;
+            }
+            
+           
+            .main { 
+                margin: 0; 
+                border-radius: 0; 
+                box-shadow: none;
+                background: var(--m-bg-primary) !important;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Mobil Header */
+            .wa-header { 
+                padding: 20px;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                border-radius: 0 0 24px 24px;
+                background: var(--m-header-bg) !important;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .wa-header h1 { font-size: 16px; }
+            .wa-header p { display: none; }
+            .wa-header-icon { display: none; }
+
+            .header-actions-mobile {
+                display: flex !important;
+                gap: 8px;
+                position: relative;
+                z-index: 5;
+            }
+
+            .btn-header-icon {
+                width: 38px; height: 38px; border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: white; font-size: 15px; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+
+            .content-scroll { 
+                padding: 20px;
+                margin-top: -10px;
+                position: relative;
+                z-index: 5;
+            }
+
+            /* Şube Seçim Kartı */
+            .sube-select-card { 
+                flex-direction: column;
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+            }
+            .sube-select-card label { color: var(--m-text-primary) !important; }
+            .sube-select-card select { 
+                width: 100%;
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+                height: 44px;
+            }
+
+            /* Şube Seçim Ekranı */
+            .sube-secim-container {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+            }
+            .sube-secim-container h3 { color: var(--m-text-primary) !important; }
+            .sube-secim-container p { color: var(--m-text-muted) !important; }
+
+            .sube-card {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+            }
+            .sube-card h4 { color: var(--m-text-primary) !important; }
+
+            /* Durum Kartı */
+            .status-card { 
+                flex-direction: column; 
+                text-align: center;
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+            }
+            .status-badge { margin: 15px 0 0 0; }
+            .status-info h3 { color: var(--m-text-primary) !important; }
+            .status-info p { color: var(--m-text-muted) !important; }
+
+            /* Cihaz Kartı */
+            .device-card {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+            }
+            .device-header { flex-wrap: wrap; }
+            .device-status { margin: 10px 0 0 0; width: 100%; justify-content: center; }
+            .device-actions { justify-content: center; }
+            .device-name { color: var(--m-text-primary) !important; }
+            .device-phone { color: var(--m-text-muted) !important; }
+
+            /* Empty State */
+            .empty-state {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+            }
+            .empty-state h3 { color: var(--m-text-primary) !important; }
+            .empty-state p { color: var(--m-text-muted) !important; }
+
+            /* DARK MODE */
+            [data-theme="dark"] .sube-secim-icon,
+            [data-theme="dark"] .empty-state-icon {
+                background: linear-gradient(135deg, rgba(37, 211, 102, 0.2), rgba(18, 140, 126, 0.2)) !important;
+            }
+
+            [data-theme="dark"] .status-icon.disconnected {
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.15)) !important;
+            }
+
+            [data-theme="dark"] .status-icon.no-device {
+                background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(249, 115, 22, 0.15)) !important;
+            }
+
+            [data-theme="dark"] .device-card.connected {
+                background: linear-gradient(135deg, rgba(37, 211, 102, 0.08) 0%, var(--m-bg-secondary) 100%) !important;
+            }
+
+            /* Modal Dark Mode */
+            [data-theme="dark"] .modal-content {
+                background: var(--m-bg-secondary) !important;
+            }
+            [data-theme="dark"] .modal-header { border-color: var(--m-border-color) !important; }
+            [data-theme="dark"] .modal-header h3 { color: var(--m-text-primary) !important; }
+            [data-theme="dark"] .modal-close { background: var(--m-bg-tertiary) !important; color: var(--m-text-muted) !important; }
+            [data-theme="dark"] .modal-footer { border-color: var(--m-border-color) !important; }
+            [data-theme="dark"] .form-label { color: var(--m-text-muted) !important; }
+            [data-theme="dark"] .form-input, [data-theme="dark"] .form-select {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+            }
+            [data-theme="dark"] .form-hint {
+                background: rgba(249, 115, 22, 0.15) !important;
+                color: #fbbf24 !important;
+            }
+            [data-theme="dark"] .qr-instructions {
+                background: var(--m-bg-tertiary) !important;
+            }
+            [data-theme="dark"] .qr-instructions h4 { color: var(--m-text-primary) !important; }
+            [data-theme="dark"] .qr-instructions ol { color: var(--m-text-muted) !important; }
+            [data-theme="dark"] .qr-image {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+            }
+
+            /* Form Düzeltmeleri */
+            .form-input, .form-select {
+                height: 44px !important;
+                min-height: 44px !important;
+                font-size: 14px !important;
+                -webkit-appearance: none !important;
+            }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+            }
+
+            .nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 4px; padding: 8px 12px; border-radius: 12px;
+                color: var(--m-text-muted); text-decoration: none;
+                transition: all 0.2s; cursor: pointer;
+            }
+
+            .nav-item.active { color: var(--wa-green); background: rgba(37, 211, 102, 0.1); }
+            .nav-item i { font-size: 18px; }
+            .nav-item span { font-size: 10px; font-weight: 600; }
+
+            /* Toast pozisyonu */
+            .toast { bottom: calc(var(--nav-height) + 20px) !important; right: 20px !important; left: 20px !important; }
+        }
+
+        /* ==================== MASAÜSTÜ ==================== */
+        @media (min-width: 992px) {
+            .header-actions-mobile { display: none !important; }
+            .bottom-nav { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <div class="main">
+        <!-- HEADER -->
+        <div class="wa-header">
+            <div>
+                <h1><i class="fab fa-whatsapp"></i> WhatsApp QR</h1>
+                <p>Cihazınızı bağlayarak otomatik mesaj gönderimini aktifleştirin</p>
+            </div>
+            <i class="fab fa-whatsapp wa-header-icon"></i>
+
+            <!-- Mobil Header Butonları -->
+            <div class="header-actions-mobile">
+                <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="/api/dashboard" class="btn-header-icon" title="Ana Sayfa">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="content-scroll">
+
+            <% if (typeof subeSecimGerekli !== 'undefined' && subeSecimGerekli) { %>
+                <!-- ŞUBE SEÇİM EKRANI -->
+                <div class="sube-secim-container">
+                    <div class="sube-secim-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3>Şube Seçin</h3>
+                    <p>WhatsApp cihazını yönetmek istediğiniz şubeyi seçin.</p>
+                    <div class="sube-grid">
+                        <% if (typeof subeler !== 'undefined' && subeler.length > 0) { %>
+                            <% subeler.forEach(function(sube) { %>
+                                <a href="/api/whatsapp/qr?sube_id=<%= sube.id %>" class="sube-card">
+                                    <i class="fas fa-store"></i>
+                                    <h4><%= sube.sube_adi %></h4>
+                                </a>
+                            <% }); %>
+                        <% } else { %>
+                            <p style="color: var(--gray-text);">Henüz şube tanımlanmamış.</p>
+                        <% } %>
+                    </div>
+                </div>
+            <% } else { %>
+
+                <!-- ŞUBE SEÇİCİ (Yönetici için) -->
+                <% if (user.rol === 'yonetici' && typeof subeler !== 'undefined' && subeler.length > 0) { %>
+                    <div class="sube-select-card">
+                        <label><i class="fas fa-building"></i> Şube:</label>
+                        <select id="subeSelect" onchange="changeSubee(this.value)">
+                            <% subeler.forEach(function(sube) { %>
+                                <option value="<%= sube.id %>" <%= (typeof secilenSubeId !== 'undefined' && secilenSubeId == sube.id) ? 'selected' : '' %>>
+                                    <%= sube.sube_adi %>
+                                </option>
+                            <% }); %>
+                        </select>
+                        <% if (typeof secilenSubeAdi !== 'undefined' && secilenSubeAdi) { %>
+                            <span class="sube-badge"><i class="fas fa-check-circle"></i> <%= secilenSubeAdi %></span>
+                        <% } %>
+                    </div>
+                <% } %>
+            
+                <!-- DURUM KARTI -->
+                <div class="status-card">
+                    <% if (device && device.status === 'connected') { %>
+                        <div class="status-icon connected">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="status-info">
+                            <h3>WhatsApp Bağlı</h3>
+                            <p>Mesaj gönderimi aktif. Otomatik mesajlar çalışıyor.</p>
+                        </div>
+                        <span class="status-badge connected">
+                            <i class="fas fa-circle"></i> Aktif
+                        </span>
+                    <% } else if (device) { %>
+                        <div class="status-icon disconnected">
+                            <i class="fas fa-unlink"></i>
+                        </div>
+                        <div class="status-info">
+                            <h3>Bağlantı Kesildi</h3>
+                            <p>WhatsApp bağlantısı kopmuş. Yeniden bağlanın.</p>
+                        </div>
+                        <span class="status-badge disconnected">
+                            <i class="fas fa-circle"></i> Bağlı Değil
+                        </span>
+                    <% } else { %>
+                        <div class="status-icon no-device">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="status-info">
+                            <h3>Cihaz Tanımlı Değil</h3>
+                            <p>WhatsApp kullanmak için önce cihaz ekleyin.</p>
+                        </div>
+                    <% } %>
+                </div>
+
+                <!-- CİHAZ KARTI VEYA BOŞ DURUM -->
+                <% if (device) { %>
+                    <div class="device-card <%= device.status === 'connected' ? 'connected' : '' %>">
+                        <div class="device-header">
+                            <div class="device-avatar">
+                                <i class="fab fa-whatsapp"></i>
+                            </div>
+                            <div>
+                                <div class="device-name"><%= device.name %></div>
+                                <div class="device-phone">+<%= device.phone %></div>
+                            </div>
+                            <div class="device-status <%= device.status === 'connected' ? 'online' : 'offline' %>">
+                                <i class="fas fa-circle"></i>
+                                <%= device.status === 'connected' ? 'Bağlı' : 'Bağlı Değil' %>
+                            </div>
+                        </div>
+                        
+                        <div class="device-actions">
+                            <% if (device.status === 'connected') { %>
+                                <button class="btn btn-outline-danger btn-sm" onclick="logoutDevice('<%= device.token %>')">
+                                    <i class="fas fa-power-off"></i> Bağlantıyı Kes
+                                </button>
+                            <% } else { %>
+                                <button class="btn btn-wa btn-sm" onclick="connectDevice('<%= device.token %>', 'qr')">
+                                    <i class="fas fa-qrcode"></i> QR Kod ile Bağla
+                                </button>
+                                <button class="btn btn-outline-wa btn-sm" onclick="connectDevice('<%= device.token %>', 'code')">
+                                    <i class="fas fa-keyboard"></i> Kod ile Bağla
+                                </button>
+                            <% } %>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteDevice('<%= device.token %>')">
+                                <i class="fas fa-trash"></i> Cihazı Sil
+                            </button>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <h3>Henüz Cihaz Eklenmemiş</h3>
+                        <p>WhatsApp mesajlarını kullanabilmek için bir cihaz tanımlayın.</p>
+                        <button class="btn btn-wa" onclick="openModal('addDeviceModal')">
+                            <i class="fas fa-plus"></i> Cihaz Ekle
+                        </button>
+                    </div>
+                <% } %>
+
+            <% } %>
+
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/whatsapp/qr" class="nav-item active">
+            <i class="fab fa-whatsapp"></i>
+            <span>WhatsApp</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <!-- CİHAZ EKLEME MODAL -->
+    <div class="modal" id="addDeviceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fab fa-whatsapp" style="color: var(--wa-green);"></i> Yeni Cihaz Ekle</h3>
+                <button class="modal-close" onclick="closeModal('addDeviceModal')">&times;</button>
+            </div>
+            <form id="addDeviceForm" onsubmit="addDevice(event)">
+                <div class="modal-body">
+                    <input type="hidden" name="sube_id" id="subeIdInput" value="<%= typeof secilenSubeId !== 'undefined' ? secilenSubeId : '' %>">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Cihaz Adı</label>
+                        <input type="text" name="name" class="form-input" placeholder="Örn: Ana WhatsApp" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Telefon Numarası</label>
+                        <input type="text" name="phone" id="phoneInput" class="form-input" placeholder="905551234567" maxlength="12" required>
+                        <div class="form-hint">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Dikkat:</strong> Numara <strong>90</strong> ile başlamalıdır.<br>
+                            Örnek: <strong>905551234567</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-wa" onclick="closeModal('addDeviceModal')">İptal</button>
+                    <button type="submit" class="btn btn-wa">
+                        <i class="fas fa-plus"></i> Ekle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR BAĞLANTI MODAL -->
+    <div class="modal" id="connectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fab fa-whatsapp" style="color: var(--wa-green);"></i> WhatsApp Bağlantısı</h3>
+                <button class="modal-close" onclick="stopConnection()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="qr-container" id="qrContainer">
+                    <div class="qr-loading">
+                        <div class="spinner"></div>
+                        <p style="color: var(--gray-text);">Bağlantı hazırlanıyor...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // ==================== TEMA YÖNETİMİ ====================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // ==================== WHATSAPP FONKSİYONLARI ====================
+        let pollTimer = null;
+        const currentSubeId = '<%= typeof secilenSubeId !== "undefined" ? secilenSubeId : "" %>';
+
+        function changeSubee(subeId) {
+            window.location.href = '/api/whatsapp/qr?sube_id=' + subeId;
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toast.className = 'toast show ' + type;
+            toastMsg.textContent = message;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function validatePhone(phone) {
+            phone = phone.replace(/[^0-9]/g, '');
+            if (!phone.startsWith('90')) {
+                showToast('Telefon numarası 90 ile başlamalıdır!', 'error');
+                return false;
+            }
+            if (phone.length < 12) {
+                showToast('Telefon numarası 12 haneli olmalıdır!', 'error');
+                return false;
+            }
+            return phone;
+        }
+
+        async function addDevice(e) {
+            e.preventDefault();
+            const form = e.target;
+            const name = form.name.value.trim();
+            let phone = form.phone.value.trim();
+            const sube_id = form.sube_id.value;
+
+            phone = validatePhone(phone);
+            if (!phone) return;
+
+            try {
+                const res = await fetch('/api/whatsapp/device/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, sube_id })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('Cihaz başarıyla eklendi!');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    let errorMsg = data.message || 'Hata oluştu';
+                    if (data.debug) {
+                        console.error('API Debug:', data.debug);
+                        errorMsg += ` (Kod: ${data.debug.code || data.debug.status || 'bilinmeyen'})`;
+                    }
+                    showToast(errorMsg, 'error');
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
+                showToast('Bağlantı hatası: ' + err.message, 'error');
+            }
+        }
+
+        let isQRRequestInProgress = false;
+
+        async function connectDevice(token, method) {
+            openModal('connectModal');
+            const container = document.getElementById('qrContainer');
+            container.innerHTML = `
+                <div class="qr-loading">
+                    <div class="spinner"></div>
+                    <p style="color: var(--gray-text);">Sunucudan ${method === 'qr' ? 'QR kod' : 'eşleştirme kodu'} alınıyor...</p>
+                </div>
+            `;
+
+            try {
+                await fetch('/api/whatsapp/device/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, method })
+                });
+
+                let attempts = 0;
+                pollTimer = setInterval(async () => {
+                    if (isQRRequestInProgress) {
+                        console.log('⏭️ İstek devam ediyor, atlanıyor...');
+                        return;
+                    }
+
+                    attempts++;
+                    if (attempts > 60) {
+                        clearInterval(pollTimer);
+                        container.innerHTML = `
+                            <div style="color: var(--orange); padding: 40px; text-align: center;">
+                                <i class="fas fa-clock" style="font-size: 50px; margin-bottom: 15px;"></i>
+                                <h4>Zaman Aşımı</h4>
+                                <p>Lütfen tekrar deneyin</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    isQRRequestInProgress = true;
+
+                    try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+                        const res = await fetch(`/api/whatsapp/device/status?token=${token}`, {
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
+
+                        const data = await res.json();
+
+                        if (data.success && data.data) {
+                            const d = data.data;
+
+                            if (d.status === 'connected') {
+                                clearInterval(pollTimer);
+                                container.innerHTML = `
+                                    <div class="qr-success">
+                                        <i class="fas fa-check-circle"></i>
+                                        <h3 style="color: var(--wa-dark);">Başarıyla Bağlandı!</h3>
+                                        <p style="color: var(--gray-text);">WhatsApp hesabınız aktif.</p>
+                                    </div>
+                                `;
+                                
+                                await fetch('/api/whatsapp/device/update-status', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ token, status: 'connected', sube_id: currentSubeId })
+                                });
+
+                                setTimeout(() => location.reload(), 2000);
+                            }
+                            else if (method === 'qr' && d.qr_code) {
+                                container.innerHTML = `
+                                    <div class="qr-image">
+                                        <img src="data:image/png;base64,${d.qr_code}" alt="QR Code">
+                                    </div>
+                                    <div class="qr-instructions">
+                                        <h4><i class="fab fa-whatsapp" style="color: var(--wa-green);"></i> Nasıl Bağlanılır?</h4>
+                                        <ol>
+                                            <li>Telefonunuzda <strong>WhatsApp</strong>'ı açın</li>
+                                            <li><strong>Ayarlar → Bağlı Cihazlar</strong>'a gidin</li>
+                                            <li><strong>Cihaz Bağla</strong>'ya dokunun</li>
+                                            <li>QR kodu okutun</li>
+                                        </ol>
+                                    </div>
+                                `;
+                            }
+                            else if (method === 'code' && d.pairing_code) {
+                                let code = d.pairing_code;
+                                if (code.length === 8) code = code.slice(0,4) + '-' + code.slice(4);
+                                
+                                container.innerHTML = `
+                                    <h4 style="margin-bottom: 10px;">Eşleştirme Kodu</h4>
+                                    <div class="pairing-code">${code}</div>
+                                    <div class="qr-instructions">
+                                        <h4><i class="fab fa-whatsapp" style="color: var(--wa-green);"></i> Nasıl Bağlanılır?</h4>
+                                        <ol>
+                                            <li>Telefonunuzda <strong>WhatsApp</strong>'ı açın</li>
+                                            <li><strong>Ayarlar → Bağlı Cihazlar</strong>'a gidin</li>
+                                            <li><strong>Cihaz Bağla → Telefon Numarası ile Bağla</strong>'ya dokunun</li>
+                                            <li>Yukarıdaki kodu girin</li>
+                                        </ol>
+                                    </div>
+                                `;
+                            }
+                        }
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.error('Polling error:', err.name);
+                        }
+                    } finally {
+                        isQRRequestInProgress = false;
+                    }
+                }, 3000);
+
+            } catch (err) {
+                container.innerHTML = `
+                    <div style="color: var(--red); padding: 40px;">
+                        <i class="fas fa-times-circle" style="font-size: 50px; margin-bottom: 15px;"></i>
+                        <h4>Bağlantı Hatası</h4>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function stopConnection() {
+            if (pollTimer) clearInterval(pollTimer);
+            isQRRequestInProgress = false;
+            closeModal('connectModal');
+        }
+
+        async function logoutDevice(token) {
+            if (!confirm('WhatsApp bağlantısını kesmek istediğinize emin misiniz?')) return;
+
+            try {
+                await fetch('/api/whatsapp/device/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+
+                await fetch('/api/whatsapp/device/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, status: 'disconnected', sube_id: currentSubeId })
+                });
+
+                showToast('Bağlantı kesildi');
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) {
+                showToast('Hata oluştu!', 'error');
+            }
+        }
+
+        async function deleteDevice(token) {
+            if (!confirm('Bu cihazı silmek istediğinize emin misiniz?\n\nBu işlem mesaj gönderimini durduracaktır.')) return;
+
+            try {
+                const res = await fetch('/api/whatsapp/device/delete', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('Cihaz silindi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası!', 'error');
+            }
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success')) {
+            showToast(decodeURIComponent(urlParams.get('success')));
+        }
+        if (urlParams.get('error')) {
+            showToast(decodeURIComponent(urlParams.get('error')), 'error');
+        }
+    </script>
+</body>
+</html>

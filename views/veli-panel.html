@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi || 'netSPOR' %> - Veli Paneli</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="<%= siteAyarlari.ana_renk || '#6366f1' %>">
+    <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_192 || 'logo-192.png' %>">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-light: #818cf8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light: #f8fafc;
+            --card-radius: 20px;
+            --nav-height: 70px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + 20px);
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            padding: 20px;
+            padding-top: max(env(safe-area-inset-top), 20px);
+            border-radius: 0 0 30px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.5;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: white;
+            padding: 5px;
+        }
+
+        .header-logo span {
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .btn-logout {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* PROFILE CARD */
+        .profile-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid white;
+            object-fit: cover;
+            background: white;
+        }
+
+        .profile-info {
+            flex: 1;
+            color: white;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .profile-details {
+            font-size: 13px;
+            opacity: 0.9;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .profile-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 20px;
+            margin-top: -20px;
+        }
+
+        /* STATS GRID */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .stat-card.success::before { background: var(--success); }
+        .stat-card.warning::before { background: var(--warning); }
+        .stat-card.danger::before { background: var(--danger); }
+        .stat-card.primary::before { background: var(--primary); }
+
+        .stat-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card.success .stat-icon { background: #dcfce7; color: var(--success); }
+        .stat-card.warning .stat-icon { background: #fef3c7; color: var(--warning); }
+        .stat-card.danger .stat-icon { background: #fee2e2; color: var(--danger); }
+        .stat-card.primary .stat-icon { background: #e0e7ff; color: var(--primary); }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        /* SECTION */
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .section-link {
+            font-size: 12px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* CARD */
+        .card {
+            background: white;
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* TODAY SCHEDULE */
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        .schedule-time {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .schedule-info h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+
+        .schedule-info p {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        /* ATTENDANCE SUMMARY */
+        .attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .attendance-item {
+            text-align: center;
+            padding: 15px 10px;
+            border-radius: 16px;
+        }
+
+        .attendance-item.present { background: #dcfce7; }
+        .attendance-item.absent { background: #fee2e2; }
+        .attendance-item.excused { background: #fef3c7; }
+
+        .attendance-item .value {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .attendance-item.present .value { color: var(--success); }
+        .attendance-item.absent .value { color: var(--danger); }
+        .attendance-item.excused .value { color: var(--warning); }
+
+        .attendance-item .label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gray);
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        /* ANALYSIS CARD */
+        .analysis-score {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+            border-radius: 16px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .analysis-score .score {
+            font-size: 48px;
+            font-weight: 800;
+        }
+
+        .analysis-score .max {
+            font-size: 18px;
+            opacity: 0.7;
+        }
+
+        .analysis-score .label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .analysis-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .analysis-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .analysis-bar-label {
+            width: 70px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+        }
+
+        .analysis-bar {
+            flex: 1;
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .analysis-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--primary);
+            transition: width 0.5s ease;
+        }
+
+        .analysis-bar-value {
+            width: 30px;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        /* PACKAGE CARD */
+        .package-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .package-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .package-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .package-status.active {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .package-progress {
+            margin-bottom: 10px;
+        }
+
+        .package-progress-bar {
+            height: 10px;
+            background: #f1f5f9;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .package-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, #4ade80 100%);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .package-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .package-details span {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            opacity: 0.3;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: white;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 15px;
+            border-radius: 16px;
+            color: var(--gray);
+            text-decoration: none;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: #e0e7ff;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+        }
+
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* TABS CONTENT */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* LIST ITEM */
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .list-info {
+            flex: 1;
+        }
+
+        .list-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 3px;
+        }
+
+        .list-subtitle {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .list-badge {
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-success { background: #dcfce7; color: var(--success); }
+        .badge-warning { background: #fef3c7; color: var(--warning); }
+        .badge-danger { background: #fee2e2; color: var(--danger); }
+        .badge-primary { background: #e0e7ff; color: var(--primary); }
+
+        /* MONTH SELECTOR */
+        .month-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .month-selector button {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            color: var(--gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .month-selector button:hover {
+            background: #e2e8f0;
+        }
+
+        .month-selector span {
+            font-size: 15px;
+            font-weight: 700;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* AIDAT TABLE */
+        .aidat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .aidat-month {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .aidat-amount {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .aidat-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        /* LOADING */
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading i {
+            font-size: 30px;
+            color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: calc(var(--nav-height) + 20px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--dark);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            display: none;
+        }
+
+        .toast.show { display: block; animation: fadeIn 0.3s ease; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+    <div class="header-bg-pattern"></div>
+    <div class="header-content">
+        <div class="header-top">
+            <div class="header-logo">
+                <% if (siteAyarlari.logo_192) { %>
+                    <img src="/uploads/<%= siteAyarlari.logo_192 %>" alt="Logo">
+                <% } %>
+                <span><%= siteAyarlari.tesis_adi || 'netSPOR' %></span>
+            </div>
+            <a href="/veli/cikis" class="btn-logout" title="Çıkış">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+        </div>
+
+        <div class="profile-card">
+            <img src="/images/students/<%= ogrenci.profil_foto || '1.png' %>" class="profile-avatar" onerror="this.src='/images/1.png'">
+            <div class="profile-info">
+                <div class="profile-name"><%= ogrenci.ad_soyad %></div>
+                <div class="profile-details">
+                    <% if (ogrenci.brans_adi) { %>
+                        <span class="profile-badge"><i class="fa-solid fa-running"></i> <%= ogrenci.brans_adi %></span>
+                    <% } %>
+                    <% if (ogrenci.yas) { %>
+                        <span class="profile-badge"><%= ogrenci.yas %> yaş</span>
+                    <% } %>
+                    <% if (ogrenci.grup_adi) { %>
+                        <span class="profile-badge"><%= ogrenci.grup_adi %></span>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+    
+    <!-- TAB: Ana Sayfa -->
+    <div id="tabHome" class="tab-content active">
+        
+        <!-- STATS -->
+        <div class="stats-grid">
+            <div class="stat-card <%= toplamBorc > 0 ? 'danger' : 'success' %>">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <div class="stat-value"><%= toplamBorc > 0 ? toplamBorc.toLocaleString('tr-TR') : '0' %>₺</div>
+                <div class="stat-label"><%= toplamBorc > 0 ? 'Toplam Borç' : 'Borç Yok' %></div>
+            </div>
+
+            <div class="stat-card primary">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div class="stat-value"><%= yoklamaOzet.katildi || 0 %>/<%= yoklamaOzet.toplam || 0 %></div>
+                <div class="stat-label">Bu Ay Katılım</div>
+            </div>
+
+            <% if (sonAnaliz) { %>
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="stat-value"><%= parseFloat(sonAnaliz.genel_puan).toFixed(1) %></div>
+                <div class="stat-label">Genel Puan</div>
+            </div>
+            <% } else { %>
+            <div class="stat-card warning">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="stat-value">-</div>
+                <div class="stat-label">Analiz Yok</div>
+            </div>
+            <% } %>
+
+            <% if (ozelDersPaket) { %>
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="stat-value"><%= ozelDersPaket.kalan_saat %></div>
+                <div class="stat-label">Kalan Saat</div>
+            </div>
+            <% } else { %>
+            <div class="stat-card success">
+                <div class="stat-icon">
+                    <i class="fa-solid fa-check-circle"></i>
+                </div>
+                <div class="stat-value"><%= ogrenci.durum === 'aktif' ? 'Aktif' : ogrenci.durum %></div>
+                <div class="stat-label">Kayıt Durumu</div>
+            </div>
+            <% } %>
+        </div>
+
+        <!-- BUGÜNKÜ DERSLER -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-calendar-day"></i> Bugün - <%= bugun %></h3>
+            </div>
+            <div class="card">
+                <% if (bugunDersler && bugunDersler.length > 0) { %>
+                    <% bugunDersler.forEach(ders => { %>
+                        <div class="schedule-item">
+                            <div class="schedule-time">
+                                <%= ders.baslangic_saati ? ders.baslangic_saati.toString().slice(0,5) : '' %>
+                            </div>
+                            <div class="schedule-info">
+                                <h4><%= ders.brans_adi %></h4>
+                                <p><%= ders.grup_adi %></p>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="empty-state">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                        <p>Bugün ders yok</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- YOKLAMA ÖZETİ -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-chart-pie"></i> Bu Ay Yoklama</h3>
+            </div>
+            <div class="card">
+                <div class="attendance-grid">
+                    <div class="attendance-item present">
+                        <div class="value"><%= yoklamaOzet.katildi || 0 %></div>
+                        <div class="label">Katıldı</div>
+                    </div>
+                    <div class="attendance-item absent">
+                        <div class="value"><%= yoklamaOzet.katilmadi || 0 %></div>
+                        <div class="label">Katılmadı</div>
+                    </div>
+                    <div class="attendance-item excused">
+                        <div class="value"><%= yoklamaOzet.izinli || 0 %></div>
+                        <div class="label">İzinli</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SON ANALİZ -->
+        <% if (sonAnaliz) { %>
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-chart-line"></i> Son Performans Analizi</h3>
+            </div>
+            <div class="card">
+                <div class="analysis-score">
+                    <div class="score"><%= parseFloat(sonAnaliz.genel_puan).toFixed(1) %><span class="max">/10</span></div>
+                    <div class="label"><%= sonAnaliz.brans %> - <%= new Date(sonAnaliz.analiz_tarihi).toLocaleDateString('tr-TR') %></div>
+                </div>
+                <div class="analysis-bars">
+                    <div class="analysis-bar-item">
+                        <span class="analysis-bar-label">Teknik</span>
+                        <div class="analysis-bar">
+                            <div class="analysis-bar-fill" style="width: <%= sonAnaliz.teknik_puan * 10 %>%"></div>
+                        </div>
+                        <span class="analysis-bar-value"><%= sonAnaliz.teknik_puan %></span>
+                    </div>
+                    <div class="analysis-bar-item">
+                        <span class="analysis-bar-label">Fiziksel</span>
+                        <div class="analysis-bar">
+                            <div class="analysis-bar-fill" style="width: <%= sonAnaliz.fiziksel_puan * 10 %>%"></div>
+                        </div>
+                        <span class="analysis-bar-value"><%= sonAnaliz.fiziksel_puan %></span>
+                    </div>
+                    <div class="analysis-bar-item">
+                        <span class="analysis-bar-label">Taktik</span>
+                        <div class="analysis-bar">
+                            <div class="analysis-bar-fill" style="width: <%= sonAnaliz.taktik_puan * 10 %>%"></div>
+                        </div>
+                        <span class="analysis-bar-value"><%= sonAnaliz.taktik_puan %></span>
+                    </div>
+                    <div class="analysis-bar-item">
+                        <span class="analysis-bar-label">Mental</span>
+                        <div class="analysis-bar">
+                            <div class="analysis-bar-fill" style="width: <%= sonAnaliz.mental_puan * 10 %>%"></div>
+                        </div>
+                        <span class="analysis-bar-value"><%= sonAnaliz.mental_puan %></span>
+                    </div>
+                    <div class="analysis-bar-item">
+                        <span class="analysis-bar-label">Disiplin</span>
+                        <div class="analysis-bar">
+                            <div class="analysis-bar-fill" style="width: <%= sonAnaliz.disiplin_puan * 10 %>%"></div>
+                        </div>
+                        <span class="analysis-bar-value"><%= sonAnaliz.disiplin_puan %></span>
+                    </div>
+                    <div class="analysis-bar-item">
+                        <span class="analysis-bar-label">Takım</span>
+                        <div class="analysis-bar">
+                            <div class="analysis-bar-fill" style="width: <%= sonAnaliz.takim_puan * 10 %>%"></div>
+                        </div>
+                        <span class="analysis-bar-value"><%= sonAnaliz.takim_puan %></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- ÖZEL DERS PAKETİ -->
+        <% if (ozelDersPaket) { %>
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-user-clock"></i> Özel Ders Paketi</h3>
+            </div>
+            <div class="card">
+                <div class="package-info">
+                    <span class="package-name"><%= ozelDersPaket.paket_adi || 'Özel Ders Paketi' %></span>
+                    <span class="package-status active">Aktif</span>
+                </div>
+                <div class="package-progress">
+                    <div class="package-progress-bar">
+                        <div class="package-progress-fill" style="width: <%= (ozelDersPaket.kullanilan_saat / ozelDersPaket.toplam_saat) * 100 %>%"></div>
+                    </div>
+                </div>
+                <div class="package-details">
+                    <div>Kullanılan: <span><%= ozelDersPaket.kullanilan_saat %> saat</span></div>
+                    <div>Kalan: <span><%= ozelDersPaket.kalan_saat %> saat</span></div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+
+    </div>
+
+    <!-- TAB: Yoklama -->
+    <div id="tabAttendance" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Yoklama Geçmişi</h3>
+            </div>
+            <div class="card">
+                <div id="yoklamaListesi">
+                    <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Aidatlar -->
+    <div id="tabPayments" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-receipt"></i> Aidat Durumu</h3>
+            </div>
+            <div class="card">
+                <div id="aidatListesi">
+                    <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Analizler -->
+    <div id="tabAnalysis" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-chart-bar"></i> Performans Analizleri</h3>
+            </div>
+            <div id="analizListesi">
+                <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Program -->
+    <div id="tabSchedule" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-calendar-week"></i> Haftalık Ders Programı</h3>
+            </div>
+            <div class="card">
+                <div id="dersProgrami">
+                    <div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <div class="nav-item active" data-tab="tabHome">
+        <i class="fa-solid fa-house"></i>
+        <span>Ana Sayfa</span>
+    </div>
+    <div class="nav-item" data-tab="tabAttendance">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <span>Yoklama</span>
+    </div>
+    <div class="nav-item" data-tab="tabPayments">
+        <i class="fa-solid fa-wallet"></i>
+        <span>Aidatlar</span>
+    </div>
+    <div class="nav-item" data-tab="tabAnalysis">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Analizler</span>
+    </div>
+    <div class="nav-item" data-tab="tabSchedule">
+        <i class="fa-solid fa-calendar"></i>
+        <span>Program</span>
+    </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const aylar = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    const gunler = { 'Pazartesi': 'Pazartesi', 'Sali': 'Salı', 'Carsamba': 'Çarşamba', 'Persembe': 'Perşembe', 'Cuma': 'Cuma', 'Cumartesi': 'Cumartesi', 'Pazar': 'Pazar' };
+
+    // Tab Değiştirme
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const tabId = this.dataset.tab;
+            
+            // Nav itemları güncelle
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Tab içeriklerini güncelle
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // İlk açılışta veri yükle
+            if (tabId === 'tabAttendance' && !yoklamaYuklendi) loadYoklama();
+            if (tabId === 'tabPayments' && !aidatYuklendi) loadAidatlar();
+            if (tabId === 'tabAnalysis' && !analizYuklendi) loadAnalizler();
+            if (tabId === 'tabSchedule' && !programYuklendi) loadDersProgram();
+        });
+    });
+
+    let yoklamaYuklendi = false;
+    let aidatYuklendi = false;
+    let analizYuklendi = false;
+    let programYuklendi = false;
+
+    // Yoklama Yükle
+    async function loadYoklama() {
+        try {
+            const res = await fetch('/veli/api/yoklama');
+            const data = await res.json();
+            
+            if (data.success && data.yoklamalar.length > 0) {
+                let html = `
+                    <div class="attendance-grid" style="margin-bottom: 15px;">
+                        <div class="attendance-item present">
+                            <div class="value">${data.ozet.katildi}</div>
+                            <div class="label">Katıldı</div>
+                        </div>
+                        <div class="attendance-item absent">
+                            <div class="value">${data.ozet.katilmadi}</div>
+                            <div class="label">Katılmadı</div>
+                        </div>
+                        <div class="attendance-item excused">
+                            <div class="value">${data.ozet.izinli}</div>
+                            <div class="label">İzinli</div>
+                        </div>
+                    </div>
+                `;
+                
+                data.yoklamalar.forEach(y => {
+                    const tarih = new Date(y.tarih).toLocaleDateString('tr-TR');
+                    const durumClass = y.durum === 'katildi' ? 'badge-success' : (y.durum === 'katilmadi' ? 'badge-danger' : 'badge-warning');
+                    const durumText = y.durum === 'katildi' ? 'Katıldı' : (y.durum === 'katilmadi' ? 'Katılmadı' : 'İzinli');
+                    
+                    html += `
+                        <div class="list-item">
+                            <div class="list-icon" style="background: #e0e7ff; color: var(--primary);">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <div class="list-info">
+                                <div class="list-title">${y.brans_adi}</div>
+                                <div class="list-subtitle">${tarih} - ${y.grup_adi}</div>
+                            </div>
+                            <span class="list-badge ${durumClass}">${durumText}</span>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('yoklamaListesi').innerHTML = html;
+            } else {
+                document.getElementById('yoklamaListesi').innerHTML = '<div class="empty-state"><i class="fa-solid fa-clipboard"></i><p>Bu ay yoklama kaydı yok</p></div>';
+            }
+            
+            yoklamaYuklendi = true;
+        } catch (error) {
+            document.getElementById('yoklamaListesi').innerHTML = '<div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata oluştu</p></div>';
+        }
+    }
+
+    // Aidatlar Yükle
+    async function loadAidatlar() {
+        try {
+            const res = await fetch('/veli/api/aidatlar');
+            const data = await res.json();
+            
+            if (data.success && data.aidatlar.length > 0) {
+                let html = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; padding: 15px; background: linear-gradient(135deg, var(--primary), #4f46e5); border-radius: 16px; color: white;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 11px; opacity: 0.8;">TOPLAM BORÇ</div>
+                            <div style="font-size: 20px; font-weight: 800;">${data.ozet.toplamBorc.toLocaleString('tr-TR')}₺</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 11px; opacity: 0.8;">ÖDENEN</div>
+                            <div style="font-size: 20px; font-weight: 800;">${data.ozet.toplamOdenen.toLocaleString('tr-TR')}₺</div>
+                        </div>
+                    </div>
+                `;
+                
+                data.aidatlar.forEach(a => {
+                    const durumClass = a.durum === 'tamamlandi' ? 'badge-success' : (a.durum === 'kismi_odendi' ? 'badge-warning' : 'badge-danger');
+                    const durumText = a.durum === 'tamamlandi' ? 'Ödendi' : (a.durum === 'kismi_odendi' ? 'Kısmi' : 'Ödenmedi');
+                    
+                    html += `
+                        <div class="aidat-row">
+                            <div>
+                                <div class="aidat-month">${aylar[a.ay]} ${a.yil}</div>
+                                <div class="aidat-amount">${parseFloat(a.odenmesi_gereken).toLocaleString('tr-TR')}₺</div>
+                            </div>
+                            <span class="aidat-status ${durumClass}">${durumText}</span>
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('aidatListesi').innerHTML = html;
+            } else {
+                document.getElementById('aidatListesi').innerHTML = '<div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Aidat kaydı bulunamadı</p></div>';
+            }
+            
+            aidatYuklendi = true;
+        } catch (error) {
+            document.getElementById('aidatListesi').innerHTML = '<div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata oluştu</p></div>';
+        }
+    }
+
+    // Analizler Yükle
+    async function loadAnalizler() {
+        try {
+            const res = await fetch('/veli/api/analizler');
+            const data = await res.json();
+            
+            if (data.success && data.analizler.length > 0) {
+                let html = '';
+                
+                data.analizler.forEach(a => {
+                    const tarih = new Date(a.analiz_tarihi).toLocaleDateString('tr-TR');
+                    
+                    html += `
+                        <div class="card" style="margin-bottom: 15px;">
+                            <div class="analysis-score">
+                                <div class="score">${parseFloat(a.genel_puan).toFixed(1)}<span class="max">/10</span></div>
+                                <div class="label">${a.brans} - ${tarih}</div>
+                            </div>
+                            <div class="analysis-bars">
+                                <div class="analysis-bar-item">
+                                    <span class="analysis-bar-label">Teknik</span>
+                                    <div class="analysis-bar"><div class="analysis-bar-fill" style="width: ${a.teknik_puan * 10}%"></div></div>
+                                    <span class="analysis-bar-value">${a.teknik_puan}</span>
+                                </div>
+                                <div class="analysis-bar-item">
+                                    <span class="analysis-bar-label">Fiziksel</span>
+                                    <div class="analysis-bar"><div class="analysis-bar-fill" style="width: ${a.fiziksel_puan * 10}%"></div></div>
+                                    <span class="analysis-bar-value">${a.fiziksel_puan}</span>
+                                </div>
+                                <div class="analysis-bar-item">
+                                    <span class="analysis-bar-label">Taktik</span>
+                                    <div class="analysis-bar"><div class="analysis-bar-fill" style="width: ${a.taktik_puan * 10}%"></div></div>
+                                    <span class="analysis-bar-value">${a.taktik_puan}</span>
+                                </div>
+                                <div class="analysis-bar-item">
+                                    <span class="analysis-bar-label">Mental</span>
+                                    <div class="analysis-bar"><div class="analysis-bar-fill" style="width: ${a.mental_puan * 10}%"></div></div>
+                                    <span class="analysis-bar-value">${a.mental_puan}</span>
+                                </div>
+                                <div class="analysis-bar-item">
+                                    <span class="analysis-bar-label">Disiplin</span>
+                                    <div class="analysis-bar"><div class="analysis-bar-fill" style="width: ${a.disiplin_puan * 10}%"></div></div>
+                                    <span class="analysis-bar-value">${a.disiplin_puan}</span>
+                                </div>
+                                <div class="analysis-bar-item">
+                                    <span class="analysis-bar-label">Takım</span>
+                                    <div class="analysis-bar"><div class="analysis-bar-fill" style="width: ${a.takim_puan * 10}%"></div></div>
+                                    <span class="analysis-bar-value">${a.takim_puan}</span>
+                                </div>
+                            </div>
+                            ${a.genel_degerlendirme ? `<div style="margin-top: 15px; padding: 12px; background: #f8fafc; border-radius: 10px; font-size: 13px; color: var(--gray);">${a.genel_degerlendirme}</div>` : ''}
+                        </div>
+                    `;
+                });
+                
+                document.getElementById('analizListesi').innerHTML = html;
+            } else {
+                document.getElementById('analizListesi').innerHTML = '<div class="card"><div class="empty-state"><i class="fa-solid fa-chart-line"></i><p>Henüz analiz yapılmamış</p></div></div>';
+            }
+            
+            analizYuklendi = true;
+        } catch (error) {
+            document.getElementById('analizListesi').innerHTML = '<div class="card"><div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata oluştu</p></div></div>';
+        }
+    }
+
+    // Ders Programı Yükle
+    async function loadDersProgram() {
+        try {
+            const res = await fetch('/veli/api/ders-programi');
+            const data = await res.json();
+            
+            if (data.success && data.dersler.length > 0) {
+                let html = '';
+                let currentDay = '';
+                
+                data.dersler.forEach(d => {
+                    const gunAdi = gunler[d.gun] || d.gun;
+                    
+                    if (currentDay !== d.gun) {
+                        if (currentDay !== '') html += '</div>';
+                        html += `<div style="margin-bottom: 15px;"><div style="font-size: 13px; font-weight: 700; color: var(--primary); margin-bottom: 10px; padding: 8px 12px; background: #e0e7ff; border-radius: 8px; display: inline-block;">${gunAdi}</div>`;
+                        currentDay = d.gun;
+                    }
+                    
+                    const baslangic = d.baslangic_saati ? d.baslangic_saati.toString().slice(0,5) : '';
+                    const bitis = d.bitis_saati ? d.bitis_saati.toString().slice(0,5) : '';
+                    
+                    html += `
+                        <div class="schedule-item">
+                            <div class="schedule-time">${baslangic}</div>
+                            <div class="schedule-info">
+                                <h4>${d.brans_adi}</h4>
+                                <p>${d.grup_adi} • ${bitis}'e kadar</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                document.getElementById('dersProgrami').innerHTML = html;
+            } else {
+                document.getElementById('dersProgrami').innerHTML = '<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>Ders programı bulunamadı</p></div>';
+            }
+            
+            programYuklendi = true;
+        } catch (error) {
+            document.getElementById('dersProgrami').innerHTML = '<div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata oluştu</p></div>';
+        }
+    }
+
+    // Toast Göster
+    function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('SW hatası:', err));
+    }
+</script>
+
+</body>
+</html>

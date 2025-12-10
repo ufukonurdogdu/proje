@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= ogrenci.ad_soyad %> - <%= siteAyarlari.tesis_adi || 'netSPOR' %></title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_192 || 'logo-192.png' %>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --nav-height: 70px;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            --header-bg: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --header-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+        }
+
+        * { 
+            margin: 0; padding: 0; box-sizing: border-box; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding-bottom: calc(var(--nav-height) + 30px);
+            overflow-x: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .app-header {
+            background: var(--header-bg);
+            min-height: 200px;
+            padding: 20px;
+            padding-top: max(env(safe-area-inset-top), 20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-pattern {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%);
+        }
+
+        .header-content { position: relative; z-index: 2; }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .header-brand img {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: white;
+            padding: 4px;
+        }
+
+        .header-brand span { font-weight: 700; font-size: 15px; }
+
+        .header-actions { display: flex; gap: 8px; }
+
+        .btn-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            text-decoration: none;
+            position: relative;
+        }
+
+        .btn-icon:hover { background: rgba(255,255,255,0.25); }
+
+        .btn-icon.active { background: rgba(255,255,255,0.35); }
+
+        .btn-icon .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-avatar {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.8);
+            object-fit: cover;
+            background: white;
+        }
+
+        .profile-info { color: white; flex: 1; }
+
+        .profile-name {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            letter-spacing: -0.5px;
+        }
+
+        .profile-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .profile-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Refresh indicator */
+        .refresh-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .refresh-indicator.active {
+            opacity: 1;
+            animation: pulse 1s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+        }
+
+        .main-content {
+            padding: 0 15px;
+            margin-top: -30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        .stat-card.updated {
+            animation: cardPulse 0.5s ease;
+        }
+
+        @keyframes cardPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .stat-card.primary::after { background: var(--primary); }
+        .stat-card.success::after { background: var(--success); }
+        .stat-card.warning::after { background: var(--warning); }
+        .stat-card.danger::after { background: var(--danger); }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        [data-theme="light"] .stat-card.primary .stat-icon { background: #eef2ff; color: var(--primary); }
+        [data-theme="light"] .stat-card.success .stat-icon { background: #dcfce7; color: var(--success); }
+        [data-theme="light"] .stat-card.warning .stat-icon { background: #fef3c7; color: var(--warning); }
+        [data-theme="light"] .stat-card.danger .stat-icon { background: #fee2e2; color: var(--danger); }
+
+        [data-theme="dark"] .stat-card.primary .stat-icon { background: rgba(99,102,241,0.2); color: var(--primary-light); }
+        [data-theme="dark"] .stat-card.success .stat-icon { background: rgba(34,197,94,0.2); color: #4ade80; }
+        [data-theme="dark"] .stat-card.warning .stat-icon { background: rgba(245,158,11,0.2); color: #fbbf24; }
+        [data-theme="dark"] .stat-card.danger .stat-icon { background: rgba(239,68,68,0.2); color: #f87171; }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section { margin-bottom: 20px; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i { color: var(--primary); font-size: 14px; }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--card-shadow);
+            transition: background 0.3s;
+        }
+
+        .schedule-empty {
+            text-align: center;
+            padding: 25px;
+            color: var(--text-muted);
+        }
+
+        .schedule-empty i {
+            font-size: 35px;
+            opacity: 0.3;
+            margin-bottom: 10px;
+        }
+
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .schedule-item:last-child { border-bottom: none; }
+
+        .schedule-time {
+            background: var(--primary);
+            color: white;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 55px;
+            text-align: center;
+        }
+
+        .schedule-info h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .schedule-info p { font-size: 12px; color: var(--text-secondary); }
+
+        .attendance-visual {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .attendance-bar {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+            overflow: hidden;
+        }
+
+        .attendance-bar .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .attendance-bar.success .fill { background: var(--success); }
+        .attendance-bar.danger .fill { background: var(--danger); }
+        .attendance-bar.warning .fill { background: var(--warning); }
+
+        .attendance-legend { display: flex; justify-content: space-around; }
+        .legend-item { text-align: center; }
+        .legend-value { font-size: 22px; font-weight: 800; }
+        .legend-value.success { color: var(--success); }
+        .legend-value.danger { color: var(--danger); }
+        .legend-value.warning { color: var(--warning); }
+        .legend-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+
+        .analysis-card {
+            background: var(--header-bg);
+            border-radius: 16px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .analysis-score { font-size: 52px; font-weight: 900; line-height: 1; }
+        .analysis-score span { font-size: 20px; font-weight: 600; opacity: 0.7; }
+        .analysis-label { font-size: 12px; opacity: 0.9; margin-top: 5px; }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .bar-label { width: 65px; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+
+        .bar-track {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .bar-value { width: 25px; font-size: 11px; font-weight: 700; text-align: right; color: var(--text-primary); }
+
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .package-name { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+        .package-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            background: rgba(34,197,94,0.2);
+            color: var(--success);
+        }
+
+        .package-progress {
+            height: 10px;
+            background: var(--bg-tertiary);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .package-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, #4ade80 100%);
+            border-radius: 5px;
+        }
+
+        .package-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .package-stats span { font-weight: 700; color: var(--text-primary); }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--nav-height);
+            background: var(--bg-secondary);
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 5px;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 100;
+            transition: background 0.3s;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(99,102,241,0.1);
+        }
+
+        .nav-item .nav-badge {
+            position: absolute;
+            top: 2px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: none;
+        }
+
+        .nav-item .nav-badge.show { display: block; }
+
+        .nav-item i { font-size: 18px; }
+        .nav-item span { font-size: 9px; font-weight: 600; }
+
+        .tab-content { display: none; }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: 0.3s;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-block { width: 100%; }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .settings-item:last-child { border-bottom: none; }
+
+        .settings-info { display: flex; align-items: center; gap: 12px; }
+
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .settings-icon.primary { background: rgba(99,102,241,0.1); color: var(--primary); }
+        .settings-icon.warning { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .settings-icon.danger { background: rgba(239,68,68,0.1); color: var(--danger); }
+        .settings-icon.success { background: rgba(34,197,94,0.1); color: var(--success); }
+
+        .settings-text h4 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        .settings-text p { font-size: 12px; color: var(--text-muted); }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-tertiary);
+            border-radius: 28px;
+            transition: 0.3s;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider { background: var(--primary); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .list-item:last-child { border-bottom: none; }
+
+        .list-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .list-icon.primary { background: rgba(99,102,241,0.1); color: var(--primary); }
+        .list-icon.success { background: rgba(34,197,94,0.1); color: var(--success); }
+        .list-icon.warning { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .list-icon.danger { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+        .list-content { flex: 1; }
+        .list-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+        .list-subtitle { font-size: 11px; color: var(--text-muted); }
+
+        .list-badge { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+        .badge-success { background: rgba(34,197,94,0.15); color: var(--success); }
+        .badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+
+        .aidat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .aidat-month { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+        .aidat-amount { font-size: 12px; color: var(--text-muted); }
+        .aidat-status { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+
+        .payment-summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: rgba(239,68,68,0.1);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .payment-summary.paid { background: rgba(34,197,94,0.1); }
+        .payment-item { text-align: center; }
+        .payment-label { font-size: 10px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .payment-value { font-size: 18px; font-weight: 800; }
+        .payment-summary.paid .payment-value { color: var(--success); }
+        .payment-summary:not(.paid) .payment-value { color: var(--danger); }
+
+        .schedule-day { margin-bottom: 15px; }
+
+        .schedule-day-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            padding: 6px 12px;
+            background: rgba(99,102,241,0.1);
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .loading { text-align: center; padding: 30px; }
+        .loading i { font-size: 24px; color: var(--primary); animation: spin 1s linear infinite; }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state { text-align: center; padding: 30px; color: var(--text-muted); }
+        .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 10px; }
+
+        .toast {
+            position: fixed;
+            bottom: calc(var(--nav-height) + 20px);
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { background: var(--success); color: white; }
+        .toast.error { background: var(--danger); color: white; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .modal-overlay.show { display: flex; }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            z-index: 1;
+        }
+
+        .modal-header h3 { font-size: 18px; font-weight: 700; }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body { padding: 20px; }
+
+        /* Notification permission banner */
+        .notification-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 15px 20px;
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .notification-banner.show { display: flex; }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        .notification-banner-text {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .notification-banner-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .notification-banner-btn.allow {
+            background: white;
+            color: var(--primary);
+        }
+
+        .notification-banner-btn.dismiss {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Notification Permission Banner -->
+<div class="notification-banner" id="notificationBanner">
+    <div class="notification-banner-text">
+        <i class="fa-solid fa-bell"></i> Bildirimleri açarak güncel kalın!
+    </div>
+    <button class="notification-banner-btn allow" onclick="requestNotificationPermission()">İzin Ver</button>
+    <button class="notification-banner-btn dismiss" onclick="dismissNotificationBanner()">×</button>
+</div>
+
+<!-- Refresh Indicator -->
+<div class="refresh-indicator" id="refreshIndicator"></div>
+
+<!-- HEADER -->
+<header class="app-header">
+    <div class="header-pattern"></div>
+    <div class="header-content">
+        <div class="header-top">
+            <div class="header-brand">
+                <% if (siteAyarlari.logo_192) { %>
+                    <img src="/uploads/<%= siteAyarlari.logo_192 %>" alt="Logo">
+                <% } %>
+                <span><%= siteAyarlari.tesis_adi || 'netSPOR' %></span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" id="notificationBtn" onclick="toggleNotifications()" title="Bildirimler">
+                    <i class="fa-solid fa-bell"></i>
+                    <span class="badge" id="notificationBadge" style="display: none;"></span>
+                </button>
+                <button class="btn-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="/veli/cikis" class="btn-icon" title="Çıkış">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <img src="/images/students/<%= ogrenci.profil_foto || '1.png' %>" class="profile-avatar" onerror="this.src='/images/1.png'">
+            <div class="profile-info">
+                <div class="profile-name" id="profileName"><%= ogrenci.ad_soyad %></div>
+                <div class="profile-meta">
+                    <% if (ogrenci.brans_adi) { %>
+                        <span class="profile-tag"><i class="fa-solid fa-medal"></i> <%= ogrenci.brans_adi %></span>
+                    <% } %>
+                    <% if (ogrenci.yas) { %>
+                        <span class="profile-tag"><%= ogrenci.yas %> yaş</span>
+                    <% } %>
+                    <% if (ogrenci.grup_adi) { %>
+                        <span class="profile-tag"><%= ogrenci.grup_adi %></span>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+    
+    <!-- TAB: Ana Sayfa -->
+    <div id="tabHome" class="tab-content active">
+        <div class="quick-stats">
+            <div class="stat-card <%= toplamBorc > 0 ? 'danger' : 'success' %>" id="statBorc">
+                <div class="stat-icon"><i class="fa-solid fa-wallet"></i></div>
+                <div class="stat-value" id="borcValue"><%= toplamBorc > 0 ? toplamBorc.toLocaleString('tr-TR') : '0' %>₺</div>
+                <div class="stat-label"><%= toplamBorc > 0 ? 'Toplam Borç' : 'Borç Yok ✓' %></div>
+            </div>
+
+            <div class="stat-card primary" id="statKatilim">
+                <div class="stat-icon"><i class="fa-solid fa-clipboard-check"></i></div>
+                <div class="stat-value" id="katilimValue"><%= yoklamaOzet.katildi || 0 %>/<%= yoklamaOzet.toplam || 0 %></div>
+                <div class="stat-label">Bu Ay Katılım</div>
+            </div>
+
+            <div class="stat-card warning" id="statPuan">
+                <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+                <div class="stat-value" id="puanValue"><%= sonAnaliz ? parseFloat(sonAnaliz.genel_puan).toFixed(1) : '-' %></div>
+                <div class="stat-label"><%= sonAnaliz ? 'Genel Puan' : 'Analiz Yok' %></div>
+            </div>
+
+            <div class="stat-card success">
+                <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="stat-value">Aktif</div>
+                <div class="stat-label">Kayıt Durumu</div>
+            </div>
+        </div>
+
+        <!-- Bugünkü Dersler -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-calendar-day"></i> Bugün - <%= bugun %></h3>
+            </div>
+            <div class="card" id="bugunDerslerCard">
+                <% if (bugunDersler && bugunDersler.length > 0) { %>
+                    <% bugunDersler.forEach(ders => { %>
+                        <div class="schedule-item">
+                            <div class="schedule-time"><%= ders.baslangic_saati ? ders.baslangic_saati.toString().slice(0,5) : '' %></div>
+                            <div class="schedule-info">
+                                <h4><%= ders.brans_adi %></h4>
+                                <p><%= ders.grup_adi %></p>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="schedule-empty">
+                        <i class="fa-regular fa-calendar-xmark"></i>
+                        <p>Bugün ders bulunmuyor</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Yoklama Özeti -->
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-chart-pie"></i> Bu Ay Yoklama</h3>
+            </div>
+            <div class="card" id="yoklamaOzetCard">
+                <% 
+                const toplam = (yoklamaOzet.toplam || 0);
+                const katildiYuzde = toplam > 0 ? ((yoklamaOzet.katildi || 0) / toplam * 100) : 0;
+                const katilmadiYuzde = toplam > 0 ? ((yoklamaOzet.katilmadi || 0) / toplam * 100) : 0;
+                const izinliYuzde = toplam > 0 ? ((yoklamaOzet.izinli || 0) / toplam * 100) : 0;
+                %>
+                <div class="attendance-visual">
+                    <div class="attendance-bar success"><div class="fill" id="katildiFill" style="width: <%= katildiYuzde %>%"></div></div>
+                    <div class="attendance-bar danger"><div class="fill" id="katilmadiFill" style="width: <%= katilmadiYuzde %>%"></div></div>
+                    <div class="attendance-bar warning"><div class="fill" id="izinliFill" style="width: <%= izinliYuzde %>%"></div></div>
+                </div>
+                <div class="attendance-legend">
+                    <div class="legend-item">
+                        <div class="legend-value success" id="katildiCount"><%= yoklamaOzet.katildi || 0 %></div>
+                        <div class="legend-label">Katıldı</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-value danger" id="katilmadiCount"><%= yoklamaOzet.katilmadi || 0 %></div>
+                        <div class="legend-label">Katılmadı</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-value warning" id="izinliCount"><%= yoklamaOzet.izinli || 0 %></div>
+                        <div class="legend-label">İzinli</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Son Analiz -->
+        <% if (sonAnaliz) { %>
+        <div class="section" id="sonAnalizSection">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-chart-line"></i> Son Performans</h3>
+            </div>
+            <div class="analysis-card">
+                <div class="analysis-score" id="analizScore"><%= parseFloat(sonAnaliz.genel_puan).toFixed(1) %><span>/10</span></div>
+                <div class="analysis-label"><%= sonAnaliz.brans %> • <%= new Date(sonAnaliz.analiz_tarihi).toLocaleDateString('tr-TR') %></div>
+            </div>
+            <div class="card">
+                <div class="bar-item"><span class="bar-label">Teknik</span><div class="bar-track"><div class="bar-fill" style="width: <%= sonAnaliz.teknik_puan * 10 %>%"></div></div><span class="bar-value"><%= sonAnaliz.teknik_puan %></span></div>
+                <div class="bar-item"><span class="bar-label">Fiziksel</span><div class="bar-track"><div class="bar-fill" style="width: <%= sonAnaliz.fiziksel_puan * 10 %>%"></div></div><span class="bar-value"><%= sonAnaliz.fiziksel_puan %></span></div>
+                <div class="bar-item"><span class="bar-label">Taktik</span><div class="bar-track"><div class="bar-fill" style="width: <%= sonAnaliz.taktik_puan * 10 %>%"></div></div><span class="bar-value"><%= sonAnaliz.taktik_puan %></span></div>
+                <div class="bar-item"><span class="bar-label">Mental</span><div class="bar-track"><div class="bar-fill" style="width: <%= sonAnaliz.mental_puan * 10 %>%"></div></div><span class="bar-value"><%= sonAnaliz.mental_puan %></span></div>
+                <div class="bar-item"><span class="bar-label">Disiplin</span><div class="bar-track"><div class="bar-fill" style="width: <%= sonAnaliz.disiplin_puan * 10 %>%"></div></div><span class="bar-value"><%= sonAnaliz.disiplin_puan %></span></div>
+                <div class="bar-item"><span class="bar-label">Takım</span><div class="bar-track"><div class="bar-fill" style="width: <%= sonAnaliz.takim_puan * 10 %>%"></div></div><span class="bar-value"><%= sonAnaliz.takim_puan %></span></div>
+            </div>
+        </div>
+        <% } %>
+
+        <!-- Özel Ders Paketi -->
+        <% if (ozelDersPaket) { %>
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-user-clock"></i> Özel Ders</h3>
+            </div>
+            <div class="card">
+                <div class="package-header">
+                    <span class="package-name"><%= ozelDersPaket.paket_adi || 'Özel Ders' %></span>
+                    <span class="package-badge">Aktif</span>
+                </div>
+                <div class="package-progress">
+                    <div class="package-progress-fill" style="width: <%= (ozelDersPaket.kullanilan_saat / ozelDersPaket.toplam_saat) * 100 %>%"></div>
+                </div>
+                <div class="package-stats">
+                    <div>Kullanılan: <span><%= ozelDersPaket.kullanilan_saat %> saat</span></div>
+                    <div>Kalan: <span><%= ozelDersPaket.kalan_saat %> saat</span></div>
+                </div>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+    <!-- TAB: Yoklama -->
+    <div id="tabAttendance" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Yoklama Geçmişi</h3>
+            </div>
+            <div class="card">
+                <div id="yoklamaList"><div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Aidatlar -->
+    <div id="tabPayments" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-receipt"></i> Aidat Durumu</h3>
+            </div>
+            <div class="card">
+                <div id="aidatList"><div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: Analizler -->
+    <div id="tabAnalysis" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-chart-bar"></i> Performans Analizleri</h3>
+            </div>
+            <div id="analizList"><div class="loading"><i class="fa-solid fa-spinner fa-spin"></i></div></div>
+        </div>
+    </div>
+
+    <!-- TAB: Ayarlar -->
+    <div id="tabSettings" class="tab-content">
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-user-pen"></i> Profil Bilgileri</h3>
+            </div>
+            <div class="card">
+                <div class="settings-item" onclick="openModal('profilModal')">
+                    <div class="settings-info">
+                        <div class="settings-icon primary"><i class="fa-solid fa-user"></i></div>
+                        <div class="settings-text">
+                            <h4>Öğrenci Bilgileri</h4>
+                            <p>Ad soyad, TC, doğum tarihi düzenle</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('iletisimModal')">
+                    <div class="settings-info">
+                        <div class="settings-icon warning"><i class="fa-solid fa-phone"></i></div>
+                        <div class="settings-text">
+                            <h4>İletişim Bilgileri</h4>
+                            <p>Telefon, adres bilgilerini düzenle</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+                </div>
+
+                <div class="settings-item" onclick="openModal('girisModal')">
+                    <div class="settings-info">
+                        <div class="settings-icon danger"><i class="fa-solid fa-key"></i></div>
+                        <div class="settings-text">
+                            <h4>Giriş Bilgileri</h4>
+                            <p>Kullanıcı adı ve şifre değiştir</p>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--text-muted);"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-palette"></i> Tercihler</h3>
+            </div>
+            <div class="card">
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-icon primary"><i class="fa-solid fa-moon"></i></div>
+                        <div class="settings-text">
+                            <h4>Karanlık Mod</h4>
+                            <p>Göz yorgunluğunu azaltır</p>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="darkModeToggle" onchange="toggleTheme()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="settings-item">
+                    <div class="settings-info">
+                        <div class="settings-icon success"><i class="fa-solid fa-bell"></i></div>
+                        <div class="settings-text">
+                            <h4>Bildirimler</h4>
+                            <p id="notificationStatus">Kontrol ediliyor...</p>
+                        </div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notificationToggle" onchange="toggleNotificationSetting()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fa-solid fa-info-circle"></i> Hakkında</h3>
+            </div>
+            <div class="card">
+                <div style="text-align: center; padding: 10px;">
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 5px;"><%= siteAyarlari.tesis_adi || 'netSPOR' %></p>
+                    <p style="font-size: 11px; color: var(--text-muted);">Veli Takip Sistemi v1.0</p>
+                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 10px;">© <%= new Date().getFullYear() %> netSPOR Yazılım</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+    <div class="nav-item active" data-tab="tabHome">
+        <i class="fa-solid fa-house"></i>
+        <span>Ana Sayfa</span>
+    </div>
+    <div class="nav-item" data-tab="tabAttendance">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <span>Yoklama</span>
+        <span class="nav-badge" id="badgeYoklama"></span>
+    </div>
+    <div class="nav-item" data-tab="tabPayments">
+        <i class="fa-solid fa-wallet"></i>
+        <span>Aidatlar</span>
+        <span class="nav-badge" id="badgeAidat"></span>
+    </div>
+    <div class="nav-item" data-tab="tabAnalysis">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Analizler</span>
+        <span class="nav-badge" id="badgeAnaliz"></span>
+    </div>
+    <div class="nav-item" data-tab="tabSettings">
+        <i class="fa-solid fa-gear"></i>
+        <span>Ayarlar</span>
+    </div>
+</nav>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="profilModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-user" style="margin-right: 8px; color: var(--primary);"></i> Öğrenci Bilgileri</h3>
+            <button class="modal-close" onclick="closeModal('profilModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="profilForm">
+                <div class="form-group">
+                    <label class="form-label">Ad Soyad</label>
+                    <input type="text" class="form-input" name="ad_soyad" value="<%= ogrenci.ad_soyad %>" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">TC Kimlik No</label>
+                    <input type="text" class="form-input" name="tc_kimlik" value="<%= ogrenci.tc_kimlik || '' %>" maxlength="11" pattern="\d{11}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Doğum Tarihi</label>
+                    <input type="date" class="form-input" name="dogum_tarihi" value="<%= ogrenci.dogum_tarihi ? new Date(ogrenci.dogum_tarihi).toISOString().split('T')[0] : '' %>">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="iletisimModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-phone" style="margin-right: 8px; color: var(--warning);"></i> İletişim Bilgileri</h3>
+            <button class="modal-close" onclick="closeModal('iletisimModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="iletisimForm">
+                <div class="form-group">
+                    <label class="form-label">Anne Telefon</label>
+                    <input type="tel" class="form-input" name="anne_telefon" value="<%= ogrenci.ozel_veri.anne_telefon || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Baba Telefon</label>
+                    <input type="tel" class="form-input" name="baba_telefon" value="<%= ogrenci.ozel_veri.baba_telefon || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Anne Ad Soyad</label>
+                    <input type="text" class="form-input" name="anne_ad_soyad" value="<%= ogrenci.ozel_veri.anne_ad_soyad || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Baba Ad Soyad</label>
+                    <input type="text" class="form-input" name="baba_ad_soyad" value="<%= ogrenci.ozel_veri.baba_ad_soyad || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Adres</label>
+                    <input type="text" class="form-input" name="ikametgah_adresi" value="<%= ogrenci.ozel_veri.ikametgah_adresi || '' %>">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Acil Durumda Aranacak</label>
+                    <input type="text" class="form-input" name="acil_durumda_aranacak_kisi" value="<%= ogrenci.ozel_veri.acil_durumda_aranacak_kisi || '' %>">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="girisModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-key" style="margin-right: 8px; color: var(--danger);"></i> Giriş Bilgileri</h3>
+            <button class="modal-close" onclick="closeModal('girisModal')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <form id="girisForm">
+                <div class="form-group">
+                    <label class="form-label">Kullanıcı Adı</label>
+                    <input type="text" class="form-input" name="kullanici_adi" value="<%= veli.kullanici_adi || '' %>" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Mevcut Şifre</label>
+                    <input type="password" class="form-input" name="mevcut_sifre" placeholder="Şifre değiştirmek için girin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Yeni Şifre</label>
+                    <input type="password" class="form-input" name="yeni_sifre" placeholder="Yeni şifrenizi girin">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block"><i class="fa-solid fa-check"></i> Kaydet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const aylar = ['', 'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+    const gunler = { 'Pazartesi': 'Pazartesi', 'Sali': 'Salı', 'Carsamba': 'Çarşamba', 'Persembe': 'Perşembe', 'Cuma': 'Cuma', 'Cumartesi': 'Cumartesi', 'Pazar': 'Pazar' };
+
+    let dataLoaded = { yoklama: false, aidat: false, analiz: false };
+    let lastData = { borc: null, katilim: null, puan: null };
+    let refreshInterval = null;
+
+    // ==================== THEME ====================
+    function initTheme() {
+        const saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+        document.getElementById('darkModeToggle').checked = saved === 'dark';
+        updateThemeIcon(saved);
+    }
+
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        document.getElementById('darkModeToggle').checked = next === 'dark';
+        updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+        const icon = document.getElementById('themeIcon');
+        icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
+
+    // ==================== NOTIFICATIONS (ANDROID FIX) ====================
+    let notificationsEnabled = false;
+    let pushSubscription = null;
+    
+    // Debug modu - sorun tespiti için console'da log göster
+    const PUSH_DEBUG = true;
+    
+    function pushLog(message, data = null) {
+        if (PUSH_DEBUG) {
+            if (data) {
+                console.log(`🔔 [PUSH] ${message}`, data);
+            } else {
+                console.log(`🔔 [PUSH] ${message}`);
+            }
+        }
+    }
+    
+    function pushError(message, error = null) {
+        console.error(`❌ [PUSH] ${message}`, error || '');
+    }
+
+    // Cihaz bilgilerini al
+    function getDeviceInfo() {
+        const ua = navigator.userAgent;
+        let info = {
+            isAndroid: /Android/i.test(ua),
+            isIOS: /iPad|iPhone|iPod/.test(ua),
+            isChrome: /Chrome/i.test(ua) && !/Edge|Edg/i.test(ua),
+            isSafari: /Safari/i.test(ua) && !/Chrome/i.test(ua),
+            isFirefox: /Firefox/i.test(ua),
+            isSamsungBrowser: /SamsungBrowser/i.test(ua),
+            isPWA: window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+        };
+        
+        // Tarayıcı adı
+        if (info.isSamsungBrowser) info.browser = 'Samsung Internet';
+        else if (info.isChrome) info.browser = 'Chrome';
+        else if (info.isSafari) info.browser = 'Safari';
+        else if (info.isFirefox) info.browser = 'Firefox';
+        else info.browser = 'Other';
+        
+        // Cihaz tipi
+        if (info.isAndroid || info.isIOS) info.deviceType = 'mobile';
+        else info.deviceType = 'desktop';
+        
+        return info;
+    }
+
+    // VAPID key'i Uint8Array'e çevir (Android için KRİTİK!)
+    function urlBase64ToUint8Array(base64String) {
+        if (!base64String) {
+            pushError('VAPID key boş!');
+            return null;
+        }
+        
+        try {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/-/g, '+')
+                .replace(/_/g, '/');
+            
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            
+            pushLog('VAPID key çevrildi', { length: outputArray.length });
+            return outputArray;
+        } catch (e) {
+            pushError('VAPID key çevirme hatası', e);
+            return null;
+        }
+    }
+
+    // Push desteğini kontrol et
+    function checkPushSupport() {
+        const checks = {
+            serviceWorker: 'serviceWorker' in navigator,
+            pushManager: 'PushManager' in window,
+            notification: 'Notification' in window
+        };
+        
+        pushLog('Push destek kontrolü', checks);
+        
+        return checks.serviceWorker && checks.pushManager && checks.notification;
+    }
+
+    // Tarayıcı bilgisi
+    function getBrowserInfo() {
+        const ua = navigator.userAgent;
+        if (ua.includes('SamsungBrowser')) return 'Samsung Internet';
+        if (ua.includes('Chrome') && !ua.includes('Edge')) return 'Chrome';
+        if (ua.includes('Firefox')) return 'Firefox';
+        if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+        if (ua.includes('Edge')) return 'Edge';
+        return 'Diger';
+    }
+
+    async function initNotifications() {
+        const statusEl = document.getElementById('notificationStatus');
+        const toggleEl = document.getElementById('notificationToggle');
+        const btnEl = document.getElementById('notificationBtn');
+        const deviceInfo = getDeviceInfo();
+        
+        pushLog('Bildirimler başlatılıyor...', deviceInfo);
+
+        // Destek kontrolü
+        if (!checkPushSupport()) {
+            statusEl.textContent = 'Desteklenmiyor';
+            toggleEl.disabled = true;
+            return;
+        }
+        
+        // iOS Safari uyarısı (PWA değilse)
+        if (deviceInfo.isIOS && !deviceInfo.isPWA && deviceInfo.isSafari) {
+            statusEl.textContent = 'PWA olarak yükleyin';
+            pushLog('iOS Safari - PWA olarak yüklenmeli');
+        }
+
+        const permission = Notification.permission;
+        pushLog('Mevcut izin durumu:', permission);
+        
+        if (permission === 'granted') {
+            statusEl.textContent = 'Açık';
+            toggleEl.checked = true;
+            notificationsEnabled = true;
+            btnEl.classList.add('active');
+            await subscribeToPush();
+        } else if (permission === 'denied') {
+            statusEl.textContent = 'Engellendi';
+            toggleEl.disabled = true;
+            pushLog('Bildirim izni engellendi');
+        } else {
+            statusEl.textContent = 'Kapalı';
+            toggleEl.checked = false;
+            // İlk ziyarette banner göster
+            if (!localStorage.getItem('notificationBannerDismissed')) {
+                setTimeout(() => {
+                    document.getElementById('notificationBanner').classList.add('show');
+                }, 2000);
+            }
+        }
+    }
+
+    async function toggleNotificationSetting() {
+        const toggleEl = document.getElementById('notificationToggle');
+        
+        if (toggleEl.checked) {
+            await requestNotificationPermission();
+        } else {
+            // Bildirimleri kapat
+            notificationsEnabled = false;
+            document.getElementById('notificationStatus').textContent = 'Kapalı';
+            document.getElementById('notificationBtn').classList.remove('active');
+            pushLog('Bildirimler kapatıldı');
+        }
+    }
+
+    async function requestNotificationPermission() {
+        const banner = document.getElementById('notificationBanner');
+        banner.classList.remove('show');
+        
+        pushLog('Bildirim izni isteniyor...');
+        
+        try {
+            const permission = await Notification.requestPermission();
+            pushLog('İzin sonucu:', permission);
+            
+            if (permission === 'granted') {
+                document.getElementById('notificationStatus').textContent = 'Açık';
+                document.getElementById('notificationToggle').checked = true;
+                document.getElementById('notificationBtn').classList.add('active');
+                notificationsEnabled = true;
+                
+                const result = await subscribeToPush();
+                
+                if (result) {
+                    showToast('Bildirimler açıldı', 'success');
+                } else {
+                    showToast('Bildirim kaydı yapılamadı', 'error');
+                }
+            } else {
+                document.getElementById('notificationStatus').textContent = 'Engellendi';
+                document.getElementById('notificationToggle').checked = false;
+                showToast('Bildirim izni verilmedi', 'error');
+            }
+        } catch (e) {
+            pushError('Bildirim izni hatası', e);
+            showToast('Bir hata oluştu', 'error');
+        }
+    }
+
+    function dismissNotificationBanner() {
+        document.getElementById('notificationBanner').classList.remove('show');
+        localStorage.setItem('notificationBannerDismissed', 'true');
+    }
+
+    // ⭐⭐⭐ ANA PUSH ABONELİK FONKSİYONU (ANDROID FIX) ⭐⭐⭐
+    async function subscribeToPush() {
+        const deviceInfo = getDeviceInfo();
+        pushLog('Push aboneliği başlatılıyor...', deviceInfo);
+        
+        try {
+            // 1. Service Worker'ı kaydet
+            pushLog('Service Worker kaydediliyor...');
+            
+            let registration;
+            try {
+                registration = await navigator.serviceWorker.register('/service-worker.js', { scope: '/' });
+                pushLog('Service Worker kayıtlı', { scope: registration.scope });
+            } catch (swError) {
+                pushError('Service Worker kayıt hatası', swError);
+                return false;
+            }
+            
+            // 2. Service Worker'ın aktif olmasını bekle
+            if (registration.installing) {
+                pushLog('Service Worker yükleniyor, bekleniyor...');
+                await new Promise((resolve) => {
+                    const sw = registration.installing;
+                    sw.addEventListener('statechange', function() {
+                        pushLog('SW durumu:', this.state);
+                        if (this.state === 'activated' || this.state === 'redundant') {
+                            resolve();
+                        }
+                    });
+                    // Timeout - 5 saniye bekle
+                    setTimeout(resolve, 5000);
+                });
+            }
+            
+            // 3. Service Worker hazır olana kadar bekle
+            pushLog('Service Worker ready bekleniyor...');
+            const swReady = await navigator.serviceWorker.ready;
+            pushLog('Service Worker hazır!');
+            
+            // 4. VAPID Public Key'i al
+            pushLog('VAPID key alınıyor...');
+            let vapidPublicKey = null;
+            
+            try {
+                const response = await fetch('/veli/api/push/vapid-key');
+                const data = await response.json();
+                vapidPublicKey = data.vapidPublicKey;
+                pushLog('VAPID key alındı', { 
+                    length: vapidPublicKey ? vapidPublicKey.length : 0 
+                });
+            } catch (e) {
+                pushError('VAPID key alma hatası', e);
+                return false;
+            }
+            
+            if (!vapidPublicKey) {
+                pushError('VAPID key bulunamadı! .env dosyasını kontrol edin.');
+                return false;
+            }
+            
+            // 5. VAPID key'i Uint8Array'e çevir (ANDROID İÇİN KRİTİK!)
+            const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+            if (!applicationServerKey) {
+                pushError('VAPID key çevrilemedi');
+                return false;
+            }
+            
+            // 6. Mevcut aboneliği kontrol et
+            pushLog('Mevcut abonelik kontrol ediliyor...');
+            let subscription = await swReady.pushManager.getSubscription();
+            
+            if (subscription) {
+                pushLog('Mevcut abonelik bulundu');
+            } else {
+                // 7. Yeni abonelik oluştur
+                pushLog('Yeni abonelik oluşturuluyor...');
+                
+                try {
+                    subscription = await swReady.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: applicationServerKey
+                    });
+                    pushLog('Yeni abonelik oluşturuldu!');
+                } catch (subscribeError) {
+                    pushError('Subscribe hatası', subscribeError);
+                    
+                    // Hata detayları
+                    if (subscribeError.name === 'NotAllowedError') {
+                        pushError('Kullanıcı bildirimleri reddetti');
+                    } else if (subscribeError.name === 'AbortError') {
+                        pushError('Abonelik iptal edildi');
+                    } else if (subscribeError.message && subscribeError.message.includes('applicationServerKey')) {
+                        pushError('VAPID key formatı hatalı');
+                    }
+                    
+                    return false;
+                }
+            }
+            
+            // 8. ⭐ Aboneliği sunucuya gönder (HER ZAMAN - mevcut olsa bile!)
+            pushLog('Abonelik sunucuya gönderiliyor...');
+            
+            const subscriptionJSON = subscription.toJSON();
+            
+            const payload = {
+                subscription: subscriptionJSON,
+                cihazTipi: deviceInfo.deviceType,
+                tarayici: deviceInfo.browser
+            };
+            
+            pushLog('Gönderilen payload', {
+                endpoint: subscriptionJSON.endpoint ? subscriptionJSON.endpoint.substring(0, 50) + '...' : 'YOK',
+                hasP256dh: !!subscriptionJSON.keys?.p256dh,
+                hasAuth: !!subscriptionJSON.keys?.auth,
+                cihaz: payload.cihazTipi,
+                tarayici: payload.tarayici
+            });
+            
+            try {
+                const saveResponse = await fetch('/veli/api/push/abone-ol', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    credentials: 'include'
+                });
+                
+                const saveResult = await saveResponse.json();
+                
+                if (saveResult.success) {
+                    pushLog('✅ Abonelik sunucuya kaydedildi!');
+                    pushSubscription = subscription;
+                    return true;
+                } else {
+                    pushError('Sunucu kayıt hatası', saveResult.message);
+                    return false;
+                }
+            } catch (saveError) {
+                pushError('Sunucuya gönderme hatası', saveError);
+                return false;
+            }
+            
+        } catch (error) {
+            pushError('Genel push hatası', error);
+            return false;
+        }
+    }
+
+    function toggleNotifications() {
+        const btn = document.getElementById('notificationBtn');
+        if (Notification.permission === 'granted') {
+            // Ayarlar sekmesine git
+            switchToTab('tabSettings');
+        } else {
+            requestNotificationPermission();
+        }
+    }
+    
+    // Debug fonksiyonları (Console'dan çağrılabilir)
+    window.debugPush = async function() {
+        console.log('=== PUSH DEBUG ===');
+        console.log('Device:', getDeviceInfo());
+        
+        if (!('serviceWorker' in navigator)) {
+            console.log('Status: Service Worker desteklenmiyor');
+            return;
+        }
+        
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            
+            console.log('Permission:', Notification.permission);
+            console.log('Subscribed:', !!subscription);
+            if (subscription) {
+                console.log('Endpoint:', subscription.endpoint.substring(0, 60) + '...');
+            }
+        } catch (e) {
+            console.log('Error:', e.message);
+        }
+        console.log('==================');
+    };
+    
+    window.testLocalNotification = async function() {
+        if (Notification.permission !== 'granted') {
+            alert('Önce bildirim izni verin!');
+            return;
+        }
+        
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification('Test Bildirimi', {
+                body: 'Push bildirimleri çalışıyor! 🎉',
+                icon: '/uploads/logo-192.png',
+                badge: '/uploads/logo-192.png',
+                vibrate: [200, 100, 200],
+                tag: 'test',
+                data: { url: '/veli/panel' }
+            });
+            console.log('✅ Test bildirimi gönderildi');
+        } catch (e) {
+            console.error('❌ Test bildirimi hatası:', e);
+        }
+    };
+
+    // ==================== TAB NAVIGATION ====================
+    function switchToTab(tabId) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+        
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        
+        // Badge'i temizle
+        const badgeMap = {
+            'tabAttendance': 'badgeYoklama',
+            'tabPayments': 'badgeAidat',
+            'tabAnalysis': 'badgeAnaliz'
+        };
+        if (badgeMap[tabId]) {
+            document.getElementById(badgeMap[tabId]).classList.remove('show');
+        }
+        
+        // Veri yükle
+        if (tabId === 'tabAttendance' && !dataLoaded.yoklama) loadYoklama();
+        if (tabId === 'tabPayments' && !dataLoaded.aidat) loadAidatlar();
+        if (tabId === 'tabAnalysis' && !dataLoaded.analiz) loadAnalizler();
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+            switchToTab(this.dataset.tab);
+        });
+    });
+
+    // ==================== BACKGROUND REFRESH ====================
+    async function silentRefresh() {
+        const indicator = document.getElementById('refreshIndicator');
+        indicator.classList.add('active');
+        
+        try {
+            // Yoklama özeti
+            const yoklamaRes = await fetch('/veli/api/yoklama');
+            const yoklamaData = await yoklamaRes.json();
+            
+            if (yoklamaData.success) {
+                const newKatilim = `${yoklamaData.ozet.katildi}/${yoklamaData.ozet.toplam}`;
+                const currentKatilim = document.getElementById('katilimValue').textContent;
+                
+                if (newKatilim !== currentKatilim) {
+                    document.getElementById('katilimValue').textContent = newKatilim;
+                    document.getElementById('statKatilim').classList.add('updated');
+                    setTimeout(() => document.getElementById('statKatilim').classList.remove('updated'), 500);
+                    
+                    // Yoklama tab'ına badge ekle
+                    if (!document.querySelector('[data-tab="tabAttendance"]').classList.contains('active')) {
+                        document.getElementById('badgeYoklama').classList.add('show');
+                    }
+                    
+                    // Listeyi güncelle
+                    dataLoaded.yoklama = false;
+                }
+                
+                // Yoklama barlarını güncelle
+                const toplam = yoklamaData.ozet.toplam || 1;
+                document.getElementById('katildiFill').style.width = (yoklamaData.ozet.katildi / toplam * 100) + '%';
+                document.getElementById('katilmadiFill').style.width = (yoklamaData.ozet.katilmadi / toplam * 100) + '%';
+                document.getElementById('izinliFill').style.width = (yoklamaData.ozet.izinli / toplam * 100) + '%';
+                document.getElementById('katildiCount').textContent = yoklamaData.ozet.katildi;
+                document.getElementById('katilmadiCount').textContent = yoklamaData.ozet.katilmadi;
+                document.getElementById('izinliCount').textContent = yoklamaData.ozet.izinli;
+            }
+            
+            // Aidat özeti
+            const aidatRes = await fetch('/veli/api/aidatlar');
+            const aidatData = await aidatRes.json();
+            
+            if (aidatData.success) {
+                const newBorc = aidatData.ozet.toplamBorc;
+                const borcEl = document.getElementById('borcValue');
+                const currentBorc = parseFloat(borcEl.textContent.replace(/[^0-9]/g, '')) || 0;
+                
+                if (newBorc !== currentBorc) {
+                    borcEl.textContent = newBorc > 0 ? newBorc.toLocaleString('tr-TR') + '₺' : '0₺';
+                    document.getElementById('statBorc').classList.add('updated');
+                    setTimeout(() => document.getElementById('statBorc').classList.remove('updated'), 500);
+                    
+                    if (!document.querySelector('[data-tab="tabPayments"]').classList.contains('active')) {
+                        document.getElementById('badgeAidat').classList.add('show');
+                    }
+                    
+                    dataLoaded.aidat = false;
+                }
+            }
+            
+            // Analiz
+            const analizRes = await fetch('/veli/api/analizler');
+            const analizData = await analizRes.json();
+            
+            if (analizData.success && analizData.analizler.length > 0) {
+                const latestPuan = parseFloat(analizData.analizler[0].genel_puan).toFixed(1);
+                const currentPuan = document.getElementById('puanValue').textContent;
+                
+                if (latestPuan !== currentPuan && currentPuan !== '-') {
+                    document.getElementById('puanValue').textContent = latestPuan;
+                    document.getElementById('statPuan').classList.add('updated');
+                    setTimeout(() => document.getElementById('statPuan').classList.remove('updated'), 500);
+                    
+                    if (!document.querySelector('[data-tab="tabAnalysis"]').classList.contains('active')) {
+                        document.getElementById('badgeAnaliz').classList.add('show');
+                    }
+                    
+                    dataLoaded.analiz = false;
+                }
+            }
+            
+        } catch (e) {
+            console.log('Refresh hatası:', e);
+        }
+        
+        setTimeout(() => indicator.classList.remove('active'), 500);
+    }
+
+    // 30 saniyede bir sessiz güncelleme
+    function startBackgroundRefresh() {
+        refreshInterval = setInterval(silentRefresh, 30000);
+    }
+
+    // Sayfa görünür olduğunda refresh, gizli olduğunda durdur
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            clearInterval(refreshInterval);
+        } else {
+            silentRefresh();
+            startBackgroundRefresh();
+        }
+    });
+
+    // ==================== SERVICE WORKER MESSAGE ====================
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            const data = event.data;
+            
+            if (data && data.action === 'openTab') {
+                // Bildirime tıklandığında ilgili sekmeyi aç
+                const tabMap = {
+                    'yoklama': 'tabAttendance',
+                    'aidat': 'tabPayments',
+                    'kasa': 'tabPayments',
+                    'analiz': 'tabAnalysis',
+                    'ders': 'tabHome'
+                };
+                
+                const tabId = tabMap[data.type] || 'tabHome';
+                switchToTab(tabId);
+                
+                // Verileri yenile
+                silentRefresh();
+            }
+        });
+    }
+
+    // ==================== MODAL ====================
+    function openModal(id) {
+        document.getElementById(id).classList.add('show');
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal(this.id);
+        });
+    });
+
+    // ==================== TOAST ====================
+    function showToast(msg, type = '') {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.className = 'toast show ' + type;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ==================== FORM HANDLERS ====================
+    document.getElementById('profilForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const res = await fetch('/veli/api/profil/guncelle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                showToast('Profil güncellendi', 'success');
+                closeModal('profilModal');
+                document.getElementById('profileName').textContent = data.ad_soyad;
+            } else {
+                showToast(result.message || 'Hata oluştu', 'error');
+            }
+        } catch (e) {
+            showToast('Bağlantı hatası', 'error');
+        }
+    });
+
+    document.getElementById('iletisimForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const ozel_veri = Object.fromEntries(formData);
+        
+        try {
+            const res = await fetch('/veli/api/profil/guncelle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ozel_veri })
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                showToast('İletişim bilgileri güncellendi', 'success');
+                closeModal('iletisimModal');
+            } else {
+                showToast(result.message || 'Hata oluştu', 'error');
+            }
+        } catch (e) {
+            showToast('Bağlantı hatası', 'error');
+        }
+    });
+
+    document.getElementById('girisForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const res = await fetch('/veli/api/giris/guncelle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                showToast('Giriş bilgileri güncellendi', 'success');
+                closeModal('girisModal');
+                this.querySelector('[name="mevcut_sifre"]').value = '';
+                this.querySelector('[name="yeni_sifre"]').value = '';
+            } else {
+                showToast(result.message || 'Hata oluştu', 'error');
+            }
+        } catch (e) {
+            showToast('Bağlantı hatası', 'error');
+        }
+    });
+
+    // ==================== DATA LOADERS (EN YENİ ÜSTTE SIRALAMA) ====================
+    
+    // ⭐ YOKLAMA - En yeni üstte (tarih DESC)
+    async function loadYoklama() {
+        try {
+            const res = await fetch('/veli/api/yoklama');
+            const data = await res.json();
+            
+            if (data.success && data.yoklamalar.length > 0) {
+                // ⭐ EN YENİ ÜSTTE SIRALAMA - Tarihe göre DESC
+                const sortedYoklamalar = data.yoklamalar.sort((a, b) => {
+                    return new Date(b.tarih) - new Date(a.tarih);
+                });
+                
+                let html = '';
+                sortedYoklamalar.forEach(y => {
+                    const tarih = new Date(y.tarih).toLocaleDateString('tr-TR');
+                    const durumClass = y.durum === 'katildi' ? 'success' : (y.durum === 'katilmadi' ? 'danger' : 'warning');
+                    const durumText = y.durum === 'katildi' ? 'Katıldı' : (y.durum === 'katilmadi' ? 'Gelmedi' : 'İzinli');
+                    
+                    html += `<div class="list-item">
+                        <div class="list-icon ${durumClass}"><i class="fa-solid fa-calendar-check"></i></div>
+                        <div class="list-content">
+                            <div class="list-title">${y.brans_adi}</div>
+                            <div class="list-subtitle">${tarih} • ${y.grup_adi}</div>
+                        </div>
+                        <span class="list-badge badge-${durumClass}">${durumText}</span>
+                    </div>`;
+                });
+                document.getElementById('yoklamaList').innerHTML = html;
+            } else {
+                document.getElementById('yoklamaList').innerHTML = '<div class="empty-state"><i class="fa-solid fa-clipboard"></i><p>Yoklama kaydı bulunamadı</p></div>';
+            }
+            dataLoaded.yoklama = true;
+        } catch (e) {
+            document.getElementById('yoklamaList').innerHTML = '<div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata</p></div>';
+        }
+    }
+
+    // ⭐ AİDATLAR - En yeni üstte (yıl DESC, ay DESC)
+    async function loadAidatlar() {
+        try {
+            const res = await fetch('/veli/api/aidatlar');
+            const data = await res.json();
+            
+            if (data.success && data.aidatlar.length > 0) {
+                // ⭐ EN YENİ ÜSTTE SIRALAMA - Yıl ve ay'a göre DESC
+                const sortedAidatlar = data.aidatlar.sort((a, b) => {
+                    if (b.yil !== a.yil) return b.yil - a.yil;
+                    return b.ay - a.ay;
+                });
+                
+                let html = `<div class="payment-summary ${data.ozet.toplamBorc <= 0 ? 'paid' : ''}">
+                    <div class="payment-item"><div class="payment-label">Toplam Borç</div><div class="payment-value">${data.ozet.toplamBorc.toLocaleString('tr-TR')}₺</div></div>
+                    <div class="payment-item"><div class="payment-label">Ödenen</div><div class="payment-value" style="color: var(--success);">${data.ozet.toplamOdenen.toLocaleString('tr-TR')}₺</div></div>
+                </div>`;
+                
+                sortedAidatlar.forEach(a => {
+                    const durumClass = a.durum === 'tamamlandi' ? 'badge-success' : (a.durum === 'kismi_odendi' ? 'badge-warning' : 'badge-danger');
+                    const durumText = a.durum === 'tamamlandi' ? 'Ödendi' : (a.durum === 'kismi_odendi' ? 'Kısmi' : 'Ödenmedi');
+                    html += `<div class="aidat-item"><div><div class="aidat-month">${aylar[a.ay]} ${a.yil}</div><div class="aidat-amount">${parseFloat(a.odenmesi_gereken).toLocaleString('tr-TR')}₺</div></div><span class="aidat-status ${durumClass}">${durumText}</span></div>`;
+                });
+                document.getElementById('aidatList').innerHTML = html;
+            } else {
+                document.getElementById('aidatList').innerHTML = '<div class="empty-state"><i class="fa-solid fa-receipt"></i><p>Aidat kaydı bulunamadı</p></div>';
+            }
+            dataLoaded.aidat = true;
+        } catch (e) {
+            document.getElementById('aidatList').innerHTML = '<div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata</p></div>';
+        }
+    }
+
+    // ⭐ ANALİZLER - En yeni üstte (tarih DESC)
+    async function loadAnalizler() {
+        try {
+            const res = await fetch('/veli/api/analizler');
+            const data = await res.json();
+            
+            if (data.success && data.analizler.length > 0) {
+                // ⭐ EN YENİ ÜSTTE SIRALAMA - Analiz tarihine göre DESC
+                const sortedAnalizler = data.analizler.sort((a, b) => {
+                    return new Date(b.analiz_tarihi) - new Date(a.analiz_tarihi);
+                });
+                
+                let html = '';
+                sortedAnalizler.forEach(a => {
+                    const tarih = new Date(a.analiz_tarihi).toLocaleDateString('tr-TR');
+                    html += `<div class="card" style="margin-bottom: 15px;">
+                        <div class="analysis-card" style="margin: -16px -16px 15px; border-radius: 16px 16px 0 0;">
+                            <div class="analysis-score">${parseFloat(a.genel_puan).toFixed(1)}<span>/10</span></div>
+                            <div class="analysis-label">${a.brans} • ${tarih}</div>
+                        </div>
+                        <div class="bar-item"><span class="bar-label">Teknik</span><div class="bar-track"><div class="bar-fill" style="width: ${a.teknik_puan * 10}%"></div></div><span class="bar-value">${a.teknik_puan}</span></div>
+                        <div class="bar-item"><span class="bar-label">Fiziksel</span><div class="bar-track"><div class="bar-fill" style="width: ${a.fiziksel_puan * 10}%"></div></div><span class="bar-value">${a.fiziksel_puan}</span></div>
+                        <div class="bar-item"><span class="bar-label">Taktik</span><div class="bar-track"><div class="bar-fill" style="width: ${a.taktik_puan * 10}%"></div></div><span class="bar-value">${a.taktik_puan}</span></div>
+                        <div class="bar-item"><span class="bar-label">Mental</span><div class="bar-track"><div class="bar-fill" style="width: ${a.mental_puan * 10}%"></div></div><span class="bar-value">${a.mental_puan}</span></div>
+                        <div class="bar-item"><span class="bar-label">Disiplin</span><div class="bar-track"><div class="bar-fill" style="width: ${a.disiplin_puan * 10}%"></div></div><span class="bar-value">${a.disiplin_puan}</span></div>
+                        <div class="bar-item"><span class="bar-label">Takım</span><div class="bar-track"><div class="bar-fill" style="width: ${a.takim_puan * 10}%"></div></div><span class="bar-value">${a.takim_puan}</span></div>
+                        ${a.genel_degerlendirme ? `<div style="margin-top: 15px; padding: 12px; background: var(--bg-tertiary); border-radius: 10px; font-size: 12px; color: var(--text-secondary);">${a.genel_degerlendirme}</div>` : ''}
+                    </div>`;
+                });
+                document.getElementById('analizList').innerHTML = html;
+            } else {
+                document.getElementById('analizList').innerHTML = '<div class="card"><div class="empty-state"><i class="fa-solid fa-chart-line"></i><p>Analiz bulunamadı</p></div></div>';
+            }
+            dataLoaded.analiz = true;
+        } catch (e) {
+            document.getElementById('analizList').innerHTML = '<div class="card"><div class="empty-state"><i class="fa-solid fa-exclamation-circle"></i><p>Yüklenirken hata</p></div></div>';
+        }
+    }
+
+    // ==================== INIT ====================
+    initTheme();
+    initNotifications();
+    startBackgroundRefresh();
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js').catch(e => {
+            console.log('Service Worker kayıt hatası:', e);
+        });
+    }
+
+    // URL parametresine göre sekme aç
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        const tabMap = {
+            'yoklama': 'tabAttendance',
+            'aidat': 'tabPayments',
+            'analiz': 'tabAnalysis',
+            'ayarlar': 'tabSettings'
+        };
+        if (tabMap[tabParam]) {
+            setTimeout(() => switchToTab(tabMap[tabParam]), 100);
+        }
+    }
+</script>
+</body>
+</html>

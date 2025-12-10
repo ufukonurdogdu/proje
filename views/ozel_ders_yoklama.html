@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Özel Ders Yoklama</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk %>; 
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 85%, #000);
+            --primary-light: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 15%, #fff);
+            --bg-body: #f3f5f9;
+            --nav-height: 70px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); display: flex; min-height: 100vh; }
+        
+        .main { flex: 1; margin: 2vh; background: white; border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
+        
+        .page-header { padding: 25px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .page-title { font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .page-title i { color: var(--primary); }
+        
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .header-actions-mobile { display: none; }
+        .date-picker { padding: 10px 15px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; font-weight: 600; background: white; }
+        
+        .btn { padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-sec { background: #f1f5f9; color: #64748b; }
+        
+        .content { padding: 25px; overflow-y: auto; flex: 1; }
+        
+        /* İstatistik Kartları */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: #f8fafc; border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #e2e8f0; }
+        .stat-value { font-size: 28px; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-top: 5px; }
+        
+        /* Yoklama Tablosu */
+        .table-container { overflow-x: auto; }
+        .yoklama-table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        .yoklama-table th { background: #f8fafc; padding: 15px; text-align: left; font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .yoklama-table td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .yoklama-table tr:hover { background: #fafafa; }
+        
+        .ogrenci-cell { display: flex; align-items: center; gap: 12px; }
+        .ogrenci-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
+        .ogrenci-info h4 { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+        .ogrenci-info span { font-size: 12px; color: #64748b; }
+        
+        .paket-badge { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-saat { background: #dbeafe; color: #1d4ed8; }
+        .badge-ders { background: #f3e8ff; color: #7c3aed; }
+        
+        .saat-info { display: flex; flex-direction: column; gap: 3px; }
+        .saat-kalan { font-size: 16px; font-weight: 800; color: #1e293b; }
+        .saat-toplam { font-size: 11px; color: #94a3b8; }
+        
+        .progress-bar { width: 100px; height: 6px; background: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); border-radius: 10px; transition: width 0.3s; }
+        
+        /* Yoklama Butonları */
+        .yoklama-btns { display: flex; gap: 8px; }
+        .yoklama-btn { width: 40px; height: 40px; border-radius: 10px; border: 2px solid #e2e8f0; background: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .yoklama-btn:hover { transform: scale(1.1); }
+        .yoklama-btn.active-katildi { background: #dcfce7; border-color: #22c55e; color: #16a34a; }
+        .yoklama-btn.active-katilmadi { background: #fee2e2; border-color: #ef4444; color: #dc2626; }
+        .yoklama-btn.active-izinli { background: #fef3c7; border-color: #f59e0b; color: #d97706; }
+        
+        .saat-input { width: 60px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center; font-weight: 700; background: white; }
+        
+        /* Modal */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 400px; text-align: center; }
+        
+        /* Boş Durum */
+        .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
+        .empty-state i { font-size: 50px; margin-bottom: 15px; opacity: 0.3; }
+
+        /* Bottom nav varsayılan gizli */
+        .bottom-nav { display: none; }
+
+        /* ==================== MOBİL TEMA SİSTEMİ ==================== */
+        @media (max-width: 991px) {
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            }
+
+            body { 
+                flex-direction: column; 
+                min-height: 100vh;
+                background: var(--m-bg-primary);
+                transition: background 0.3s ease;
+            }
+            
+            
+            .main { 
+                margin: 0; 
+                border-radius: 0;
+                background: var(--m-bg-primary);
+                box-shadow: none;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Mobil Header */
+            .page-header { 
+                position: relative;
+                background: var(--m-header-bg);
+                padding: 20px;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                border-bottom: none;
+                border-radius: 0 0 24px 24px;
+                min-height: 100px;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .page-header::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                                  radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%);
+                border-radius: 0 0 24px 24px;
+            }
+
+            .page-header > * { position: relative; z-index: 2; }
+
+            .page-title { 
+                color: white !important; 
+                font-size: 18px !important;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .page-title i { color: rgba(255,255,255,0.8) !important; font-size: 14px; }
+
+            .header-actions { display: none !important; }
+
+            .header-actions-mobile {
+                display: flex !important;
+                gap: 8px;
+            }
+
+            .btn-header-icon {
+                width: 38px; height: 38px; border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: white; font-size: 15px; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+
+            .content { 
+                padding: 20px; 
+                margin-top: -15px;
+                position: relative;
+                z-index: 5;
+            }
+
+            /* Mobil Kontrol Alanı */
+            .mobile-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-bottom: 20px;
+                background: var(--m-bg-secondary);
+                padding: 15px;
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+                box-shadow: var(--m-card-shadow);
+            }
+
+            .mobile-controls .date-picker {
+                width: 100%;
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+            }
+
+            .mobile-controls .btn-success {
+                width: 100%;
+                padding: 15px;
+                font-size: 14px;
+            }
+
+            /* Stats Grid */
+            .stats-grid { 
+                grid-template-columns: 1fr 1fr !important; 
+                gap: 10px !important; 
+            }
+            
+            .stat-card {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+                padding: 15px !important;
+            }
+
+            .stat-value { font-size: 22px !important; }
+            .stat-label { color: var(--m-text-muted) !important; font-size: 10px !important; }
+
+            /* Table Container */
+            .table-container {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+                box-shadow: var(--m-card-shadow);
+                overflow-x: auto;
+            }
+
+            .yoklama-table { min-width: 650px; }
+            .yoklama-table th { 
+                background: var(--m-bg-tertiary) !important; 
+                color: var(--m-text-muted) !important;
+                padding: 12px !important;
+                font-size: 10px !important;
+            }
+            
+            .yoklama-table td {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                padding: 12px !important;
+            }
+
+            .yoklama-table tr:hover { background: var(--m-bg-tertiary) !important; }
+
+            .ogrenci-info h4 { color: var(--m-text-primary) !important; font-size: 13px !important; }
+            .ogrenci-info span { color: var(--m-text-muted) !important; }
+
+            .saat-kalan { color: var(--m-text-primary) !important; font-size: 14px !important; }
+            .saat-toplam { color: var(--m-text-muted) !important; }
+
+            .saat-input {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+                width: 50px !important;
+            }
+
+            /* DARK MODE SPESİFİK */
+            [data-theme="dark"] .yoklama-btn {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: #94a3b8 !important;
+            }
+
+            [data-theme="dark"] .yoklama-btn.active-katildi { background: #dcfce7 !important; border-color: #22c55e !important; color: #16a34a !important; }
+            [data-theme="dark"] .yoklama-btn.active-katilmadi { background: #fee2e2 !important; border-color: #ef4444 !important; color: #dc2626 !important; }
+            [data-theme="dark"] .yoklama-btn.active-izinli { background: #fef3c7 !important; border-color: #f59e0b !important; color: #d97706 !important; }
+
+            [data-theme="dark"] .paket-badge.badge-saat { background: rgba(59, 130, 246, 0.2); }
+            [data-theme="dark"] .paket-badge.badge-ders { background: rgba(124, 58, 237, 0.2); }
+
+            [data-theme="dark"] .progress-bar { background: #334155; }
+
+            /* Modal Dark Mode */
+            [data-theme="dark"] .modal-content {
+                background: var(--m-bg-secondary) !important;
+            }
+            [data-theme="dark"] .modal-content p { color: #f1f5f9 !important; }
+
+            /* Empty State */
+            .empty-state { color: var(--m-text-muted) !important; }
+            .empty-state h3 { color: var(--m-text-primary) !important; }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+            }
+
+            .nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 4px; padding: 8px 12px; border-radius: 12px;
+                color: var(--m-text-muted); text-decoration: none;
+                transition: all 0.2s; cursor: pointer;
+            }
+
+            .nav-item.active { color: var(--primary); background: var(--primary-light); }
+            .nav-item i { font-size: 18px; }
+            .nav-item span { font-size: 10px; font-weight: 600; }
+        }
+
+        /* ==================== MASAÜSTÜ ==================== */
+        @media (min-width: 992px) {
+            .header-actions-mobile { display: none !important; }
+            .bottom-nav { display: none !important; }
+            .mobile-controls { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: '/ozel-ders-yoklama' }) %>
+
+    <div class="main">
+        <div class="page-header">
+            <div class="page-title">
+                <i class="fa-solid fa-graduation-cap"></i>
+                Özel Ders Yoklama
+            </div>
+
+            <!-- Masaüstü Header Actions -->
+            <div class="header-actions">
+                <input type="date" id="yoklamaTarih" class="date-picker" value="<%= bugun %>">
+                <button class="btn btn-success" onclick="kaydetTumYoklamalar()">
+                    <i class="fa-solid fa-save"></i> Tümünü Kaydet
+                </button>
+            </div>
+
+            <!-- Mobil Header Butonları -->
+            <div class="header-actions-mobile">
+                <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="/api/dashboard" class="btn-header-icon" title="Ana Sayfa">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="content">
+
+            <!-- Mobil Kontrol Alanı -->
+            <div class="mobile-controls">
+                <input type="date" id="yoklamaTarihMobil" class="date-picker" value="<%= bugun %>">
+                <button class="btn btn-success" onclick="kaydetTumYoklamalar()">
+                    <i class="fa-solid fa-save"></i> Tümünü Kaydet
+                </button>
+            </div>
+
+            <!-- İstatistikler -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value"><%= paketler.length %></div>
+                    <div class="stat-label">Aktif Öğrenci</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#22c55e;" id="katildiSayisi">0</div>
+                    <div class="stat-label">Katıldı</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#ef4444;" id="katilmadiSayisi">0</div>
+                    <div class="stat-label">Katılmadı</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#f59e0b;" id="izinliSayisi">0</div>
+                    <div class="stat-label">İzinli</div>
+                </div>
+            </div>
+
+            <% if (paketler.length === 0) { %>
+                <div class="empty-state">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <h3>Aktif Özel Ders Paketi Yok</h3>
+                    <p>Henüz aktif özel ders paketi bulunan öğrenci bulunmuyor.</p>
+                </div>
+            <% } else { %>
+                <div class="table-container">
+                    <table class="yoklama-table">
+                        <thead>
+                            <tr>
+                                <th>Öğrenci</th>
+                                <th>Paket</th>
+                                <th>Kalan</th>
+                                <th>İlerleme</th>
+                                <th>Saat</th>
+                                <th>Yoklama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% paketler.forEach((p, index) => { 
+                                const kullanimOrani = (p.kullanilan_saat / p.toplam_saat) * 100;
+                                const kalanGun = Math.ceil((new Date(p.bitis_tarihi) - new Date()) / (1000 * 60 * 60 * 24));
+                                const mevcutYoklama = bugunYoklamalar[p.paket_id] || '';
+                            %>
+                                <tr data-paket-id="<%= p.paket_id %>" data-ogrenci-id="<%= p.ogrenci_id %>">
+                                    <td>
+                                        <div class="ogrenci-cell">
+                                            <img src="/images/students/<%= p.profil_foto %>" onerror="this.src='https://via.placeholder.com/45'" class="ogrenci-img">
+                                            <div class="ogrenci-info">
+                                                <h4><%= p.ad_soyad %></h4>
+                                                <span><%= p.brans_adi || '-' %> • <%= p.grup_adi || '-' %></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="paket-badge badge-saat">
+                                            <i class="fa-solid fa-clock"></i> <%= p.paket_adi %>
+                                        </span>
+                                        <div style="font-size:11px; color:#64748b; margin-top:5px;">
+                                            <% if (kalanGun <= 7) { %>
+                                                <span style="color:#ef4444;">⚠️ <%= kalanGun %> gün kaldı</span>
+                                            <% } else { %>
+                                                <%= kalanGun %> gün kaldı
+                                            <% } %>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="saat-info">
+                                            <span class="saat-kalan"><%= p.kalan_saat %> saat</span>
+                                            <span class="saat-toplam"><%= p.kullanilan_saat %>/<%= p.toplam_saat %> kullanıldı</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: <%= kullanimOrani %>%;"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <input type="number" class="saat-input" value="1" min="0.5" max="<%= p.kalan_saat %>" step="0.5" data-index="<%= index %>">
+                                    </td>
+                                    <td>
+                                        <div class="yoklama-btns">
+                                            <button class="yoklama-btn <%= mevcutYoklama === 'katildi' ? 'active-katildi' : '' %>" 
+                                                    onclick="setYoklama(this, 'katildi')" title="Katıldı">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                            <button class="yoklama-btn <%= mevcutYoklama === 'katilmadi' ? 'active-katilmadi' : '' %>" 
+                                                    onclick="setYoklama(this, 'katilmadi')" title="Katılmadı">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                            <button class="yoklama-btn <%= mevcutYoklama === 'izinli' ? 'active-izinli' : '' %>" 
+                                                    onclick="setYoklama(this, 'izinli')" title="İzinli">
+                                                <i class="fa-solid fa-clock"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/yoklama" class="nav-item">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Yoklama</span>
+        </a>
+        <a href="/api/ozel-ders-yoklama" class="nav-item active">
+            <i class="fa-solid fa-graduation-cap"></i>
+            <span>Özel Ders</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <div id="alertIcon" style="width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px;"></div>
+            <p id="alertMessage" style="font-size:15px; font-weight:600; margin-bottom:20px;"></p>
+            <button onclick="document.getElementById('alertModal').style.display='none'" 
+                    style="padding:12px 40px; background:var(--primary); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+                Tamam
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== TEMA YÖNETİMİ ====================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // Tarih inputlarını senkronize et
+        document.getElementById('yoklamaTarihMobil')?.addEventListener('change', function() {
+            document.getElementById('yoklamaTarih').value = this.value;
+        });
+
+        // ==================== YOKLAMA FONKSİYONLARI ====================
+        function showAlert(message, type = 'info') {
+            const colors = {
+                success: { bg: '#dcfce7', icon: '#22c55e', iconClass: 'fa-check-circle' },
+                error: { bg: '#fee2e2', icon: '#ef4444', iconClass: 'fa-times-circle' },
+                warning: { bg: '#fef3c7', icon: '#f59e0b', iconClass: 'fa-exclamation-triangle' },
+                info: { bg: '#dbeafe', icon: '#3b82f6', iconClass: 'fa-info-circle' }
+            };
+            const c = colors[type] || colors.info;
+            
+            document.getElementById('alertIcon').style.background = c.bg;
+            document.getElementById('alertIcon').innerHTML = `<i class="fa-solid ${c.iconClass}" style="font-size:28px; color:${c.icon};"></i>`;
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
+
+        function setYoklama(btn, durum) {
+            const row = btn.closest('tr');
+            const btns = row.querySelectorAll('.yoklama-btn');
+            
+            // Tüm butonlardan active class'ı kaldır
+            btns.forEach(b => {
+                b.classList.remove('active-katildi', 'active-katilmadi', 'active-izinli');
+            });
+            
+            // Seçilen butona active class ekle
+            btn.classList.add('active-' + durum);
+            
+            // İstatistikleri güncelle
+            updateStats();
+        }
+
+        function updateStats() {
+            let katildi = 0, katilmadi = 0, izinli = 0;
+            
+            document.querySelectorAll('.yoklama-table tbody tr').forEach(row => {
+                if (row.querySelector('.active-katildi')) katildi++;
+                else if (row.querySelector('.active-katilmadi')) katilmadi++;
+                else if (row.querySelector('.active-izinli')) izinli++;
+            });
+            
+            document.getElementById('katildiSayisi').textContent = katildi;
+            document.getElementById('katilmadiSayisi').textContent = katilmadi;
+            document.getElementById('izinliSayisi').textContent = izinli;
+        }
+
+        async function kaydetTumYoklamalar() {
+            const yoklamalar = [];
+            // Mobil veya masaüstü tarih inputunu kontrol et
+            const tarihInput = document.getElementById('yoklamaTarihMobil') || document.getElementById('yoklamaTarih');
+            const tarih = tarihInput.value;
+            
+            document.querySelectorAll('.yoklama-table tbody tr').forEach(row => {
+                const paketId = row.dataset.paketId;
+                const ogrenciId = row.dataset.ogrenciId;
+                const saatInput = row.querySelector('.saat-input');
+                const saat = parseFloat(saatInput.value) || 1;
+                
+                let durum = null;
+                if (row.querySelector('.active-katildi')) durum = 'katildi';
+                else if (row.querySelector('.active-katilmadi')) durum = 'katilmadi';
+                else if (row.querySelector('.active-izinli')) durum = 'izinli';
+                
+                if (durum) {
+                    yoklamalar.push({ paket_id: paketId, ogrenci_id: ogrenciId, durum, saat });
+                }
+            });
+            
+            if (yoklamalar.length === 0) {
+                showAlert('Lütfen en az bir öğrenci için yoklama seçin!', 'warning');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/ozel-ders-yoklama/kaydet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ yoklamalar, tarih })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showAlert(data.message || 'Hata oluştu!', 'error');
+                }
+            } catch (e) {
+                showAlert('Bağlantı hatası!', 'error');
+            }
+        }
+
+        // Sayfa yüklendiğinde istatistikleri güncelle
+        updateStats();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slider Yönetimi | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: var(--border); color: var(--text); }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .card-body { padding: 24px; }
+
+        /* Table */
+        .table-container { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            background: #f8fafc;
+        }
+
+        tr:hover { background: #f8fafc; }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-active { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .status-inactive { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-icon.edit { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .btn-icon.delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .btn-icon:hover { transform: scale(1.1); }
+
+        /* Slide Thumbnail */
+        .slide-thumb {
+            width: 80px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+            background: var(--border);
+        }
+
+        .slide-thumb-placeholder {
+            width: 80px;
+            height: 50px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-secondary);
+        }
+
+        .modal-body { padding: 24px; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-check input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        /* Image Upload */
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .image-upload-area.has-image {
+            padding: 15px;
+            border-style: solid;
+        }
+
+        #uploadPlaceholder {
+            cursor: pointer;
+        }
+
+        #uploadPlaceholder i {
+            font-size: 40px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        #uploadPlaceholder p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        #uploadPlaceholder small {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+
+        .image-preview-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 28px;
+            height: 28px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .remove-image:hover {
+            background: #dc2626;
+            transform: scale(1.1);
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            color: var(--border);
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* Order Badge */
+        .order-badge {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+            animation: toastSlide 0.3s ease;
+        }
+
+        .toast.error { background: var(--danger); }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+
+        @keyframes toastSlide {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Header Hidden by Default */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .slide-list { display: none; }
+        .fab-add { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Masaüstü Header Gizle */
+            .page-header { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button,
+            .mobile-header-actions a {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-header-actions button:active,
+            .mobile-header-actions a:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== CARD ===== */
+            .card {
+                background: transparent;
+                border: none;
+                border-radius: 0;
+            }
+
+            .card-header {
+                display: none;
+            }
+
+            /* ===== SLIDE LIST - KART GÖRÜNÜMÜ ===== */
+            .table-container {
+                display: none !important;
+            }
+
+            .slide-list {
+                display: flex !important;
+                flex-direction: column;
+                gap: 12px;
+                padding: 15px;
+            }
+
+            .slide-card {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                padding: 16px;
+                border: 1px solid var(--m-border-color);
+                display: flex;
+                align-items: flex-start;
+                gap: 14px;
+                position: relative;
+            }
+
+            .slide-card:active {
+                transform: scale(0.98);
+                background: var(--m-bg-tertiary);
+            }
+
+            .slide-thumb-mobile {
+                width: 70px;
+                height: 70px;
+                border-radius: 12px;
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+
+            .slide-thumb-placeholder-mobile {
+                width: 70px;
+                height: 70px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 24px;
+                flex-shrink: 0;
+            }
+
+            .slide-content {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .slide-title {
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--m-text-primary);
+                margin-bottom: 4px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .slide-subtitle {
+                font-size: 13px;
+                color: var(--m-text-muted);
+                margin-bottom: 8px;
+                display: -webkit-box;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .slide-meta {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 12px;
+            }
+
+            .slide-meta span {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                color: var(--m-text-muted);
+            }
+
+            .slide-meta span i {
+                color: #8b5cf6;
+            }
+
+            .slide-status {
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 10px;
+                font-weight: 600;
+            }
+
+            .slide-status.active {
+                background: rgba(34, 197, 94, 0.1);
+                color: #22c55e;
+            }
+
+            .slide-status.inactive {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .slide-actions {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+
+            .slide-actions button {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+            }
+
+            .slide-actions .edit-btn {
+                background: rgba(99, 102, 241, 0.1);
+                color: var(--primary);
+            }
+
+            .slide-actions .delete-btn {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .slide-actions button:active {
+                transform: scale(0.9);
+            }
+
+            /* ===== EMPTY STATE ===== */
+            .empty-state {
+                padding: 60px 20px;
+            }
+
+            .empty-state i {
+                font-size: 50px;
+                color: var(--m-text-muted);
+            }
+
+            .empty-state h3 {
+                color: var(--m-text-primary);
+            }
+
+            .empty-state p {
+                color: var(--m-text-muted);
+            }
+
+            /* ===== FAB BUTTON ===== */
+            .fab-add {
+                display: flex !important;
+                position: fixed;
+                bottom: calc(var(--nav-height) + 20px);
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+                color: white;
+                border: none;
+                font-size: 22px;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+                z-index: 100;
+            }
+
+            .fab-add:active {
+                transform: scale(0.95);
+            }
+
+            /* ===== MODAL MOBİL ===== */
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .modal {
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 20px 20px 0 0;
+                margin: 0;
+            }
+
+            .modal-header {
+                padding: 20px;
+                position: sticky;
+                top: 0;
+                background: white;
+                z-index: 10;
+            }
+
+            [data-theme="dark"] .modal-header {
+                background: var(--m-bg-secondary);
+            }
+
+            [data-theme="dark"] .modal {
+                background: var(--m-bg-secondary);
+            }
+
+            .modal-header h3 {
+                font-size: 16px;
+            }
+
+            .modal-body {
+                padding: 20px;
+                padding-bottom: 100px;
+            }
+
+            .form-group label {
+                color: var(--m-text-primary);
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                background: var(--m-bg-tertiary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-primary);
+                font-size: 16px;
+                padding: 14px 16px;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus,
+            .form-group select:focus {
+                background: var(--m-bg-secondary);
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .image-upload-area {
+                border-color: var(--m-border-color);
+            }
+
+            #uploadPlaceholder i,
+            #uploadPlaceholder p {
+                color: var(--m-text-muted);
+            }
+
+            .modal-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--m-bg-secondary);
+                padding: 15px 20px;
+                padding-bottom: max(env(safe-area-inset-bottom), 15px);
+                border-top: 1px solid var(--m-border-color);
+            }
+
+            .modal-footer .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            /* ===== TOAST MOBİL ===== */
+            .toast {
+                bottom: calc(var(--nav-height) + 20px);
+                left: 20px;
+                right: 20px;
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+                transition: all 0.2s;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>Hero Slider</h1>
+                <span><%= sliderlar.length %> slide</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Slider</span>
+                    </div>
+                    <h1><i class="fas fa-images"></i> Hero Slider Yönetimi</h1>
+                </div>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Yeni Slide Ekle
+                </button>
+            </div>
+
+            <!-- Slider List -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list"></i> Slider Listesi</h3>
+                    <span style="color: var(--text-secondary); font-size: 14px;">
+                        Toplam: <%= sliderlar.length %> slide
+                    </span>
+                </div>
+
+                <% if (sliderlar.length === 0) { %>
+                    <div class="empty-state">
+                        <i class="fas fa-images"></i>
+                        <h3>Henüz slider eklenmemiş</h3>
+                        <p>İlk slide'ınızı ekleyerek başlayın</p>
+                        <button class="btn btn-primary" onclick="openModal()">
+                            <i class="fas fa-plus"></i> Slide Ekle
+                        </button>
+                    </div>
+                <% } else { %>
+                    <!-- Desktop Table -->
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Sıra</th>
+                                    <th>Görsel</th>
+                                    <th>Başlık</th>
+                                    <th>Alt Başlık</th>
+                                    <th>Buton</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% sliderlar.forEach((slide, index) => { %>
+                                    <tr>
+                                        <td><div class="order-badge"><%= slide.sira || index + 1 %></div></td>
+                                        <td>
+                                            <% if (slide.resim) { %>
+                                                <img src="/images/slider/<%= slide.resim %>" class="slide-thumb" alt="">
+                                            <% } else { %>
+                                                <div class="slide-thumb-placeholder"><i class="fas fa-image"></i></div>
+                                            <% } %>
+                                        </td>
+                                        <td><strong><%= slide.baslik %></strong></td>
+                                        <td><%= slide.alt_baslik || '-' %></td>
+                                        <td><%= slide.buton_yazi || 'Hemen Başvur' %></td>
+                                        <td>
+                                            <span class="status-badge <%= slide.durum == 1 ? 'status-active' : 'status-inactive' %>">
+                                                <%= slide.durum == 1 ? 'Aktif' : 'Pasif' %>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="actions">
+                                                <button class="btn-icon edit" 
+                                                    data-id="<%= slide.id %>"
+                                                    data-baslik="<%= slide.baslik %>"
+                                                    data-alt_baslik="<%= slide.alt_baslik || '' %>"
+                                                    data-aciklama="<%= slide.aciklama || '' %>"
+                                                    data-buton_yazi="<%= slide.buton_yazi || 'Hemen Başvur' %>"
+                                                    data-buton_link="<%= slide.buton_link || '/basvuru' %>"
+                                                    data-sira="<%= slide.sira || 0 %>"
+                                                    data-durum="<%= slide.durum %>"
+                                                    data-resim="<%= slide.resim || '' %>"
+                                                    onclick="editSlideFromBtn(this)">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-icon delete" onclick="deleteSlide(<%= slide.id %>)">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile Card List -->
+                    <div class="slide-list">
+                        <% sliderlar.forEach((slide, index) => { %>
+                            <div class="slide-card">
+                                <% if (slide.resim) { %>
+                                    <img src="/images/slider/<%= slide.resim %>" class="slide-thumb-mobile" alt="">
+                                <% } else { %>
+                                    <div class="slide-thumb-placeholder-mobile"><i class="fas fa-image"></i></div>
+                                <% } %>
+                                <div class="slide-content">
+                                    <div class="slide-title">
+                                        <%= slide.baslik %>
+                                        <span class="slide-status <%= slide.durum == 1 ? 'active' : 'inactive' %>">
+                                            <%= slide.durum == 1 ? 'Aktif' : 'Pasif' %>
+                                        </span>
+                                    </div>
+                                    <div class="slide-subtitle"><%= slide.alt_baslik || 'Alt başlık yok' %></div>
+                                    <div class="slide-meta">
+                                        <span><i class="fas fa-sort"></i> Sıra: <%= slide.sira || index + 1 %></span>
+                                        <span><i class="fas fa-link"></i> <%= slide.buton_yazi || 'Hemen Başvur' %></span>
+                                    </div>
+                                </div>
+                                <div class="slide-actions">
+                                    <button class="edit-btn" 
+                                        data-id="<%= slide.id %>"
+                                        data-baslik="<%= slide.baslik %>"
+                                        data-alt_baslik="<%= slide.alt_baslik || '' %>"
+                                        data-aciklama="<%= slide.aciklama || '' %>"
+                                        data-buton_yazi="<%= slide.buton_yazi || 'Hemen Başvur' %>"
+                                        data-buton_link="<%= slide.buton_link || '/basvuru' %>"
+                                        data-sira="<%= slide.sira || 0 %>"
+                                        data-durum="<%= slide.durum %>"
+                                        data-resim="<%= slide.resim || '' %>"
+                                        onclick="editSlideFromBtn(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="delete-btn" onclick="deleteSlide(<%= slide.id %>)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- FAB Add Button (Mobile) -->
+            <button class="fab-add" onclick="openModal()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-plus"></i> Yeni Slide Ekle</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="slideForm" onsubmit="saveSlide(event)" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="slideId">
+                    <input type="hidden" name="mevcut_resim" id="mevcutResim">
+
+                    <!-- Resim Yükleme -->
+                    <div class="form-group">
+                        <label>Slide Görseli</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <input type="file" name="resim" id="resimInput" accept="image/*" onchange="previewImage(this)" style="display:none;">
+                            <div id="uploadPlaceholder" onclick="document.getElementById('resimInput').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Resim yüklemek için tıklayın</p>
+                                <small>PNG, JPG, WEBP (Max: 5MB)</small>
+                            </div>
+                            <div id="imagePreviewContainer" style="display: none;">
+                                <div class="image-preview-container">
+                                    <img id="imagePreview" class="image-preview" src="" alt="">
+                                    <button type="button" class="remove-image" onclick="removeImage(event)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <p style="margin-top:10px; font-size:12px; color:var(--text-secondary); cursor:pointer;" onclick="document.getElementById('resimInput').click()">
+                                    <i class="fas fa-sync-alt"></i> Resmi değiştir
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ana Başlık *</label>
+                        <input type="text" name="baslik" id="baslik" required placeholder="GELECEĞİN">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Alt Başlık</label>
+                        <input type="text" name="alt_baslik" id="alt_baslik" placeholder="ŞAMPİYONLARI BURADA YETİŞİR">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Açıklama</label>
+                        <textarea name="aciklama" id="aciklama" placeholder="Slide açıklaması..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Buton Yazısı</label>
+                            <input type="text" name="buton_yazi" id="buton_yazi" value="Hemen Başvur">
+                        </div>
+                        <div class="form-group">
+                            <label>Buton Linki</label>
+                            <input type="text" name="buton_link" id="buton_link" value="/basvuru">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Sıra</label>
+                            <input type="number" name="sira" id="sira" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div class="form-check">
+                                <input type="checkbox" name="durum" id="durum" checked>
+                                <label for="durum" style="margin: 0;">Aktif</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // RESİM YÜKLEME
+        // =====================================================
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                
+                // Boyut kontrolü (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Dosya boyutu 5MB\'dan küçük olmalı', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('uploadPlaceholder').style.display = 'none';
+                    document.getElementById('imagePreviewContainer').style.display = 'block';
+                    document.getElementById('imageUploadArea').classList.add('has-image');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('resimInput').value = '';
+            document.getElementById('mevcutResim').value = '';
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('imageUploadArea').classList.remove('has-image');
+        }
+
+        // =====================================================
+        // MODAL İŞLEMLERİ
+        // =====================================================
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Yeni Slide Ekle';
+            document.getElementById('slideForm').reset();
+            document.getElementById('slideId').value = '';
+            document.getElementById('mevcutResim').value = '';
+            document.getElementById('durum').checked = true;
+            
+            // Resim alanını sıfırla
+            document.getElementById('resimInput').value = '';
+            document.getElementById('uploadPlaceholder').style.display = 'block';
+            document.getElementById('imagePreviewContainer').style.display = 'none';
+            document.getElementById('imageUploadArea').classList.remove('has-image');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        // Data attribute'lardan slide bilgilerini al
+        function editSlideFromBtn(btn) {
+            const slide = {
+                id: btn.dataset.id,
+                baslik: btn.dataset.baslik,
+                alt_baslik: btn.dataset.alt_baslik,
+                aciklama: btn.dataset.aciklama,
+                buton_yazi: btn.dataset.buton_yazi,
+                buton_link: btn.dataset.buton_link,
+                sira: btn.dataset.sira,
+                durum: btn.dataset.durum,
+                resim: btn.dataset.resim
+            };
+            editSlide(slide);
+        }
+
+        function editSlide(slide) {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Slide Düzenle';
+            
+            document.getElementById('slideId').value = slide.id || '';
+            document.getElementById('baslik').value = slide.baslik || '';
+            document.getElementById('alt_baslik').value = slide.alt_baslik || '';
+            document.getElementById('aciklama').value = slide.aciklama || '';
+            document.getElementById('buton_yazi').value = slide.buton_yazi || 'Hemen Başvur';
+            document.getElementById('buton_link').value = slide.buton_link || '/basvuru';
+            document.getElementById('sira').value = slide.sira || 0;
+            document.getElementById('durum').checked = slide.durum == 1;
+            document.getElementById('mevcutResim').value = slide.resim || '';
+            
+            // File input'u sıfırla
+            document.getElementById('resimInput').value = '';
+
+            // Mevcut resmi göster
+            if (slide.resim && slide.resim !== '') {
+                document.getElementById('imagePreview').src = '/images/slider/' + slide.resim;
+                document.getElementById('uploadPlaceholder').style.display = 'none';
+                document.getElementById('imagePreviewContainer').style.display = 'block';
+                document.getElementById('imageUploadArea').classList.add('has-image');
+            } else {
+                document.getElementById('uploadPlaceholder').style.display = 'block';
+                document.getElementById('imagePreviewContainer').style.display = 'none';
+                document.getElementById('imageUploadArea').classList.remove('has-image');
+            }
+        }
+
+        async function saveSlide(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('slideForm');
+            const formData = new FormData(form);
+            formData.set('durum', document.getElementById('durum').checked ? 1 : 0);
+
+            try {
+                const res = await fetch('/api/admin/website/slider/save', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Slide başarıyla kaydedildi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        async function deleteSlide(id) {
+            if (!confirm('Bu slide\'ı silmek istediğinize emin misiniz?')) return;
+
+            try {
+                const res = await fetch(`/api/admin/website/slider/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Slide silindi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Silinemedi', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ESC ile modal kapat
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

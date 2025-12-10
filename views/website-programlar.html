@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Programlar Yönetimi | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary { background: var(--border); color: var(--text); }
+        .btn-danger { background: var(--danger); color: white; }
+
+        /* Programs Grid */
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .program-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .program-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .program-header {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            color: rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .program-header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .program-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .program-status.active { background: var(--success); color: white; }
+        .program-status.inactive { background: var(--danger); color: white; }
+
+        .program-order {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .program-body { padding: 20px; }
+
+        .program-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .program-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .program-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .program-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .program-meta-item i { color: var(--primary); }
+
+        .program-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+        }
+
+        .program-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .program-actions .edit-btn {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .program-actions .delete-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .program-actions button:hover { transform: scale(1.02); }
+
+        /* Add Card */
+        .add-card {
+            background: var(--card-bg);
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 280px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-card:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.02);
+        }
+
+        .add-card i {
+            font-size: 48px;
+            color: var(--border);
+            margin-bottom: 15px;
+        }
+
+        .add-card:hover i { color: var(--primary); }
+
+        .add-card span {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 { font-size: 18px; font-weight: 700; }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .modal-body { padding: 24px; }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-check input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+
+        /* Icon Selector */
+        .icon-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .icon-preview {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .icon-selector input { flex: 1; }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 25px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+        }
+
+        .toast.error { background: var(--danger); }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+
+        /* Mobile Header Hidden by Default */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .fab-add { display: none; }
+        .program-mobile-actions { display: none; }
+        .program-title-status { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Masaüstü Header Gizle */
+            .page-header { display: none; }
+
+            /* Add Card Masaüstünde Gizle Mobilde */
+            .add-card { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-header-actions button:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== PROGRAMS GRID MOBİL ===== */
+            .programs-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+                padding: 15px;
+            }
+
+            .program-card {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+                overflow: hidden;
+                display: flex;
+                flex-direction: row;
+            }
+
+            .program-card:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+            .program-card:active {
+                transform: scale(0.98);
+                background: var(--m-bg-tertiary);
+            }
+
+            .program-header {
+                width: 80px;
+                height: auto;
+                min-height: 100px;
+                flex-shrink: 0;
+                font-size: 28px;
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+            }
+
+            .program-header img {
+                width: 80px;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .program-status {
+                display: none;
+            }
+
+            .program-order {
+                top: 8px;
+                left: 8px;
+                width: 22px;
+                height: 22px;
+                font-size: 10px;
+            }
+
+            .program-body {
+                flex: 1;
+                padding: 12px 14px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                min-width: 0;
+            }
+
+            .program-title {
+                font-size: 15px;
+                font-weight: 600;
+                color: var(--m-text-primary);
+                margin-bottom: 4px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .program-title-status {
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 10px;
+                font-size: 9px;
+                font-weight: 600;
+            }
+
+            .program-title-status.active {
+                background: rgba(34, 197, 94, 0.1);
+                color: #22c55e;
+            }
+
+            .program-title-status.inactive {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .program-desc {
+                font-size: 12px;
+                color: var(--m-text-muted);
+                margin-bottom: 8px;
+                -webkit-line-clamp: 1;
+            }
+
+            .program-meta {
+                gap: 10px;
+                margin-bottom: 0;
+            }
+
+            .program-meta-item {
+                font-size: 11px;
+                color: var(--m-text-muted);
+            }
+
+            .program-meta-item i {
+                color: #f59e0b;
+                font-size: 10px;
+            }
+
+            .program-actions {
+                display: none;
+            }
+
+            /* Mobil Program Butonları */
+            .program-mobile-actions {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 6px;
+                padding: 10px;
+                flex-shrink: 0;
+            }
+
+            .program-mobile-actions button {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+            }
+
+            .program-mobile-actions .edit-btn {
+                background: rgba(99, 102, 241, 0.1);
+                color: var(--primary);
+            }
+
+            .program-mobile-actions .delete-btn {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+            .program-mobile-actions button:active {
+                transform: scale(0.9);
+            }
+
+            /* ===== FAB BUTTON ===== */
+            .fab-add {
+                display: flex !important;
+                position: fixed;
+                bottom: calc(var(--nav-height) + 20px);
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+                color: white;
+                border: none;
+                font-size: 22px;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+                z-index: 100;
+            }
+
+            .fab-add:active {
+                transform: scale(0.95);
+            }
+
+            /* ===== MODAL MOBİL ===== */
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .modal {
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 20px 20px 0 0;
+                margin: 0;
+                background: var(--m-bg-secondary);
+            }
+
+            .modal-header {
+                padding: 20px;
+                position: sticky;
+                top: 0;
+                background: var(--m-bg-secondary);
+                z-index: 10;
+                border-bottom: 1px solid var(--m-border-color);
+            }
+
+            .modal-header h3 {
+                font-size: 16px;
+                color: var(--m-text-primary);
+            }
+
+            .modal-close {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-muted);
+            }
+
+            .modal-body {
+                padding: 20px;
+                padding-bottom: 100px;
+            }
+
+            .form-group label {
+                color: var(--m-text-secondary);
+                font-size: 13px;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                background: var(--m-bg-tertiary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-primary);
+                font-size: 16px;
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus {
+                background: var(--m-bg-secondary);
+                border-color: #f59e0b;
+            }
+
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                color: #f59e0b;
+                font-size: 13px;
+                margin: 20px 0 12px;
+            }
+
+            .icon-preview {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+            }
+
+            .form-hint {
+                font-size: 11px;
+                color: var(--m-text-muted);
+            }
+
+            .modal-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--m-bg-secondary);
+                padding: 15px 20px;
+                padding-bottom: max(env(safe-area-inset-bottom), 15px);
+                border-top: 1px solid var(--m-border-color);
+            }
+
+            .modal-footer .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            .modal-footer .btn-secondary {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            .modal-footer .btn-primary {
+                background: linear-gradient(135deg, #f59e0b, #d97706);
+            }
+
+            /* ===== TOAST MOBİL ===== */
+            .toast {
+                bottom: calc(var(--nav-height) + 20px);
+                left: 20px;
+                right: 20px;
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>Programlar</h1>
+                <span><%= programlar.length %> program</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Programlar</span>
+                    </div>
+                    <h1><i class="fas fa-futbol"></i> Program Yönetimi</h1>
+                </div>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Yeni Program
+                </button>
+            </div>
+
+            <!-- Programs Grid -->
+            <div class="programs-grid">
+                <% programlar.forEach((program, index) => { %>
+                    <div class="program-card">
+                        <div class="program-header">
+                            <% if (program.resim) { %>
+                                <img src="/images/programlar/<%= program.resim %>" alt="<%= program.program_adi %>">
+                            <% } else { %>
+                                <i class="fas fa-<%= program.ikon || 'trophy' %>"></i>
+                            <% } %>
+                            <div class="program-order"><%= program.sira || index + 1 %></div>
+                            <div class="program-status <%= program.durum == 1 ? 'active' : 'inactive' %>">
+                                <%= program.durum == 1 ? 'Aktif' : 'Pasif' %>
+                            </div>
+                        </div>
+                        <div class="program-body">
+                            <h3 class="program-title">
+                                <%= program.program_adi %>
+                                <span class="program-title-status <%= program.durum == 1 ? 'active' : 'inactive' %>">
+                                    <%= program.durum == 1 ? 'Aktif' : 'Pasif' %>
+                                </span>
+                            </h3>
+                            <p class="program-desc"><%= program.kisa_aciklama || 'Açıklama eklenmemiş' %></p>
+                            <div class="program-meta">
+                                <div class="program-meta-item">
+                                    <i class="fas fa-users"></i>
+                                    <%= program.yas_grubu || '6-18 yaş' %>
+                                </div>
+                                <div class="program-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <%= program.ders_suresi || '60 dk' %>
+                                </div>
+                            </div>
+                            <div class="program-actions">
+                                <button class="edit-btn" onclick='editProgram(<%- JSON.stringify(program) %>)'>
+                                    <i class="fas fa-edit"></i> Düzenle
+                                </button>
+                                <button class="delete-btn" onclick="deleteProgram(<%= program.id %>)">
+                                    <i class="fas fa-trash"></i> Sil
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Mobile Actions -->
+                        <div class="program-mobile-actions">
+                            <button class="edit-btn" onclick='editProgram(<%- JSON.stringify(program) %>)'>
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="delete-btn" onclick="deleteProgram(<%= program.id %>)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                <% }) %>
+
+                <!-- Add Card (Desktop) -->
+                <div class="add-card" onclick="openModal()">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Yeni Program Ekle</span>
+                </div>
+            </div>
+
+            <!-- FAB Add Button (Mobile) -->
+            <button class="fab-add" onclick="openModal()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-plus"></i> Yeni Program</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="programForm" onsubmit="saveProgram(event)">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="programId">
+
+                    <!-- Temel Bilgiler -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Program Adı *</label>
+                            <input type="text" name="program_adi" id="program_adi" required placeholder="Futbol">
+                        </div>
+                        <div class="form-group">
+                            <label>İkon</label>
+                            <div class="icon-selector">
+                                <div class="icon-preview" id="iconPreview">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <input type="text" name="ikon" id="ikon" value="trophy" onchange="updateIcon()">
+                            </div>
+                            <div class="form-hint">futbol, basketball-ball, swimmer, volleyball-ball, tennis</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kısa Açıklama</label>
+                        <textarea name="kisa_aciklama" id="kisa_aciklama" placeholder="Kart üzerinde görünecek kısa açıklama..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Detaylı Açıklama</label>
+                        <textarea name="uzun_aciklama" id="uzun_aciklama" placeholder="Modal içinde görünecek detaylı açıklama..." style="min-height: 100px;"></textarea>
+                    </div>
+
+                    <div class="section-title"><i class="fas fa-info-circle"></i> Program Detayları</div>
+
+                    <div class="form-row-3">
+                        <div class="form-group">
+                            <label>Yaş Grubu</label>
+                            <input type="text" name="yas_grubu" id="yas_grubu" value="6-18 yaş" placeholder="6-18 yaş">
+                        </div>
+                        <div class="form-group">
+                            <label>Ders Süresi</label>
+                            <input type="text" name="ders_suresi" id="ders_suresi" value="60 dakika" placeholder="60 dakika">
+                        </div>
+                        <div class="form-group">
+                            <label>Haftalık Ders</label>
+                            <input type="number" name="haftalik_ders" id="haftalik_ders" value="2" min="1">
+                        </div>
+                    </div>
+
+                    <div class="section-title"><i class="fas fa-star"></i> Özellikler (Modal için)</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Özellik 1</label>
+                            <input type="text" name="ozellik_1" id="ozellik_1" placeholder="UEFA Lisanslı Antrenörler">
+                        </div>
+                        <div class="form-group">
+                            <label>Özellik 2</label>
+                            <input type="text" name="ozellik_2" id="ozellik_2" placeholder="Haftalık Maçlar">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Özellik 3</label>
+                            <input type="text" name="ozellik_3" id="ozellik_3" placeholder="Turnuva Katılımı">
+                        </div>
+                        <div class="form-group">
+                            <label>Özellik 4</label>
+                            <input type="text" name="ozellik_4" id="ozellik_4" placeholder="Video Analiz">
+                        </div>
+                    </div>
+
+                    <div class="section-title"><i class="fas fa-cog"></i> Ayarlar</div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Sıra</label>
+                            <input type="number" name="sira" id="sira" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <div class="form-check">
+                                <input type="checkbox" name="durum" id="durum" checked>
+                                <label for="durum" style="margin: 0;">Aktif (Web sitesinde göster)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // MODAL İŞLEMLERİ
+        // =====================================================
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Yeni Program';
+            document.getElementById('programForm').reset();
+            document.getElementById('programId').value = '';
+            document.getElementById('durum').checked = true;
+            document.getElementById('ikon').value = 'trophy';
+            updateIcon();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function updateIcon() {
+            const iconName = document.getElementById('ikon').value || 'trophy';
+            document.getElementById('iconPreview').innerHTML = `<i class="fas fa-${iconName}"></i>`;
+        }
+
+        function editProgram(program) {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Program Düzenle';
+            
+            document.getElementById('programId').value = program.id;
+            document.getElementById('program_adi').value = program.program_adi || '';
+            document.getElementById('ikon').value = program.ikon || 'trophy';
+            document.getElementById('kisa_aciklama').value = program.kisa_aciklama || '';
+            document.getElementById('uzun_aciklama').value = program.uzun_aciklama || '';
+            document.getElementById('yas_grubu').value = program.yas_grubu || '6-18 yaş';
+            document.getElementById('ders_suresi').value = program.ders_suresi || '60 dakika';
+            document.getElementById('haftalik_ders').value = program.haftalik_ders || 2;
+            document.getElementById('ozellik_1').value = program.ozellik_1 || '';
+            document.getElementById('ozellik_2').value = program.ozellik_2 || '';
+            document.getElementById('ozellik_3').value = program.ozellik_3 || '';
+            document.getElementById('ozellik_4').value = program.ozellik_4 || '';
+            document.getElementById('sira').value = program.sira || 0;
+            document.getElementById('durum').checked = program.durum == 1;
+            
+            updateIcon();
+        }
+
+        async function saveProgram(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('programForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            data.durum = document.getElementById('durum').checked ? 1 : 0;
+
+            try {
+                const res = await fetch('/api/admin/website/programlar/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Program başarıyla kaydedildi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        async function deleteProgram(id) {
+            if (!confirm('Bu programı silmek istediğinize emin misiniz?')) return;
+
+            try {
+                const res = await fetch(`/api/admin/website/programlar/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Program silindi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Silinemedi', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

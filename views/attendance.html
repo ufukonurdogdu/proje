@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | Yoklama</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk %>; 
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 85%, #000);
+            --primary-light: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 15%, #fff);
+            --bg-body: #f3f5f9; 
+            --dark-text: #2d3748; 
+            --radius-xl: 24px;
+            --nav-height: 70px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        .sidebar { width: 280px; height: 96vh; margin: 2vh 0 2vh 2vh; background: #1a1f37; border-radius: var(--radius-xl); display: flex; flex-direction: column; color: white; }
+        .brand { padding: 30px; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; background: linear-gradient(to right, #fff, #a0aec0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .menu { padding: 10px 20px; flex: 1; overflow-y: auto; }
+        .menu-category { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); margin: 20px 10px 10px 10px; font-weight: 700; }
+        .nav-link { display: flex; align-items: center; padding: 14px 20px; margin-bottom: 8px; border-radius: 14px; color: #a0aec0; font-size: 14px; font-weight: 500; transition: all 0.3s; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; }
+        .nav-link.active i { color: #38b2ac; } .nav-link i { width: 24px; font-size: 18px; margin-right: 12px; }
+        .main { flex: 1; margin: 2vh; background: white; border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.04); position: relative; }
+        header { padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .content-scroll { padding: 40px; overflow-y: auto; flex: 1; }
+
+        .header-actions-mobile { display: none; }
+
+        /* YOKLAMA ÖZEL CSS */
+        .control-bar { background: white; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 2fr auto; gap: 20px; margin-bottom: 30px; align-items: end; }
+        
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: #64748b; margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: white; }
+        
+        .btn-load { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 10px; font-weight: 700; cursor: pointer; height: 45px; }
+
+        /* LİSTE */
+        .att-list { display: flex; flex-direction: column; gap: 15px; }
+        
+        .student-row { background: white; padding: 15px 20px; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
+        .student-row:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        /* Renk Durumları */
+        .row-katildi { border-left: 5px solid #10b981; background: #f0fdf4; }
+        .row-katilmadi { border-left: 5px solid #ef4444; background: #fef2f2; }
+        .row-izinli { border-left: 5px solid #f59e0b; background: #fffbeb; }
+
+        .stu-info { display: flex; align-items: center; gap: 15px; }
+        .stu-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #e2e8f0; }
+        .stu-name { font-weight: 700; color: var(--dark-text); font-size: 15px; }
+
+        .action-buttons { display: flex; gap: 10px; }
+        
+        /* Butonlar */
+        .btn-att { width: 45px; height: 45px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #cbd5e0; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-att:hover { transform: scale(1.1); }
+
+        .btn-att.active-yes { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 5px 15px rgba(16,185,129,0.3); }
+        .btn-att.active-no { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 5px 15px rgba(239,68,68,0.3); }
+        .btn-att.active-exc { background: #f59e0b; color: white; border-color: #f59e0b; box-shadow: 0 5px 15px rgba(245,158,11,0.3); }
+
+        .save-bar { position: sticky; bottom: 20px; margin-top: 30px; text-align: right; }
+        .btn-save { background: var(--primary); color: white; padding: 15px 40px; border-radius: 14px; font-size: 16px; font-weight: 700; border: none; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; }
+        .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        /* MODAL CSS */
+        .modal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); display: none; align-items: center; 
+            justify-content: center; z-index: 9999; backdrop-filter: blur(5px); 
+        }
+        .modal.show { display: flex; }
+        
+        .modal-content { 
+            background: white; padding: 30px; border-radius: 24px; 
+            max-width: 400px; width: 90%; text-align: center; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25); 
+            animation: modalPop 0.3s ease-out; 
+        }
+        
+        @keyframes modalPop { 
+            from { transform: scale(0.8); opacity: 0; } 
+            to { transform: scale(1); opacity: 1; } 
+        }
+        
+        .modal-icon { 
+            width: 80px; height: 80px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto 20px; font-size: 40px; 
+        }
+        .modal-icon.success { background: #dcfce7; color: #22c55e; }
+        .modal-icon.error { background: #fee2e2; color: #ef4444; }
+        .modal-icon.warning { background: #fef3c7; color: #f59e0b; }
+        .modal-icon.info { background: #dbeafe; color: #3b82f6; }
+        
+        .modal-title { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
+        .modal-message { font-size: 14px; color: #64748b; line-height: 1.6; margin-bottom: 25px; }
+        
+        .modal-btn { 
+            padding: 12px 40px; border-radius: 12px; border: none; 
+            font-weight: 700; cursor: pointer; font-size: 14px; transition: 0.2s; 
+        }
+        .modal-btn.btn-success { background: #22c55e; color: white; }
+        .modal-btn.btn-error { background: #ef4444; color: white; }
+        .modal-btn.btn-primary { background: var(--primary); color: white; }
+        .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        /* Bottom nav varsayılan gizli */
+        .bottom-nav { display: none; }
+
+        /* ==================== MOBİL TEMA SİSTEMİ ==================== */
+        @media (max-width: 991px) {
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            }
+
+            body { 
+                flex-direction: column; 
+                height: auto;
+                overflow-y: auto;
+                background: var(--m-bg-primary);
+                transition: background 0.3s ease;
+            }
+            
+            
+            .main { 
+                margin: 0; 
+                border-radius: 0;
+                background: var(--m-bg-primary);
+                box-shadow: none;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Mobil Header */
+            header { 
+                position: relative;
+                background: var(--m-header-bg);
+                padding: 20px;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                border-bottom: none;
+                border-radius: 0 0 24px 24px;
+                min-height: 100px;
+            }
+
+            header::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                                  radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%);
+                border-radius: 0 0 24px 24px;
+            }
+
+            header > * { position: relative; z-index: 2; }
+
+            .page-title h1 { color: white !important; font-size: 18px !important; font-weight: 700; }
+            .page-title p { color: rgba(255,255,255,0.8) !important; font-size: 11px !important; }
+
+            .header-actions-mobile {
+                display: flex !important;
+                gap: 8px;
+            }
+
+            .btn-header-icon {
+                width: 38px; height: 38px; border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: white; font-size: 15px; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+
+            .header-user { display: none; }
+
+            .content-scroll { 
+                padding: 20px; 
+                margin-top: -15px;
+                position: relative;
+                z-index: 5;
+            }
+
+            /* Control Bar */
+            .control-bar { 
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+                padding: 15px !important;
+            }
+
+            .form-group label { color: var(--m-text-muted) !important; }
+            
+            .form-control {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+            }
+
+            .btn-load { width: 100%; height: 50px; font-size: 15px; }
+
+            /* Student Rows */
+            .student-row { 
+                flex-direction: column !important; 
+                align-items: flex-start !important; 
+                gap: 15px !important;
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+            }
+            
+            .action-buttons { width: 100%; justify-content: space-between; }
+            .btn-att { flex: 1; height: 50px !important; }
+
+            .stu-name { color: var(--m-text-primary) !important; }
+
+            /* Row Colors - Dark Mode Override */
+            [data-theme="dark"] .row-katildi { background: rgba(16, 185, 129, 0.15) !important; }
+            [data-theme="dark"] .row-katilmadi { background: rgba(239, 68, 68, 0.15) !important; }
+            [data-theme="dark"] .row-izinli { background: rgba(245, 158, 11, 0.15) !important; }
+
+            /* Save Bar */
+            .save-bar { 
+                position: fixed;
+                bottom: calc(var(--nav-height) + 10px);
+                left: 20px;
+                right: 20px;
+                text-align: center;
+                margin: 0;
+                z-index: 100;
+            }
+            
+            .btn-save { 
+                width: 100%; 
+                padding: 18px !important;
+                border-radius: 16px !important;
+            }
+
+            /* Modal Dark Mode */
+            [data-theme="dark"] .modal-content {
+                background: var(--m-bg-secondary) !important;
+            }
+            [data-theme="dark"] .modal-title { color: #f1f5f9 !important; }
+            [data-theme="dark"] .modal-message { color: #94a3b8 !important; }
+
+            /* Empty State */
+            .att-list > div[style*="text-align: center"] {
+                color: var(--m-text-muted) !important;
+            }
+
+            /* DARK MODE SPESİFİK */
+            [data-theme="dark"] .form-control option {
+                background: #1e293b;
+                color: #f1f5f9;
+            }
+
+            [data-theme="dark"] .btn-att {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: #94a3b8 !important;
+            }
+
+            [data-theme="dark"] .btn-att.active-yes { background: #10b981 !important; color: white !important; border-color: #10b981 !important; }
+            [data-theme="dark"] .btn-att.active-no { background: #ef4444 !important; color: white !important; border-color: #ef4444 !important; }
+            [data-theme="dark"] .btn-att.active-exc { background: #f59e0b !important; color: white !important; border-color: #f59e0b !important; }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+            }
+
+            .nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 4px; padding: 8px 12px; border-radius: 12px;
+                color: var(--m-text-muted); text-decoration: none;
+                transition: all 0.2s; cursor: pointer;
+            }
+
+            .nav-item.active { color: var(--primary); background: var(--primary-light); }
+            .nav-item i { font-size: 18px; }
+            .nav-item span { font-size: 10px; font-weight: 600; }
+        }
+
+        /* ==================== MASAÜSTÜ ==================== */
+        @media (min-width: 992px) {
+            .header-actions-mobile { display: none !important; }
+            .bottom-nav { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <div class="main">
+        <header>
+            <div class="page-title">
+                <h1>Yoklama Al</h1>
+                <p>Tarih ve grup seçerek yoklamayı başlatın.</p>
+            </div>
+
+            <!-- Mobil Header Butonları -->
+            <div class="header-actions-mobile">
+                <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="/api/dashboard" class="btn-header-icon" title="Ana Sayfa">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+
+            <div class="header-user" style="font-weight: 600;"><%= user.ad_soyad %></div>
+        </header>
+
+        <div class="content-scroll">
+            
+            <div class="control-bar">
+                <div class="form-group">
+                    <label>Tarih</label>
+                    <input type="date" id="tarihSecimi" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+                </div>
+                <div class="form-group">
+                    <label>Grup Seçimi</label>
+                    <select id="grupSecimi" class="form-control">
+                        <option value="">Grup Seçiniz...</option>
+                        <% gruplar.forEach(g => { %>
+                            <option value="<%= g.id %>"><%= g.brans_adi %> - <%= g.grup_adi %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <button class="btn-load" onclick="listeyiGetir()">
+                    <i class="fa-solid fa-list-check"></i> Listeyi Getir
+                </button>
+            </div>
+
+            <div id="listeAlani" class="att-list">
+                <div style="text-align: center; padding: 50px; color: #94a3b8;">
+                    <i class="fa-solid fa-list-check" style="font-size: 40px; margin-bottom: 10px;"></i><br>
+                    Öğrencileri listelemek için grup seçin.
+                </div>
+            </div>
+
+            <div class="save-bar">
+                <button id="btnKaydet" class="btn-save" onclick="yoklamayiKaydet()">
+                    <i class="fa-solid fa-save"></i> Yoklamayı Tamamla
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/ogrenci/ekle" class="nav-item">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Kayıt</span>
+        </a>
+        <a href="/api/yoklama" class="nav-item active">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Yoklama</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <!-- MODAL -->
+    <div id="resultModal" class="modal" onclick="if(event.target === this) closeModal()">
+        <div class="modal-content">
+            <div class="modal-icon" id="modalIcon">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="modal-title" id="modalTitle">Başarılı</h3>
+            <p class="modal-message" id="modalMessage">İşlem başarıyla tamamlandı.</p>
+            <button class="modal-btn btn-primary" id="modalBtn" onclick="closeModal()">Tamam</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== TEMA YÖNETİMİ ====================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // ==================== YOKLAMA FONKSİYONLARI ====================
+        let mevcutOgrenciler = [];
+
+        // Modal Fonksiyonları
+        function showModal(type, title, message) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('modalIcon');
+            const titleEl = document.getElementById('modalTitle');
+            const messageEl = document.getElementById('modalMessage');
+            const btn = document.getElementById('modalBtn');
+
+            // İkon ve renk ayarla
+            icon.className = 'modal-icon ' + type;
+            btn.className = 'modal-btn btn-' + (type === 'success' ? 'success' : type === 'error' ? 'error' : 'primary');
+
+            // İkon seç
+            let iconClass = 'fa-check';
+            if (type === 'error') iconClass = 'fa-times';
+            else if (type === 'warning') iconClass = 'fa-exclamation';
+            else if (type === 'info') iconClass = 'fa-info';
+
+            icon.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('show');
+        }
+
+        // ESC tuşu ile modal kapat
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Listeyi Çek (AJAX)
+        async function listeyiGetir() {
+            const grupId = document.getElementById('grupSecimi').value;
+            const tarih = document.getElementById('tarihSecimi').value;
+
+            if (!grupId) { 
+                showModal('warning', 'Uyarı', 'Lütfen bir grup seçiniz.');
+                return; 
+            }
+
+            const container = document.getElementById('listeAlani');
+            container.innerHTML = `
+                <div style="text-align:center; padding:40px;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size:30px; color:var(--primary);"></i>
+                    <p style="margin-top:10px; color:#64748b;">Yükleniyor...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`/api/yoklama/ogrenciler?grup_id=${grupId}&tarih=${tarih}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    mevcutOgrenciler = data.ogrenciler;
+                    renderList();
+                    document.getElementById('btnKaydet').style.display = 'inline-block';
+                } else {
+                    container.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444;">Hata oluştu.</div>';
+                    showModal('error', 'Hata', 'Öğrenci listesi yüklenemedi.');
+                }
+            } catch (error) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#ef4444;">Bağlantı hatası.</div>';
+                showModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanılamadı.');
+            }
+        }
+
+        // Listeyi Ekrana Bas
+        function renderList() {
+            const container = document.getElementById('listeAlani');
+            container.innerHTML = '';
+
+            if (mevcutOgrenciler.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:40px; color:#94a3b8;">
+                        <i class="fa-solid fa-users-slash" style="font-size:40px; margin-bottom:10px;"></i>
+                        <p>Bu grupta kayıtlı öğrenci yok.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            mevcutOgrenciler.forEach(ogr => {
+                const durum = ogr.mevcut_durum || ''; 
+                
+                let rowClass = '';
+                if(durum === 'katildi') rowClass = 'row-katildi';
+                if(durum === 'katilmadi') rowClass = 'row-katilmadi';
+                if(durum === 'izinli') rowClass = 'row-izinli';
+
+                const html = `
+                    <div class="student-row ${rowClass}" id="row-${ogr.id}">
+                        <div class="stu-info">
+                            <img src="/images/students/${ogr.profil_foto || '1.png'}" onerror="this.onerror=null; this.src='/images/1.png'" class="stu-img">
+                            <div class="stu-name">${ogr.ad_soyad}</div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn-att ${durum === 'katildi' ? 'active-yes' : ''}" onclick="setDurum(${ogr.id}, 'katildi')" title="Katıldı">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            <button class="btn-att ${durum === 'katilmadi' ? 'active-no' : ''}" onclick="setDurum(${ogr.id}, 'katilmadi')" title="Katılmadı">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <button class="btn-att ${durum === 'izinli' ? 'active-exc' : ''}" onclick="setDurum(${ogr.id}, 'izinli')" title="İzinli">
+                                <i class="fa-solid fa-clock"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        }
+
+        // Durum Değiştirme
+        function setDurum(id, durum) {
+            const index = mevcutOgrenciler.findIndex(o => o.id === id);
+            if (index > -1) {
+                mevcutOgrenciler[index].mevcut_durum = durum;
+            }
+            renderList();
+        }
+
+        // Kaydet (AJAX)
+        async function yoklamayiKaydet() {
+            const grupId = document.getElementById('grupSecimi').value;
+            const tarih = document.getElementById('tarihSecimi').value;
+
+            const veri = mevcutOgrenciler
+                .filter(o => o.mevcut_durum)
+                .map(o => ({ id: o.id, durum: o.mevcut_durum }));
+
+            if (veri.length === 0) { 
+                showModal('warning', 'Uyarı', 'Lütfen en az bir öğrenci için durum seçiniz.');
+                return; 
+            }
+
+            // Butonu devre dışı bırak
+            const btn = document.getElementById('btnKaydet');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+
+            try {
+                const response = await fetch('/api/yoklama/kaydet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grup_id: grupId, tarih: tarih, yoklama_verisi: veri })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showModal('success', 'Başarılı!', 'Yoklama başarıyla kaydedildi.');
+                } else {
+                    showModal('error', 'Hata!', result.message || 'Yoklama kaydedilemedi.');
+                }
+            } catch (error) {
+                showModal('error', 'Bağlantı Hatası', 'Sunucuya bağlanılamadı. Lütfen tekrar deneyin.');
+            } finally {
+                // Butonu tekrar aktif et
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-save"></i> Yoklamayı Tamamla';
+            }
+        }
+    </script>
+</body>
+</html>

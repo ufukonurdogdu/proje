@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | Ders Programı</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk %>; 
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 85%, #000);
+            --primary-light: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 15%, #fff);
+            --bg-body: #f3f5f9; 
+            --dark-text: #2d3748; 
+            --radius-xl: 24px;
+            --nav-height: 70px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        .sidebar { width: 280px; height: 96vh; margin: 2vh 0 2vh 2vh; background: #1a1f37; border-radius: var(--radius-xl); display: flex; flex-direction: column; color: white; }
+        .brand { padding: 30px; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; background: linear-gradient(to right, #fff, #a0aec0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .menu { padding: 10px 20px; flex: 1; overflow-y: auto; }
+        .nav-link { display: flex; align-items: center; padding: 14px 20px; margin-bottom: 8px; border-radius: 14px; color: #a0aec0; font-size: 14px; font-weight: 500; transition: all 0.3s; text-decoration: none; }
+        .nav-link:hover, .nav-link.active { background: rgba(255,255,255,0.1); color: white; }
+        .nav-link.active i { color: #38b2ac; } .nav-link i { width: 24px; font-size: 18px; margin-right: 12px; }
+        .main { flex: 1; margin: 2vh; background: white; border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.04); position: relative; }
+        header { padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .content-scroll { padding: 40px; overflow-y: auto; flex: 1; }
+
+        .header-actions-mobile { display: none; }
+        .header-buttons { display: flex; gap: 10px; }
+
+        /* --- TAKVİM CSS --- */
+        .filter-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 15px 20px; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .select-filter { padding: 10px; border: 1px solid #e2e8f0; border-radius: 10px; width: 200px; background: white; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+
+        /* Grid Yapısı (7 Gün) - MASAÜSTÜ */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; min-width: 1000px; height: 100%; }
+        .day-col { background: white; border-radius: 16px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; overflow: hidden; }
+        .day-header { background: #f8fafc; padding: 15px; text-align: center; font-weight: 800; color: #64748b; border-bottom: 1px solid #e2e8f0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+        .day-content { padding: 15px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+
+        /* Ders Kartı */
+        .lesson-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; border-left: 4px solid var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.03); position: relative; transition: 0.2s; }
+        .lesson-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        
+        .l-time { font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 5px; display: block; }
+        .l-group { font-size: 14px; font-weight: 800; color: var(--dark-text); margin-bottom: 3px; display: block; }
+        .l-branch { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+        
+        .btn-del { position: absolute; top: 10px; right: 10px; color: #ef4444; cursor: pointer; font-size: 12px; opacity: 0; transition: 0.2s; }
+        .lesson-card:hover .btn-del { opacity: 1; }
+
+        /* MODAL */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(5px); padding: 20px; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); animation: popUp 0.3s; max-height: 90vh; overflow-y: auto; }
+        @keyframes popUp { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .form-control { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 15px; font-size: 14px; background: #f8fafc; }
+        .btn-submit { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+
+        /* Bottom nav varsayılan gizli */
+        .bottom-nav { display: none; }
+
+        /* Scroll container */
+        .calendar-scroll { overflow-x: auto; }
+
+        @media(max-width: 1200px) { 
+            .calendar-scroll { overflow-x: auto; } 
+        }
+
+        /* ==================== MOBİL TEMA SİSTEMİ ==================== */
+        @media (max-width: 991px) {
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            }
+
+            body { 
+                flex-direction: column; 
+                height: auto;
+                min-height: 100vh;
+                overflow-y: auto;
+                background: var(--m-bg-primary);
+                transition: background 0.3s ease;
+            }
+                        
+            .main { 
+                margin: 0; 
+                border-radius: 0;
+                background: var(--m-bg-primary);
+                box-shadow: none;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Mobil Header */
+            header { 
+                position: relative;
+                background: var(--m-header-bg);
+                padding: 20px;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                border-bottom: none;
+                border-radius: 0 0 24px 24px;
+                min-height: 100px;
+            }
+
+            header::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                                  radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%);
+                border-radius: 0 0 24px 24px;
+            }
+
+            header > * { position: relative; z-index: 2; }
+
+            .page-title h1 { color: white !important; font-size: 18px !important; font-weight: 700; }
+            .page-title p { color: rgba(255,255,255,0.8) !important; font-size: 11px !important; }
+
+            .header-buttons { display: none !important; }
+
+            .header-actions-mobile {
+                display: flex !important;
+                gap: 8px;
+            }
+
+            .btn-header-icon {
+                width: 38px; height: 38px; border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: white; font-size: 15px; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                text-decoration: none;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+
+            .content-scroll { 
+                padding: 20px; 
+                margin-top: -15px;
+                position: relative;
+                z-index: 5;
+            }
+
+            /* Filtre Alanı */
+            .filter-area {
+                flex-direction: column !important;
+                gap: 15px !important;
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+                padding: 15px !important;
+            }
+
+            .filter-area > div:first-child {
+                width: 100%;
+            }
+
+            .filter-area > div:first-child form {
+                width: 100%;
+            }
+
+            .select-filter {
+                width: 100% !important;
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: var(--m-text-primary) !important;
+                height: 44px !important;
+                font-size: 14px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
+                background-repeat: no-repeat !important;
+                background-position: right 12px center !important;
+                padding-right: 35px !important;
+            }
+
+            .filter-area > div:last-child {
+                display: none;
+            }
+
+            /* Takvim - Mobilde dikey liste */
+            .calendar-scroll {
+                overflow-x: visible;
+            }
+
+            .calendar-grid { 
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 15px !important;
+                min-width: auto !important;
+                height: auto !important;
+            }
+
+            .day-col {
+                background: var(--m-bg-secondary) !important;
+                border-color: var(--m-border-color) !important;
+                box-shadow: var(--m-card-shadow) !important;
+            }
+
+            .day-header {
+                background: var(--m-bg-tertiary) !important;
+                color: var(--m-text-muted) !important;
+                border-color: var(--m-border-color) !important;
+                padding: 12px !important;
+            }
+
+            .day-content {
+                padding: 12px !important;
+                gap: 10px !important;
+            }
+
+            /* Boş günleri mobilde gizle */
+            .day-col.empty-day {
+                display: none !important;
+            }
+
+            /* Ders Kartları */
+            .lesson-card {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+            }
+
+            .l-group { color: var(--m-text-primary) !important; }
+            .l-branch { color: var(--m-text-muted) !important; }
+
+            .btn-del { opacity: 1 !important; }
+
+            /* DARK MODE SPESİFİK */
+            [data-theme="dark"] .select-filter option {
+                background: #1e293b;
+                color: #f1f5f9;
+            }
+
+            [data-theme="dark"] .lesson-card {
+                border-left-color: var(--primary) !important;
+            }
+
+            /* Modal Dark Mode */
+            [data-theme="dark"] .modal-content {
+                background: var(--m-bg-secondary) !important;
+            }
+            [data-theme="dark"] .modal-content h3 { color: #f1f5f9 !important; }
+            [data-theme="dark"] .modal-content label { color: #94a3b8 !important; }
+            [data-theme="dark"] .form-control {
+                background: var(--m-bg-tertiary) !important;
+                border-color: var(--m-border-color) !important;
+                color: #f1f5f9 !important;
+            }
+
+            /* Modal Form Düzeltmeleri */
+            .modal-content {
+                max-width: 95vw !important;
+                padding: 20px !important;
+            }
+
+            .form-control,
+            .modal-content input,
+            .modal-content select {
+                height: 44px !important;
+                min-height: 44px !important;
+                max-height: 44px !important;
+                font-size: 14px !important;
+                padding: 10px 12px !important;
+                -webkit-appearance: none !important;
+                appearance: none !important;
+            }
+
+            .modal-content div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 0 !important;
+            }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+            }
+
+            .nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 4px; padding: 8px 12px; border-radius: 12px;
+                color: var(--m-text-muted); text-decoration: none;
+                transition: all 0.2s; cursor: pointer;
+            }
+
+            .nav-item.active { color: var(--primary); background: var(--primary-light); }
+            .nav-item i { font-size: 18px; }
+            .nav-item span { font-size: 10px; font-weight: 600; }
+        }
+
+        /* ==================== MASAÜSTÜ ==================== */
+        @media (min-width: 992px) {
+            .header-actions-mobile { display: none !important; }
+            .bottom-nav { display: none !important; }
+            
+            /* Masaüstünde takvim grid korunsun */
+            .calendar-grid { 
+                display: grid !important; 
+                grid-template-columns: repeat(7, 1fr) !important; 
+                flex-direction: row !important;
+                min-width: 1000px !important;
+            }
+            .day-col { display: flex !important; }
+            .day-col.empty-day { display: flex !important; }
+        }
+
+        /* Boş gün için fallback (CSS :has desteklemeyen tarayıcılar) - sadece mobil */
+        @media (max-width: 991px) {
+            .day-col.empty-day { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <div class="main">
+        <header>
+            <div class="page-title">
+                <h1>Ders Programı</h1>
+                <p>Haftalık antrenman çizelgesi</p>
+            </div>
+            
+            <!-- Masaüstü Buton -->
+            <div class="header-buttons">
+                <% if (user.rol === 'yonetici') { %>
+                    <button class="btn-add" onclick="openModal()"><i class="fa-solid fa-plus"></i> Ders Ekle</button>
+                <% } %>
+            </div>
+
+            <!-- Mobil Header Butonları -->
+            <div class="header-actions-mobile">
+                <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <% if (user.rol === 'yonetici') { %>
+                    <button class="btn-header-icon" onclick="openModal()" title="Ders Ekle">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                <% } %>
+                <a href="/api/dashboard" class="btn-header-icon" title="Ana Sayfa">
+                    <i class="fa-solid fa-house"></i>
+                </a>
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            
+            <div class="filter-area">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-filter" style="color: var(--primary);"></i>
+                    <form action="/api/ders/program" method="GET" style="display: flex; gap: 10px;">
+                        <select name="brans_id" class="select-filter" onchange="this.form.submit()">
+                            <option value="tumu">Tüm Branşlar</option>
+                            <% branslar.forEach(b => { %>
+                                <option value="<%= b.id %>" <%= seciliBrans == b.id ? 'selected' : '' %>><%= b.brans_adi %></option>
+                            <% }) %>
+                        </select>
+                    </form>
+                </div>
+                <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">
+                    HAFTALIK GÖRÜNÜM
+                </div>
+            </div>
+
+            <div class="calendar-scroll">
+                <div class="calendar-grid">
+                    <% const gunler = ['Pazartesi', 'Sali', 'Carsamba', 'Persembe', 'Cuma', 'Cumartesi', 'Pazar']; %>
+                    <% const gunlerTR = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar']; %>
+                    
+                    <% gunler.forEach((gun, index) => { 
+                        const gunlukDersler = dersler.filter(d => d.gun === gun);
+                        const isEmpty = gunlukDersler.length === 0;
+                    %>
+                        <div class="day-col <%= isEmpty ? 'empty-day' : '' %>">
+                            <div class="day-header"><%= gunlerTR[index] %></div>
+                            <div class="day-content">
+                                <% gunlukDersler.forEach(ders => { %>
+                                    <div class="lesson-card">
+                                        <span class="l-time"><i class="fa-regular fa-clock"></i> <%= ders.baslangic_saati.slice(0,5) %> - <%= ders.bitis_saati.slice(0,5) %></span>
+                                        <span class="l-group"><%= ders.grup_adi %></span>
+                                        <span class="l-branch"><%= ders.brans_adi %></span>
+                                        
+                                        <% if (user.rol === 'yonetici') { %>
+                                            <a href="/api/ders/sil/<%= ders.id %>" class="btn-del" onclick="return confirm('Silinecek mi?')"><i class="fa-solid fa-trash"></i></a>
+                                        <% } %>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/ders/program" class="nav-item active">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Program</span>
+        </a>
+        <a href="/api/yoklama" class="nav-item">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Yoklama</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <!-- Modal -->
+    <div id="modalDers" class="modal" onclick="if(event.target == this) closeModal()">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px;">Yeni Ders Ekle</h3>
+            <form action="/api/ders/ekle" method="POST">
+                
+                <label style="font-size: 12px; font-weight: 700; color: #64748b;">Grup</label>
+                <select name="grup_id" class="form-control" required>
+                    <% gruplar.forEach(g => { %>
+                        <option value="<%= g.id %>"><%= g.grup_adi %></option>
+                    <% }) %>
+                </select>
+
+                <label style="font-size: 12px; font-weight: 700; color: #64748b;">Gün</label>
+                <select name="gun" class="form-control">
+                    <option value="Pazartesi">Pazartesi</option>
+                    <option value="Sali">Salı</option>
+                    <option value="Carsamba">Çarşamba</option>
+                    <option value="Persembe">Perşembe</option>
+                    <option value="Cuma">Cuma</option>
+                    <option value="Cumartesi">Cumartesi</option>
+                    <option value="Pazar">Pazar</option>
+                </select>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #64748b;">Başlangıç</label>
+                        <input type="time" name="baslangic" class="form-control" required>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; font-weight: 700; color: #64748b;">Bitiş</label>
+                        <input type="time" name="bitis" class="form-control" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Takvime Ekle</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ==================== TEMA YÖNETİMİ ====================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // ==================== MODAL ====================
+        function openModal() { document.getElementById('modalDers').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modalDers').style.display = 'none'; }
+
+        // ==================== BOŞ GÜNLERİ GİZLE (Fallback) ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 991) {
+                document.querySelectorAll('.day-col').forEach(function(col) {
+                    var lessons = col.querySelectorAll('.lesson-card');
+                    if (lessons.length === 0) {
+                        col.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

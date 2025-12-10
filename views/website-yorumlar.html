@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Yorumlar Yönetimi | <%= siteAyarlari.tesis_adi %></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+		 <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root {
+            --primary: <%= siteAyarlari.ana_renk || '#6366f1' %>;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .page-container { display: flex; min-height: 100vh; }
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-header h1 i { color: var(--primary); }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--primary); text-decoration: none; }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-secondary { background: var(--border); color: var(--text); }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-icon.green { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+        .stat-icon.yellow { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .stat-icon.blue { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+
+        .stat-content h3 { font-size: 24px; font-weight: 700; }
+        .stat-content span { font-size: 13px; color: var(--text-secondary); }
+
+        /* Comments List */
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .comment-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .comment-card:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        .comment-card.pending {
+            border-left: 4px solid var(--warning);
+        }
+
+        .comment-card.approved {
+            border-left: 4px solid var(--success);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .comment-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comment-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .comment-info h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .comment-info span {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .comment-status {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .comment-status.approved {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .comment-status.pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .comment-rating {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 12px;
+        }
+
+        .comment-rating i {
+            color: #fbbf24;
+            font-size: 14px;
+        }
+
+        .comment-rating i.empty {
+            color: var(--border);
+        }
+
+        .comment-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text);
+            margin-bottom: 15px;
+            padding: 15px;
+            background: var(--bg);
+            border-radius: 10px;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .comment-actions button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .comment-actions .approve-btn {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .comment-actions .reject-btn {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .comment-actions .edit-btn {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .comment-actions .delete-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .comment-actions button:hover { transform: scale(1.05); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 550px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 { font-size: 18px; font-weight: 700; }
+
+        .modal-close {
+            width: 36px; height: 36px;
+            border: none;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .modal-body { padding: 24px; }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea { resize: vertical; min-height: 100px; }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-check input[type="checkbox"] {
+            width: 20px; height: 20px;
+            accent-color: var(--primary);
+        }
+
+        .modal-footer {
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .empty-state i { font-size: 60px; color: var(--border); margin-bottom: 20px; }
+        .empty-state h3 { font-size: 18px; margin-bottom: 10px; }
+        .empty-state p { color: var(--text-secondary); margin-bottom: 20px; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            padding: 16px 24px;
+            background: var(--success);
+            color: white;
+            border-radius: 12px;
+            font-weight: 600;
+            display: none;
+            z-index: 10000;
+        }
+
+        .toast.error { background: var(--danger); }
+        .toast.show { display: flex; align-items: center; gap: 10px; }
+
+        /* Mobile Header Hidden by Default */
+        .mobile-header { display: none; }
+        .bottom-nav { display: none; }
+        .fab-add { display: none; }
+        .mobile-stats { display: none; }
+
+        /* ==================== MOBİL TASARIM ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri - Light */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-header-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            }
+
+            /* Tema Değişkenleri - Dark */
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-header-bg: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-secondary: #94a3b8;
+                --border: #334155;
+            }
+
+            :root {
+                --nav-height: 70px;
+            }
+
+            body {
+                background: var(--m-bg-primary);
+                padding-bottom: var(--nav-height);
+            }
+
+            .page-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Masaüstü Elementleri Gizle */
+            .page-header { display: none; }
+            .stats-row { display: none; }
+
+            /* ===== MOBİL HEADER ===== */
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 15px 20px;
+                padding-top: max(env(safe-area-inset-top), 15px);
+                background: var(--m-header-bg);
+                color: white;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .mobile-back-btn {
+                width: 36px;
+                height: 36px;
+                border: none;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+            }
+
+            .mobile-back-btn:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            .mobile-header-title {
+                flex: 1;
+            }
+
+            .mobile-header-title h1 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .mobile-header-title span {
+                font-size: 12px;
+                opacity: 0.8;
+            }
+
+            .mobile-header-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .mobile-header-actions button {
+                width: 38px;
+                height: 38px;
+                border: none;
+                border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                color: white;
+                font-size: 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .mobile-header-actions button:active {
+                transform: scale(0.95);
+                background: rgba(255,255,255,0.25);
+            }
+
+            /* ===== MOBİL STATS ===== */
+            .mobile-stats {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                padding: 15px;
+            }
+
+            .mobile-stat-card {
+                background: var(--m-bg-secondary);
+                border-radius: 14px;
+                padding: 14px 10px;
+                text-align: center;
+                border: 1px solid var(--m-border-color);
+            }
+
+            .mobile-stat-card .stat-num {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--m-text-primary);
+            }
+
+            .mobile-stat-card .stat-num.green { color: #22c55e; }
+            .mobile-stat-card .stat-num.yellow { color: #f59e0b; }
+            .mobile-stat-card .stat-num.blue { color: #3b82f6; }
+
+            .mobile-stat-card .stat-label {
+                font-size: 11px;
+                color: var(--m-text-muted);
+                margin-top: 4px;
+            }
+
+            /* ===== COMMENTS LIST MOBİL ===== */
+            .comments-list {
+                padding: 0 15px;
+                gap: 12px;
+            }
+
+            .comment-card {
+                background: var(--m-bg-secondary);
+                border-radius: 16px;
+                border: 1px solid var(--m-border-color);
+                padding: 16px;
+            }
+
+            .comment-card:hover {
+                box-shadow: none;
+            }
+
+            .comment-card:active {
+                transform: scale(0.98);
+            }
+
+            .comment-card.pending {
+                border-left: 3px solid var(--warning);
+            }
+
+            .comment-card.approved {
+                border-left: 3px solid var(--success);
+            }
+
+            .comment-header {
+                flex-direction: row;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+
+            .comment-user {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .comment-avatar {
+                width: 42px;
+                height: 42px;
+                font-size: 16px;
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+            }
+
+            .comment-info h4 {
+                font-size: 14px;
+                color: var(--m-text-primary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .comment-info span {
+                font-size: 12px;
+                color: var(--m-text-muted);
+            }
+
+            .comment-status {
+                padding: 4px 10px;
+                font-size: 10px;
+                flex-shrink: 0;
+            }
+
+            .comment-rating {
+                margin-bottom: 10px;
+            }
+
+            .comment-rating i {
+                font-size: 12px;
+            }
+
+            .comment-text {
+                font-size: 13px;
+                line-height: 1.6;
+                padding: 12px;
+                margin-bottom: 12px;
+                background: var(--m-bg-tertiary);
+                border-radius: 10px;
+                color: var(--m-text-primary);
+            }
+
+            .comment-actions {
+                gap: 8px;
+            }
+
+            .comment-actions button {
+                padding: 8px 12px;
+                font-size: 12px;
+                border-radius: 8px;
+            }
+
+            .comment-actions button:hover {
+                transform: none;
+            }
+
+            .comment-actions button:active {
+                transform: scale(0.95);
+            }
+
+            /* Mobil Comment Actions - Sadece iconlar */
+            .comment-actions button span {
+                display: none;
+            }
+
+            .comment-actions button {
+                padding: 10px 14px;
+            }
+
+            /* ===== EMPTY STATE MOBİL ===== */
+            .empty-state {
+                margin: 15px;
+                padding: 40px 20px;
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+            }
+
+            .empty-state i {
+                font-size: 50px;
+                color: var(--m-text-muted);
+            }
+
+            .empty-state h3 {
+                font-size: 16px;
+                color: var(--m-text-primary);
+            }
+
+            .empty-state p {
+                font-size: 13px;
+                color: var(--m-text-muted);
+            }
+
+            /* ===== FAB BUTTON ===== */
+            .fab-add {
+                display: flex !important;
+                position: fixed;
+                bottom: calc(var(--nav-height) + 20px);
+                right: 20px;
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                color: white;
+                border: none;
+                font-size: 22px;
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+                z-index: 100;
+            }
+
+            .fab-add:active {
+                transform: scale(0.95);
+            }
+
+            /* ===== MODAL MOBİL ===== */
+            .modal-overlay {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .modal {
+                max-width: 100%;
+                max-height: 90vh;
+                border-radius: 20px 20px 0 0;
+                margin: 0;
+                background: var(--m-bg-secondary);
+            }
+
+            .modal-header {
+                padding: 20px;
+                position: sticky;
+                top: 0;
+                background: var(--m-bg-secondary);
+                z-index: 10;
+                border-bottom: 1px solid var(--m-border-color);
+            }
+
+            .modal-header h3 {
+                font-size: 16px;
+                color: var(--m-text-primary);
+            }
+
+            .modal-close {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-muted);
+            }
+
+            .modal-body {
+                padding: 20px;
+                padding-bottom: 100px;
+            }
+
+            .form-group label {
+                color: var(--m-text-secondary);
+                font-size: 13px;
+            }
+
+            .form-group input,
+            .form-group textarea,
+            .form-group select {
+                background: var(--m-bg-tertiary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-primary);
+                font-size: 16px;
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
+
+            .form-group input:focus,
+            .form-group textarea:focus,
+            .form-group select:focus {
+                background: var(--m-bg-secondary);
+                border-color: #3b82f6;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-check label {
+                color: var(--m-text-secondary);
+                font-size: 14px;
+            }
+
+            .modal-footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: var(--m-bg-secondary);
+                padding: 15px 20px;
+                padding-bottom: max(env(safe-area-inset-bottom), 15px);
+                border-top: 1px solid var(--m-border-color);
+            }
+
+            .modal-footer .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 14px;
+            }
+
+            .modal-footer .btn-secondary {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            .modal-footer .btn-primary {
+                background: linear-gradient(135deg, #3b82f6, #2563eb);
+            }
+
+            /* ===== TOAST MOBİL ===== */
+            .toast {
+                bottom: calc(var(--nav-height) + 20px);
+                left: 20px;
+                right: 20px;
+            }
+
+            /* ===== BOTTOM NAVIGATION ===== */
+            .bottom-nav {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            .nav-item {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                text-decoration: none;
+                color: var(--m-text-muted);
+                font-size: 10px;
+                font-weight: 500;
+            }
+
+            .nav-item i {
+                font-size: 20px;
+            }
+
+            .nav-item.active {
+                color: var(--primary);
+            }
+
+            .nav-item:active {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+        <!-- ===== MOBİL HEADER ===== -->
+        <header class="mobile-header">
+            <a href="/api/admin/website" class="mobile-back-btn">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="mobile-header-title">
+                <h1>Yorumlar</h1>
+                <span><%= yorumlar.length %> yorum</span>
+            </div>
+            <div class="mobile-header-actions">
+                <button onclick="toggleTheme()" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Header (Desktop) -->
+            <div class="page-header">
+                <div>
+                    <div class="breadcrumb">
+                        <a href="/api/admin/website"><i class="fas fa-globe"></i> Web Site</a>
+                        <i class="fas fa-chevron-right"></i>
+                        <span>Yorumlar</span>
+                    </div>
+                    <h1><i class="fas fa-star"></i> Yorum Yönetimi</h1>
+                </div>
+                <button class="btn btn-primary" onclick="openModal()">
+                    <i class="fas fa-plus"></i> Yeni Yorum
+                </button>
+            </div>
+
+            <!-- Stats (Desktop) -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-content">
+                        <h3><%= yorumlar.filter(y => y.onay == 1).length %></h3>
+                        <span>Onaylı Yorum</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon yellow"><i class="fas fa-clock"></i></div>
+                    <div class="stat-content">
+                        <h3><%= yorumlar.filter(y => y.onay == 0).length %></h3>
+                        <span>Bekleyen</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-comments"></i></div>
+                    <div class="stat-content">
+                        <h3><%= yorumlar.length %></h3>
+                        <span>Toplam</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats (Mobile) -->
+            <div class="mobile-stats">
+                <div class="mobile-stat-card">
+                    <div class="stat-num green"><%= yorumlar.filter(y => y.onay == 1).length %></div>
+                    <div class="stat-label">Onaylı</div>
+                </div>
+                <div class="mobile-stat-card">
+                    <div class="stat-num yellow"><%= yorumlar.filter(y => y.onay == 0).length %></div>
+                    <div class="stat-label">Bekleyen</div>
+                </div>
+                <div class="mobile-stat-card">
+                    <div class="stat-num blue"><%= yorumlar.length %></div>
+                    <div class="stat-label">Toplam</div>
+                </div>
+            </div>
+
+            <!-- Comments List -->
+            <div class="comments-list">
+                <% if (yorumlar.length === 0) { %>
+                    <div class="empty-state">
+                        <i class="fas fa-comments"></i>
+                        <h3>Henüz yorum yok</h3>
+                        <p>İlk yorumu ekleyerek başlayın</p>
+                        <button class="btn btn-primary" onclick="openModal()">
+                            <i class="fas fa-plus"></i> Yorum Ekle
+                        </button>
+                    </div>
+                <% } else { %>
+                    <% yorumlar.forEach(yorum => { %>
+                        <div class="comment-card <%= yorum.onay == 1 ? 'approved' : 'pending' %>">
+                            <div class="comment-header">
+                                <div class="comment-avatar">
+                                    <% if (yorum.foto) { %>
+                                        <img src="/images/yorumlar/<%= yorum.foto %>" alt="">
+                                    <% } else { %>
+                                        <%= yorum.ad_soyad ? yorum.ad_soyad.charAt(0).toUpperCase() : 'A' %>
+                                    <% } %>
+                                </div>
+                                <div class="comment-user">
+                                    <div class="comment-info">
+                                        <h4><%= yorum.ad_soyad %></h4>
+                                        <span><%= yorum.rol || 'Veli' %></span>
+                                    </div>
+                                </div>
+                                <div class="comment-status <%= yorum.onay == 1 ? 'approved' : 'pending' %>">
+                                    <i class="fas fa-<%= yorum.onay == 1 ? 'check' : 'clock' %>"></i>
+                                    <%= yorum.onay == 1 ? 'Onaylı' : 'Bekliyor' %>
+                                </div>
+                            </div>
+
+                            <div class="comment-rating">
+                                <% for (let i = 1; i <= 5; i++) { %>
+                                    <i class="fas fa-star <%= i <= (yorum.puan || 5) ? '' : 'empty' %>"></i>
+                                <% } %>
+                            </div>
+
+                            <div class="comment-text">
+                                "<%= yorum.yorum %>"
+                            </div>
+
+                            <div class="comment-actions">
+                                <% if (yorum.onay != 1) { %>
+                                    <button class="approve-btn" onclick="toggleApproval(<%= yorum.id %>, 1)">
+                                        <i class="fas fa-check"></i> <span>Onayla</span>
+                                    </button>
+                                <% } else { %>
+                                    <button class="reject-btn" onclick="toggleApproval(<%= yorum.id %>, 0)">
+                                        <i class="fas fa-times"></i> <span>Gizle</span>
+                                    </button>
+                                <% } %>
+                                <button class="edit-btn" onclick='editComment(<%- JSON.stringify(yorum) %>)'>
+                                    <i class="fas fa-edit"></i> <span>Düzenle</span>
+                                </button>
+                                <button class="delete-btn" onclick="deleteComment(<%= yorum.id %>)">
+                                    <i class="fas fa-trash"></i> <span>Sil</span>
+                                </button>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } %>
+            </div>
+
+            <!-- FAB Add Button (Mobile) -->
+            <button class="fab-add" onclick="openModal()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- ===== BOTTOM NAVIGATION ===== -->
+        <nav class="bottom-nav">
+            <a href="/api/dashboard" class="nav-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Ana Sayfa</span>
+            </a>
+            <a href="/api/ogrenci/liste" class="nav-item">
+                <i class="fa-solid fa-users"></i>
+                <span>Öğrenciler</span>
+            </a>
+            <a href="/api/admin/website" class="nav-item active">
+                <i class="fa-solid fa-globe"></i>
+                <span>Web Site</span>
+            </a>
+            <a href="/api/ayarlar" class="nav-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Ayarlar</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fas fa-plus"></i> Yeni Yorum</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="commentForm" onsubmit="saveComment(event)">
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="commentId">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ad Soyad *</label>
+                            <input type="text" name="ad_soyad" id="ad_soyad" required placeholder="Ayşe Yılmaz">
+                        </div>
+                        <div class="form-group">
+                            <label>Rol</label>
+                            <input type="text" name="rol" id="rol" placeholder="Sporcu Velisi">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Yorum *</label>
+                        <textarea name="yorum" id="yorum" required placeholder="Yorum içeriği..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Puan</label>
+                            <select name="puan" id="puan">
+                                <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                                <option value="4">⭐⭐⭐⭐ (4)</option>
+                                <option value="3">⭐⭐⭐ (3)</option>
+                                <option value="2">⭐⭐ (2)</option>
+                                <option value="1">⭐ (1)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sıra</label>
+                            <input type="number" name="sira" id="sira" value="0" min="0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" name="onay" id="onay" checked>
+                            <label for="onay" style="margin: 0;">Onaylı (Web sitesinde göster)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">İşlem başarılı</span>
+    </div>
+
+    <script>
+        // =====================================================
+        // TEMA YÖNETİMİ
+        // =====================================================
+        function initTheme() {
+            var saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            var btn = document.getElementById('themeToggle');
+            if (btn) {
+                btn.innerHTML = theme === 'dark' 
+                    ? '<i class="fas fa-sun"></i>' 
+                    : '<i class="fas fa-moon"></i>';
+            }
+        }
+
+        initTheme();
+
+        // =====================================================
+        // MODAL İŞLEMLERİ
+        // =====================================================
+        function openModal() {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-plus"></i> Yeni Yorum';
+            document.getElementById('commentForm').reset();
+            document.getElementById('commentId').value = '';
+            document.getElementById('onay').checked = true;
+            document.getElementById('puan').value = '5';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        function editComment(comment) {
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Yorum Düzenle';
+            
+            document.getElementById('commentId').value = comment.id;
+            document.getElementById('ad_soyad').value = comment.ad_soyad || '';
+            document.getElementById('rol').value = comment.rol || '';
+            document.getElementById('yorum').value = comment.yorum || '';
+            document.getElementById('puan').value = comment.puan || 5;
+            document.getElementById('sira').value = comment.sira || 0;
+            document.getElementById('onay').checked = comment.onay == 1;
+        }
+
+        async function saveComment(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('commentForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            data.onay = document.getElementById('onay').checked ? 1 : 0;
+
+            try {
+                const res = await fetch('/api/admin/website/yorumlar/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Yorum başarıyla kaydedildi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        async function toggleApproval(id, onay) {
+            try {
+                const res = await fetch(`/api/admin/website/yorumlar/${id}/onayla`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ onay })
+                });
+
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast(onay ? 'Yorum onaylandı' : 'Yorum gizlendi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Bir hata oluştu', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        async function deleteComment(id) {
+            if (!confirm('Bu yorumu silmek istediğinize emin misiniz?')) return;
+
+            try {
+                const res = await fetch(`/api/admin/website/yorumlar/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+
+                if (result.success) {
+                    showToast('Yorum silindi');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(result.message || 'Silinemedi', 'error');
+                }
+            } catch (err) {
+                showToast('Bağlantı hatası', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+        // Modal dışına tıklayınca kapat
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title><%= siteAyarlari.tesis_adi %> | Öğrenci Kayıt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+ <!-- Favicon - Veritabanından logo_default -->
+    <% if (siteAyarlari.logo_default) { %>
+        <link rel="icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="shortcut icon" type="image/png" href="/uploads/<%= siteAyarlari.logo_default %>">
+        <link rel="apple-touch-icon" href="/uploads/<%= siteAyarlari.logo_default %>">
+    <% } else { %>
+        <link rel="icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <% } %>
+    <style>
+        :root { 
+            --primary: <%= siteAyarlari.ana_renk %>; 
+            --primary-dark: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 85%, #000);
+            --primary-light: color-mix(in srgb, <%= siteAyarlari.ana_renk %> 15%, #fff);
+            --bg-body: #f3f5f9; 
+            --dark-text: #2d3748; 
+            --radius-xl: 24px;
+            --nav-height: 70px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-body); display: flex; height: 100vh; overflow: hidden; color: var(--dark-text); }
+        
+        .main { flex: 1; margin: 2vh; background: white; border-radius: var(--radius-xl); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 8px 30px rgba(0,0,0,0.04); position: relative; }
+        header { padding: 25px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .content-scroll { padding: 40px; overflow-y: auto; flex: 1; }
+
+        /* Masaüstü header butonları gizli */
+        .header-actions-mobile { display: none; }
+
+        /* FORM CSS */
+        .form-container { display: grid; grid-template-columns: 250px 1fr; gap: 40px; }
+        .photo-upload-area { text-align: center; }
+        .photo-preview { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px; background: #eee; }
+        .btn-upload { background: #e2e8f0; color: #4a5568; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 13px; font-weight: 600; transition: 0.3s; display: inline-block; }
+        .btn-upload:hover { background: #cbd5e1; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .full-width { grid-column: span 2; }
+        
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #64748b; margin-bottom: 8px; }
+        .form-group label .required { color: #ef4444; margin-left: 2px; }
+        
+        .form-control { width: 100%; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 14px; transition: 0.3s; background: #fff; }
+        .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0,123,255,0.1); outline: none; }
+        .form-control.is-invalid { border-color: #ef4444; }
+        
+        .section-separator { grid-column: span 2; margin: 30px 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 10px; color: var(--primary); font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 10px; }
+        
+        .btn-submit { grid-column: span 2; background: var(--primary); color: white; border: none; padding: 18px; border-radius: 14px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; margin-top: 20px; box-shadow: 0 10px 20px rgba(0,123,255,0.2); }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(0,123,255,0.3); }
+        .btn-submit:disabled { background: #cbd5e1; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Kardeş İndirimi Alanı */
+        .kardes-container { display: none; background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 20px; border-radius: 12px; border: 1px dashed #86efac; margin-top: 10px; }
+        .kardes-container.active { display: block; animation: fadeIn 0.3s; }
+        .kardes-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; }
+        
+        /* Kardeş Arama */
+        .search-container { position: relative; }
+        .search-results { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 12px; max-height: 200px; overflow-y: auto; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; }
+        .search-results.show { display: block; }
+        .search-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 10px; transition: 0.2s; }
+        .search-item:last-child { border-bottom: none; }
+        .search-item:hover { background: #f0f9ff; }
+        .search-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+        .search-item-info { flex: 1; }
+        .search-item-name { font-weight: 600; font-size: 14px; }
+        .search-item-detail { font-size: 12px; color: #64748b; }
+        .search-no-result { padding: 15px; text-align: center; color: #94a3b8; font-size: 13px; }
+        
+        /* Seçili Kardeş */
+        .selected-kardes { display: none; background: white; border: 2px solid #22c55e; border-radius: 12px; padding: 12px 15px; margin-top: 10px; align-items: center; gap: 12px; }
+        .selected-kardes.show { display: flex; }
+        .selected-kardes img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .selected-kardes-info { flex: 1; }
+        .selected-kardes-name { font-weight: 700; font-size: 14px; color: #166534; }
+        .selected-kardes-detail { font-size: 12px; color: #64748b; }
+        .btn-remove-kardes { background: #fee2e2; color: #dc2626; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .btn-remove-kardes:hover { background: #fecaca; }
+
+        /* İndirimli Fiyat Gösterimi */
+        .indirim-preview { display: none; background: #fef3c7; border: 1px solid #fcd34d; border-radius: 10px; padding: 12px 15px; margin-top: 10px; font-size: 13px; }
+        .indirim-preview.show { display: block; }
+        .indirim-preview .original { text-decoration: line-through; color: #94a3b8; }
+        .indirim-preview .discounted { font-weight: 700; color: #166534; font-size: 16px; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 99999; }
+        .modal-overlay.show { display: flex; animation: fadeIn 0.3s; }
+        
+        .modal-content { background: white; border-radius: 24px; padding: 40px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.25); animation: slideUp 0.4s; }
+        
+        .modal-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 36px; color: white; }
+        
+        .modal-title { font-size: 24px; font-weight: 800; color: #166534; margin-bottom: 10px; }
+        .modal-message { color: #64748b; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+        
+        .modal-btn { background: linear-gradient(135deg, var(--primary), #0056b3); color: white; border: none; padding: 14px 30px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Bottom Navigation varsayılan gizli */
+        .bottom-nav { display: none; }
+
+        /* ==================== MOBİL TEMA SİSTEMİ ==================== */
+        @media (max-width: 991px) {
+            /* Tema Değişkenleri */
+            [data-theme="light"] {
+                --m-bg-primary: #f8fafc;
+                --m-bg-secondary: #ffffff;
+                --m-bg-tertiary: #f1f5f9;
+                --m-text-primary: #0f172a;
+                --m-text-secondary: #475569;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #e2e8f0;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.06);
+                --m-header-bg: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            }
+
+            [data-theme="dark"] {
+                --m-bg-primary: #0f172a;
+                --m-bg-secondary: #1e293b;
+                --m-bg-tertiary: #334155;
+                --m-text-primary: #f1f5f9;
+                --m-text-secondary: #cbd5e1;
+                --m-text-muted: #94a3b8;
+                --m-border-color: #334155;
+                --m-card-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                --m-header-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            }
+
+            body { 
+                flex-direction: column; 
+                height: auto; 
+                overflow-y: auto;
+                background: var(--m-bg-primary);
+                transition: background 0.3s ease;
+            }
+                        
+            .main { 
+                margin: 0; 
+                border-radius: 0; 
+                background: var(--m-bg-primary);
+                box-shadow: none;
+                padding-bottom: calc(var(--nav-height) + 20px);
+            }
+
+            /* Mobil Header */
+            header { 
+                position: relative;
+                background: var(--m-header-bg);
+                padding: 20px;
+                padding-top: max(env(safe-area-inset-top), 20px);
+                border-bottom: none;
+                border-radius: 0 0 24px 24px;
+                min-height: 100px;
+            }
+
+            header::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                                  radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 40%);
+                border-radius: 0 0 24px 24px;
+            }
+
+            header > * { position: relative; z-index: 2; }
+
+            .page-title h1 { color: white !important; font-size: 18px !important; }
+            .page-title p { color: rgba(255,255,255,0.8) !important; font-size: 11px !important; }
+            .page-title p span { background: rgba(255,255,255,0.2) !important; color: white !important; }
+
+            /* Header butonları */
+            .header-actions-mobile {
+                display: flex !important;
+                gap: 8px;
+            }
+
+            .btn-header-icon {
+                width: 38px; height: 38px; border-radius: 12px;
+                background: rgba(255,255,255,0.15);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                color: white; font-size: 15px; cursor: pointer;
+                display: flex; align-items: center; justify-content: center;
+                transition: all 0.2s;
+            }
+
+            .btn-header-icon:active { transform: scale(0.95); background: rgba(255,255,255,0.25); }
+
+            .header-user { display: none; }
+
+            /* Content */
+            .content-scroll { 
+                padding: 20px; 
+                margin-top: -15px;
+                position: relative;
+                z-index: 5;
+            }
+
+            /* Form Container - Mobilde her şey alt alta */
+            .form-container { grid-template-columns: 1fr !important; gap: 20px !important; }
+            .form-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+            .full-width, .section-separator, .btn-submit { grid-column: span 1 !important; }
+            
+            /* Kardeş indirimi içindeki grid de alt alta */
+            .kardes-grid { grid-template-columns: 1fr !important; gap: 15px !important; }
+
+            /* Fotoğraf Alanı */
+            .photo-upload-area {
+                background: var(--m-bg-secondary);
+                padding: 25px;
+                border-radius: 20px;
+                border: 1px solid var(--m-border-color);
+                box-shadow: var(--m-card-shadow);
+            }
+
+            .photo-preview { 
+                width: 120px; 
+                height: 120px; 
+                border-color: var(--m-bg-secondary);
+            }
+
+            .btn-upload {
+                background: var(--m-bg-tertiary);
+                color: var(--m-text-primary);
+            }
+
+            /* Form Grupları */
+            .form-group label { color: var(--m-text-secondary); }
+            
+            .form-control {
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+                color: var(--m-text-primary);
+            }
+
+            .form-control:focus {
+                border-color: var(--primary);
+                background: var(--m-bg-secondary);
+            }
+
+            .section-separator {
+                color: var(--m-text-primary);
+                border-bottom-color: var(--m-border-color);
+            }
+
+            /* Kardeş İndirimi */
+            .kardes-container {
+                background: var(--m-bg-tertiary);
+                border-color: var(--m-border-color);
+            }
+
+            [data-theme="dark"] .kardes-container {
+                background: rgba(34, 197, 94, 0.1);
+                border-color: rgba(34, 197, 94, 0.3);
+            }
+
+            .search-results {
+                background: var(--m-bg-secondary);
+                border-color: var(--m-border-color);
+            }
+
+            .search-item { border-bottom-color: var(--m-border-color); }
+            .search-item-name { color: var(--m-text-primary); }
+            .search-item-detail { color: var(--m-text-muted); }
+
+            .selected-kardes {
+                background: var(--m-bg-secondary);
+            }
+
+            /* İndirim Preview */
+            [data-theme="dark"] .indirim-preview {
+                background: rgba(251, 191, 36, 0.15);
+                border-color: rgba(251, 191, 36, 0.3);
+            }
+
+            /* Submit Butonu */
+            .btn-submit {
+                margin-bottom: 20px;
+            }
+
+            /* DARK MODE SPESİFİK */
+            [data-theme="dark"] .form-group label,
+            [data-theme="dark"] .section-separator,
+            [data-theme="dark"] .form-control,
+            [data-theme="dark"] .btn-upload,
+            [data-theme="dark"] .search-item-name,
+            [data-theme="dark"] .selected-kardes-name {
+                color: #f1f5f9 !important;
+            }
+
+            [data-theme="dark"] .form-control::placeholder {
+                color: #64748b;
+            }
+
+            [data-theme="dark"] .form-control option {
+                background: #1e293b;
+                color: #f1f5f9;
+            }
+
+            /* Bottom Navigation */
+            .bottom-nav {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                height: var(--nav-height);
+                background: var(--m-bg-secondary);
+                border-top: 1px solid var(--m-border-color);
+                border-radius: 20px 20px 0 0;
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+                display: flex !important;
+                justify-content: space-around;
+                align-items: center;
+                padding: 0 10px;
+                padding-bottom: env(safe-area-inset-bottom);
+                z-index: 1000;
+            }
+
+            [data-theme="dark"] .bottom-nav {
+                box-shadow: 0 -4px 30px rgba(0,0,0,0.4);
+            }
+
+            .nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 4px; padding: 8px 12px; border-radius: 12px;
+                color: var(--m-text-muted); text-decoration: none;
+                transition: all 0.2s; cursor: pointer;
+            }
+
+            .nav-item.active { color: var(--primary); background: var(--primary-light); }
+            .nav-item i { font-size: 18px; }
+            .nav-item span { font-size: 10px; font-weight: 600; }
+
+            /* Modal */
+            .modal-overlay {
+                z-index: 99999;
+            }
+
+            .modal-content {
+                margin: 20px;
+                width: calc(100% - 40px);
+                padding: 30px 20px;
+            }
+
+            [data-theme="dark"] .modal-content {
+                background: var(--m-bg-secondary);
+            }
+
+            [data-theme="dark"] .modal-title {
+                color: #4ade80;
+            }
+
+            [data-theme="dark"] .modal-message {
+                color: var(--m-text-secondary);
+            }
+        }
+
+        /* ==================== MASAÜSTÜ ==================== */
+        @media (min-width: 992px) {
+            .header-actions-mobile { display: none !important; }
+            .bottom-nav { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <%- include('partials/sidebar', { path: locals.originalUrl || '' }) %>
+
+    <%
+    const defaultLogo = siteAyarlari.logo_default ? '/uploads/' + siteAyarlari.logo_default : '/images/default.png';
+    %>
+
+    <div class="main">
+        <header>
+            <div class="page-title">
+                <h1 style="font-size: 24px; font-weight: 700;">Öğrenci Kayıt</h1>
+                <p style="font-size: 13px; color: #a0aec0;">
+                    <% if (basvuru && basvuru.id) { %>
+                        <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 8px; font-weight: 700;">
+                            <i class="fa-solid fa-check-circle"></i> Başvurudan aktarıldı
+                        </span>
+                    <% } else { %>
+                        <span style="color: #ef4444;">*</span> Zorunlu alanlar
+                    <% } %>
+                </p>
+            </div>
+
+            <!-- Mobil Header Butonları -->
+            <div class="header-actions-mobile">
+                <button class="btn-header-icon" onclick="toggleTheme()" title="Tema Değiştir">
+                    <i class="fa-solid fa-moon" id="themeIcon"></i>
+                </button>
+                <a href="/api/ogrenci/liste" class="btn-header-icon" title="Öğrenci Listesi">
+                    <i class="fa-solid fa-users"></i>
+                </a>
+            </div>
+
+            <div class="header-user" style="font-weight: 600;"><%= user.ad_soyad %></div>
+        </header>
+
+        <div class="content-scroll">
+
+            <form id="ogrenciForm" enctype="multipart/form-data">
+                <% if (basvuru && basvuru.id) { %>
+                    <input type="hidden" name="basvuru_id" value="<%= basvuru.id %>">
+                <% } %>
+                
+                <div class="form-container">
+
+                    <div class="photo-upload-area">
+                        <img src="<%= defaultLogo %>" id="preview" class="photo-preview" onerror="this.src='<%= defaultLogo %>'">
+                        <br>
+                        <label class="btn-upload">
+                            <i class="fa-solid fa-camera"></i> Fotoğraf Seç
+                            <input type="file" name="profil_foto" id="profilFoto" style="display: none;" accept="image/*">
+                        </label>
+                    </div>
+
+                    <div class="form-grid">
+
+                        <div class="section-separator"><i class="fa-solid fa-id-card"></i> Öğrenci Bilgileri</div>
+
+                        <% if (user.rol === 'yonetici') { %>
+                            <div class="form-group full-width">
+                                <label>Şube Seçimi <span class="required">*</span></label>
+                                <select name="sube_id" id="subeId" class="form-control" required>
+                                    <% subeler.forEach(sube => { %>
+                                        <option value="<%= sube.id %>" <%= (basvuru && basvuru.sube_id && basvuru.sube_id == sube.id) ? 'selected' : '' %>><%= sube.sube_adi %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+                        <% } else { %>
+                            <input type="hidden" name="sube_id" id="subeId" value="<%= user.sube_id %>">
+                        <% } %>
+
+                        <div class="form-group">
+                            <label>T.C. Kimlik No</label>
+                            <input type="text" name="tc_kimlik" class="form-control" maxlength="11" value="<%= (basvuru && basvuru.tc_kimlik) ? basvuru.tc_kimlik : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adı Soyadı <span class="required">*</span></label>
+                            <input type="text" name="ad_soyad" id="adSoyad" class="form-control" required value="<%= (basvuru && basvuru.ad_soyad) ? basvuru.ad_soyad : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Doğum Tarihi</label>
+                            <input type="date" name="dogum_tarihi" class="form-control" value="<%= (basvuru && basvuru.dogum_tarihi) ? new Date(basvuru.dogum_tarihi).toISOString().split('T')[0] : '' %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Kayıt Tarihi</label>
+                            <input type="date" name="kayit_tarihi" class="form-control" value="<%= new Date().toISOString().split('T')[0] %>">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Branş</label>
+                            <select name="brans_id" class="form-control" onchange="gruplariFiltrele(this.value)">
+                                <option value="">Seçiniz...</option>
+                                <% branslar.forEach(brans => { %>
+                                    <option value="<%= brans.id %>"><%= brans.brans_adi %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Grup</label>
+                            <select name="grup_id" id="grupSelect" class="form-control">
+                                <option value="">Önce Branş Seçiniz</option>
+                            </select>
+                        </div>
+
+                        <div class="section-separator"><i class="fa-solid fa-wallet"></i> Finansal Bilgiler</div>
+
+                        <div class="form-group">
+                            <label>Aidat Ücreti (TL)</label>
+                            <input type="number" name="aidat_ucreti" id="aidatUcreti" class="form-control" placeholder="0.00" step="0.01" oninput="hesaplaIndirim()">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Aidat Hatırlatma Günü (1-31)</label>
+                            <input type="number" name="aidat_hatirlatma_gunu" class="form-control" value="1" min="1" max="31">
+                        </div>
+
+                        <!-- Kardeş İndirimi -->
+                        <div class="form-group full-width" style="background: var(--m-bg-secondary, white); border: 1px solid var(--m-border-color, #e2e8f0); padding: 20px; border-radius: 12px;">
+                            <label style="display: flex; align-items: center; cursor: pointer; font-size: 15px; margin-bottom: 0;">
+                                <input type="checkbox" id="kardesCheckbox" onchange="toggleKardesAlani()" style="width: 20px; height: 20px; margin-right: 10px; accent-color: #22c55e;">
+                                <span><i class="fa-solid fa-users" style="color: #22c55e; margin-right: 8px;"></i> Kardeş İndirimi Uygula</span>
+                            </label>
+
+                            <div id="kardesAlani" class="kardes-container">
+                                <div class="kardes-grid">
+                                    <div class="search-container">
+                                        <label style="font-size: 12px; color: #166534;">Kardeş Ara</label>
+                                        <input type="text" id="kardesArama" class="form-control" placeholder="Öğrenci adı yazın..." oninput="kardesAra(this.value)" autocomplete="off">
+                                        <input type="hidden" name="kardes_id" id="kardesId">
+                                        <input type="hidden" name="kardes_adi" id="kardesAdi">
+                                        <div id="kardesResults" class="search-results"></div>
+                                        
+                                        <div id="selectedKardes" class="selected-kardes">
+                                            <img id="kardesFoto" src="<%= defaultLogo %>" alt="" onerror="this.src='<%= defaultLogo %>'">
+                                            <div class="selected-kardes-info">
+                                                <div id="kardesName" class="selected-kardes-name"></div>
+                                                <div id="kardesDetail" class="selected-kardes-detail"></div>
+                                            </div>
+                                            <button type="button" class="btn-remove-kardes" onclick="kardesKaldir()">
+                                                <i class="fa-solid fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 12px; color: #166534;">İndirim Oranı (%)</label>
+                                        <input type="number" name="kardes_indirim_orani" id="indirimOrani" class="form-control" placeholder="Örn: 10" min="0" max="100" oninput="hesaplaIndirim()">
+                                    </div>
+                                </div>
+                                
+                                <div id="indirimPreview" class="indirim-preview">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <span class="original" id="originalPrice">0 ₺</span>
+                                            <span style="margin: 0 8px;">→</span>
+                                            <span class="discounted" id="discountedPrice">0 ₺</span>
+                                        </div>
+                                        <div style="background: #22c55e; color: white; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                                            %<span id="indirimYuzde">0</span> İndirim
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Açıklama / Not</label>
+                            <textarea name="aciklama" class="form-control" rows="2"><%= (basvuru && basvuru.aciklama) ? basvuru.aciklama : '' %></textarea>
+                        </div>
+
+                        <div class="section-separator"><i class="fa-solid fa-users"></i> Veli & İletişim Bilgileri</div>
+
+                        <% if (ekstraAlanlar && ekstraAlanlar.length > 0) { %>
+                            <% ekstraAlanlar.forEach(alan => {
+                                const fieldValue = ekstraAlanlarData && ekstraAlanlarData[alan.alan_adi] ? ekstraAlanlarData[alan.alan_adi] : '';
+                                const isRequired = alan.zorunlu_mu == 1;
+                                const fieldName = alan.alan_adi.replace(/\s+/g, '_').toLowerCase();
+                            %>
+                                <div class="form-group <%= alan.alan_tipi === 'textarea' ? 'full-width' : '' %>">
+                                    <label>
+                                        <%= alan.alan_adi %>
+                                        <% if (isRequired) { %><span class="required">*</span><% } %>
+                                    </label>
+
+                                    <% if (alan.alan_tipi === 'textarea') { %>
+                                        <textarea name="<%= fieldName %>" class="form-control" rows="3" <%= isRequired ? 'required' : '' %>><%= fieldValue %></textarea>
+                                    <% } else if (alan.alan_tipi === 'select' && alan.secenekler) { %>
+                                        <% 
+                                            let secenekler = [];
+                                            try { secenekler = JSON.parse(alan.secenekler); } catch(e) {}
+                                        %>
+                                        <select name="<%= fieldName %>" class="form-control" <%= isRequired ? 'required' : '' %>>
+                                            <option value="">Seçiniz...</option>
+                                            <% secenekler.forEach(opt => { %>
+                                                <option value="<%= opt %>" <%= fieldValue === opt ? 'selected' : '' %>><%= opt %></option>
+                                            <% }) %>
+                                        </select>
+                                    <% } else { %>
+                                        <input type="<%= alan.alan_tipi === 'tel' ? 'text' : alan.alan_tipi %>"
+                                               name="<%= fieldName %>"
+                                               class="form-control"
+                                               value="<%= fieldValue %>"
+                                               <%= isRequired ? 'required' : '' %>>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="full-width" style="color: var(--m-text-muted, #999); font-style: italic;">
+                                <i class="fa-solid fa-info-circle"></i> Ekstra form alanı bulunamadı.
+                            </div>
+                        <% } %>
+
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <i class="fa-solid fa-check"></i> Kaydı Tamamla
+                        </button>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/api/dashboard" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+            <span>Ana Sayfa</span>
+        </a>
+        <a href="/api/ogrenci/liste" class="nav-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+        <a href="/api/ogrenci/ekle" class="nav-item active">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Kayıt</span>
+        </a>
+        <a href="/api/yoklama" class="nav-item">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Yoklama</span>
+        </a>
+        <a href="/api/ayarlar" class="nav-item">
+            <i class="fa-solid fa-gear"></i>
+            <span>Ayarlar</span>
+        </a>
+    </nav>
+
+    <!-- Başarı Modalı -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-content">
+            <div class="modal-icon">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2 class="modal-title">Kayıt Başarılı!</h2>
+            <p class="modal-message">
+                <strong id="modalOgrenciAdi"></strong> başarıyla sisteme kaydedildi.
+                <br>Veli giriş bilgileri WhatsApp ile gönderildi.
+            </p>
+            <button class="modal-btn" id="modalBtn" onclick="profilGit()">
+                <i class="fa-solid fa-user"></i> Profili Görüntüle
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let yeniOgrenciId = null;
+        let aramaTimeout = null;
+        const defaultLogoPath = '<%= defaultLogo %>';
+
+        // ==================== TEMA YÖNETİMİ ====================
+        function initTheme() {
+            const saved = localStorage.getItem('dashboardTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            updateThemeIcon(saved);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('dashboardTheme', next);
+            updateThemeIcon(next);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            }
+        }
+
+        initTheme();
+
+        // Foto Önizleme
+        document.getElementById('profilFoto').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) { 
+                    document.getElementById('preview').src = e.target.result; 
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Kardeş Alanı Aç/Kapa
+        function toggleKardesAlani() {
+            const chk = document.getElementById('kardesCheckbox');
+            const alan = document.getElementById('kardesAlani');
+            
+            if (chk.checked) {
+                alan.classList.add('active');
+            } else {
+                alan.classList.remove('active');
+                document.getElementById('kardesId').value = '';
+                document.getElementById('kardesAdi').value = '';
+                document.getElementById('kardesArama').value = '';
+                document.getElementById('indirimOrani').value = '';
+                document.getElementById('selectedKardes').classList.remove('show');
+                document.getElementById('indirimPreview').classList.remove('show');
+            }
+        }
+
+        // Kardeş Arama
+        async function kardesAra(query) {
+            clearTimeout(aramaTimeout);
+            const resultsDiv = document.getElementById('kardesResults');
+            
+            if (query.length < 2) {
+                resultsDiv.classList.remove('show');
+                return;
+            }
+
+            aramaTimeout = setTimeout(async () => {
+                try {
+                    const subeId = document.getElementById('subeId').value;
+                    const res = await fetch(`/api/ogrenci/ara?q=${encodeURIComponent(query)}&sube_id=${subeId}`);
+                    const data = await res.json();
+                    
+                    if (data.success && data.ogrenciler.length > 0) {
+                        resultsDiv.innerHTML = data.ogrenciler.map(ogr => `
+                            <div class="search-item" onclick="kardesSecim(${ogr.id}, '${ogr.ad_soyad.replace(/'/g, "\\'")}', '${ogr.profil_foto || ''}', '${ogr.grup_adi || 'Grup yok'}')">
+                                <img src="${ogr.profil_foto ? '/images/students/' + ogr.profil_foto : defaultLogoPath}" onerror="this.src='${defaultLogoPath}'">
+                                <div class="search-item-info">
+                                    <div class="search-item-name">${ogr.ad_soyad}</div>
+                                    <div class="search-item-detail">${ogr.grup_adi || 'Grup atanmamış'}</div>
+                                </div>
+                            </div>
+                        `).join('');
+                        resultsDiv.classList.add('show');
+                    } else {
+                        resultsDiv.innerHTML = '<div class="search-no-result"><i class="fa-solid fa-search"></i> Öğrenci bulunamadı</div>';
+                        resultsDiv.classList.add('show');
+                    }
+                } catch (err) {
+                    console.error('Arama hatası:', err);
+                }
+            }, 300);
+        }
+
+        // Kardeş Seçimi
+        function kardesSecim(id, ad, foto, grup) {
+            document.getElementById('kardesId').value = id;
+            document.getElementById('kardesAdi').value = ad;
+            document.getElementById('kardesArama').value = '';
+            document.getElementById('kardesResults').classList.remove('show');
+            
+            document.getElementById('kardesFoto').src = foto ? `/images/students/${foto}` : defaultLogoPath;
+            document.getElementById('kardesFoto').onerror = function() { this.src = defaultLogoPath; };
+            document.getElementById('kardesName').textContent = ad;
+            document.getElementById('kardesDetail').textContent = grup;
+            document.getElementById('selectedKardes').classList.add('show');
+        }
+
+        // Kardeş Kaldır
+        function kardesKaldir() {
+            document.getElementById('kardesId').value = '';
+            document.getElementById('kardesAdi').value = '';
+            document.getElementById('selectedKardes').classList.remove('show');
+        }
+
+        // İndirim Hesapla
+        function hesaplaIndirim() {
+            const aidat = parseFloat(document.getElementById('aidatUcreti').value) || 0;
+            const indirimOrani = parseFloat(document.getElementById('indirimOrani').value) || 0;
+            const previewDiv = document.getElementById('indirimPreview');
+            
+            if (aidat > 0 && indirimOrani > 0 && document.getElementById('kardesCheckbox').checked) {
+                const indirimTutar = aidat * (indirimOrani / 100);
+                const yeniFiyat = aidat - indirimTutar;
+                
+                document.getElementById('originalPrice').textContent = aidat.toLocaleString('tr-TR') + ' ₺';
+                document.getElementById('discountedPrice').textContent = yeniFiyat.toLocaleString('tr-TR') + ' ₺';
+                document.getElementById('indirimYuzde').textContent = indirimOrani;
+                previewDiv.classList.add('show');
+            } else {
+                previewDiv.classList.remove('show');
+            }
+        }
+
+        // Grup Filtreleme
+        const tumGruplar = <%- JSON.stringify(gruplar || []) %>;
+        function gruplariFiltrele(bransId) {
+            const grupSelect = document.getElementById('grupSelect');
+            grupSelect.innerHTML = '<option value="">Seçiniz...</option>';
+            const filtrelenmis = tumGruplar.filter(g => g.brans_id == bransId);
+            filtrelenmis.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = g.grup_adi;
+                grupSelect.appendChild(opt);
+            });
+        }
+
+        // Dışarı tıklayınca arama sonuçlarını kapat
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                document.getElementById('kardesResults').classList.remove('show');
+            }
+        });
+
+        // Form Gönderimi
+        document.getElementById('ogrenciForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Kaydediliyor...';
+            
+            try {
+                const formData = new FormData(this);
+                
+                const res = await fetch('/api/ogrenci/ekle', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    yeniOgrenciId = data.ogrenciId;
+                    document.getElementById('modalOgrenciAdi').textContent = document.getElementById('adSoyad').value;
+                    document.getElementById('successModal').classList.add('show');
+                } else {
+                    alert('Hata: ' + (data.message || 'Kayıt yapılamadı'));
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            } catch (err) {
+                console.error('Kayıt hatası:', err);
+                alert('Sunucu bağlantı hatası!');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        // Profil Sayfasına Git
+        function profilGit() {
+            if (yeniOgrenciId) {
+                window.location.href = '/api/ogrenci/profil/' + yeniOgrenciId;
+            } else {
+                window.location.href = '/api/ogrenci/liste';
+            }
+        }
+    </script>
+</body>
+</html>
