@@ -914,13 +914,13 @@
                                     <% } %>
                                 </div>
                             </div>
-                            <% if(k.rol === 'personel' && k.yetkiler) { 
-                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler; 
+                            <% if(k.rol === 'personel' && k.yetkiler) {
+                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler;
                             %>
                                 <div class="mobile-user-perms">
                                     <span class="mobile-perm-badge <%= y.ogrenci_ekle ? 'active' : '' %>">Öğrenci Ekle</span>
                                     <span class="mobile-perm-badge <%= y.kasa_gor ? 'active' : '' %>">Kasa Gör</span>
-                                    <span class="mobile-perm-badge <%= y.yoklama ? 'active' : '' %>">Yoklama</span>
+                                    <span class="mobile-perm-badge <%= y.yoklama_gor ? 'active' : '' %>">Yoklama</span>
                                 </div>
                             <% } %>
                         </div>
@@ -1013,13 +1013,13 @@
                             <div class="u-name"><%= k.ad_soyad %></div>
                             <div class="u-username">@<%= k.kullanici_adi %> • <%= k.sube_adi || 'Merkez' %></div>
                             
-                            <% if(k.rol === 'personel' && k.yetkiler) { 
-                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler; 
+                            <% if(k.rol === 'personel' && k.yetkiler) {
+                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler;
                             %>
                                 <div class="u-perms-mini">
                                     <div class="perm-dot <%= y.ogrenci_ekle ? 'perm-active' : '' %>" title="Öğrenci Ekle"></div>
                                     <div class="perm-dot <%= y.kasa_gor ? 'perm-active' : '' %>" title="Kasa Gör"></div>
-                                    <div class="perm-dot <%= y.yoklama ? 'perm-active' : '' %>" title="Yoklama"></div>
+                                    <div class="perm-dot <%= y.yoklama_gor ? 'perm-active' : '' %>" title="Yoklama"></div>
                                 </div>
                                 <div style="font-size: 10px; color: #94a3b8; margin-top: 3px;">Yetkiler Tanımlı</div>
                             <% } %>
@@ -1482,6 +1482,25 @@
                 closeModal('modalSube');
                 closeModal('modalKullanici');
                 closeModal('modalEdit');
+            }
+        });
+
+        // =====================================================
+        // SAYFA YÜKLENDİĞİNDE URL PARAMETRELERİNİ KONTROL ET
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get('success')) {
+                showResultModal(decodeURIComponent(urlParams.get('success')), 'success');
+                // URL'den parametreleri temizle
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (urlParams.get('error')) {
+                showResultModal(decodeURIComponent(urlParams.get('error')), 'error');
+                // URL'den parametreleri temizle
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
     </script>
