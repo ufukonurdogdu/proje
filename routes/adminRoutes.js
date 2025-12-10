@@ -34,11 +34,11 @@ router.get('/form-ayarlari/sil/:id', adminController.formAlanSil);
 router.post('/form-ayarlari/sirala', adminController.formSiralamaGuncelle);
 
 // BRANŞ & GRUP ROTALARI
-router.get('/branslar', yetki('brans_grup'), adminController.bransSayfasi);
-router.post('/brans/ekle', yetki('brans_grup'), adminController.bransEkle);
-router.get('/brans/sil/:id', yetki('brans_grup'), adminController.bransSil);
-router.post('/grup/ekle', yetki('brans_grup'), adminController.grupEkle);
-router.get('/grup/sil/:id', yetki('brans_grup'), adminController.grupSil);
+router.get('/branslar', yetki('brans_grup_gor'), adminController.bransSayfasi);
+router.post('/brans/ekle', yetki('brans_grup_islem'), adminController.bransEkle);
+router.get('/brans/sil/:id', yetki('brans_grup_islem'), adminController.bransSil);
+router.post('/grup/ekle', yetki('brans_grup_islem'), adminController.grupEkle);
+router.get('/grup/sil/:id', yetki('brans_grup_islem'), adminController.grupSil);
 
 // ŞUBE VE KULLANICI
 router.get('/subeler', adminController.subeKullaniciSayfasi);
@@ -50,11 +50,11 @@ router.post('/kullanici/duzenle', adminController.kullaniciDuzenle);
 
 // BAŞVURU YÖNETİMİ
 const basvuruController = require('../controllers/basvuruController');
-router.get('/basvurular', basvuruController.basvuruListesi);
-router.get('/basvuru/detay/:id', basvuruController.basvuruDetay);
-router.post('/basvuru/durum-guncelle', basvuruController.basvuruDurumGuncelle);
-router.get('/basvuru/ogrenci-olustur/:id', basvuruController.basvuruOgrenciOlustur);
-router.get('/basvuru/reddet/:id', basvuruController.basvuruReddet);
-router.get('/basvuru/sil/:id', basvuruController.basvuruSil);
+router.get('/basvurular', yetki('basvuru_gor'), basvuruController.basvuruListesi);
+router.get('/basvuru/detay/:id', yetki('basvuru_gor'), basvuruController.basvuruDetay);
+router.post('/basvuru/durum-guncelle', yetki('basvuru_islem'), basvuruController.basvuruDurumGuncelle);
+router.get('/basvuru/ogrenci-olustur/:id', yetki('basvuru_islem'), basvuruController.basvuruOgrenciOlustur);
+router.get('/basvuru/reddet/:id', yetki('basvuru_islem'), basvuruController.basvuruReddet);
+router.get('/basvuru/sil/:id', yetki('basvuru_islem'), basvuruController.basvuruSil);
 
 module.exports = router;

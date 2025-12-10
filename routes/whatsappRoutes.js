@@ -46,37 +46,37 @@ router.get('/otomatik-mesajlar', authCheck, adminCheck, whatsappController.otoma
 // =====================================================
 
 // Chat Ana Sayfası
-router.get('/chat', authCheck, yetki('whatsapp'), whatsappController.chatSayfasi);
+router.get('/chat', authCheck, yetki('whatsapp_gor'), whatsappController.chatSayfasi);
 
 // ⚠️ ÖNEMLİ: Parametresiz route'lar :id'den ÖNCE tanımlanmalı!
-router.get('/chat/check-updates', authCheck, yetki('whatsapp'), whatsappController.chatCheckUpdates);
-router.get('/chat/arsiv-listesi', authCheck, yetki('whatsapp'), whatsappController.chatArsivListesi);
-router.post('/chat/kisi-kaydet', authCheck, yetki('whatsapp'), whatsappController.chatKisiKaydet);
+router.get('/chat/check-updates', authCheck, yetki('whatsapp_gor'), whatsappController.chatCheckUpdates);
+router.get('/chat/arsiv-listesi', authCheck, yetki('whatsapp_gor'), whatsappController.chatArsivListesi);
+router.post('/chat/kisi-kaydet', authCheck, yetki('whatsapp_islem'), whatsappController.chatKisiKaydet);
 
 // Parametreli route'lar
-router.get('/chat/:id', authCheck, yetki('whatsapp'), whatsappController.chatDetay);
-router.get('/chat/:id/mesajlar', authCheck, yetki('whatsapp'), whatsappController.chatMesajlariGetir);
-router.post('/chat/:id/gonder', authCheck, yetki('whatsapp'), whatsappController.chatMesajGonder);
-router.post('/chat/:id/arsivle', authCheck, yetki('whatsapp'), whatsappController.chatArsivle);
-router.post('/chat/:id/arsivden-cikar', authCheck, yetki('whatsapp'), whatsappController.chatArsivdenCikar);
-router.post('/chat/:id/grup', authCheck, yetki('whatsapp'), whatsappController.chatGrupGuncelle);
-router.post('/chat/:id/tuttur', authCheck, yetki('whatsapp'), whatsappController.chatTuttur);
-router.post('/chat/:id/resim-gonder', authCheck, yetki('whatsapp'), whatsappController.chatResimGonder);
-router.post('/chat/:id/isim-guncelle', authCheck, yetki('whatsapp'), whatsappController.chatIsimGuncelle);
-router.delete('/chat/:id/sil', authCheck, yetki('whatsapp'), whatsappController.chatSil);
+router.get('/chat/:id', authCheck, yetki('whatsapp_gor'), whatsappController.chatDetay);
+router.get('/chat/:id/mesajlar', authCheck, yetki('whatsapp_gor'), whatsappController.chatMesajlariGetir);
+router.post('/chat/:id/gonder', authCheck, yetki('whatsapp_islem'), whatsappController.chatMesajGonder);
+router.post('/chat/:id/arsivle', authCheck, yetki('whatsapp_islem'), whatsappController.chatArsivle);
+router.post('/chat/:id/arsivden-cikar', authCheck, yetki('whatsapp_islem'), whatsappController.chatArsivdenCikar);
+router.post('/chat/:id/grup', authCheck, yetki('whatsapp_islem'), whatsappController.chatGrupGuncelle);
+router.post('/chat/:id/tuttur', authCheck, yetki('whatsapp_islem'), whatsappController.chatTuttur);
+router.post('/chat/:id/resim-gonder', authCheck, yetki('whatsapp_islem'), whatsappController.chatResimGonder);
+router.post('/chat/:id/isim-guncelle', authCheck, yetki('whatsapp_islem'), whatsappController.chatIsimGuncelle);
+router.delete('/chat/:id/sil', authCheck, yetki('whatsapp_islem'), whatsappController.chatSil);
 
 // =====================================================
 // 🆕 TOPLU İŞLEMLER (Manuel & Toplu Mesaj)
 // =====================================================
 
 // Toplu İşlemler Sayfası
-router.get('/toplu-islemler', authCheck, yetki('whatsapp'), whatsappController.topluIslemlerSayfasi);
+router.get('/toplu-islemler', authCheck, yetki('whatsapp_gor'), whatsappController.topluIslemlerSayfasi);
 
 // Manuel Mesaj Gönder (Toplu İşlemler Sayfasından)
-router.post('/toplu-islemler/manuel-gonder', authCheck, yetki('whatsapp'), whatsappController.manuelMesajGonder);
+router.post('/toplu-islemler/manuel-gonder', authCheck, yetki('whatsapp_islem'), whatsappController.manuelMesajGonder);
 
 // Toplu Mesaj Gönder (Grup/Branş bazlı)
-router.post('/toplu-islemler/toplu-gonder', authCheck, yetki('whatsapp'), whatsappController.topluMesajGonder);
+router.post('/toplu-islemler/toplu-gonder', authCheck, yetki('whatsapp_islem'), whatsappController.topluMesajGonder);
 
 // =====================================================
 // API ROTALARI
