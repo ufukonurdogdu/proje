@@ -495,19 +495,39 @@ exports.kullaniciEkle = async (req, res) => {
         const hashSifre = await bcrypt.hash(sifre, 10);
 
         const yetkiler = JSON.stringify({
+            // Dashboard
+            dashboard: req.body.perm_dashboard === 'on',
+            // Öğrenci Yönetimi
+            ogrenci_liste: req.body.perm_ogrenci_liste === 'on',
+            ogrenci_profil: req.body.perm_ogrenci_profil === 'on',
             ogrenci_ekle: req.body.perm_ogrenci_ekle === 'on',
             ogrenci_duzenle: req.body.perm_ogrenci_duzenle === 'on',
             ogrenci_sil: req.body.perm_ogrenci_sil === 'on',
-            ogrenci_profil: req.body.perm_ogrenci_profil === 'on',
-            yoklama: req.body.perm_yoklama === 'on',
-            ders_programi: req.body.perm_ders_programi === 'on',
-            brans_grup: req.body.perm_brans_grup === 'on',
+            // Yoklama
+            yoklama_gor: req.body.perm_yoklama_gor === 'on',
+            yoklama_islem: req.body.perm_yoklama_islem === 'on',
+            // Ders Programı
+            ders_programi_gor: req.body.perm_ders_programi_gor === 'on',
+            ders_programi_islem: req.body.perm_ders_programi_islem === 'on',
+            // Branş/Grup
+            brans_grup_gor: req.body.perm_brans_grup_gor === 'on',
+            brans_grup_islem: req.body.perm_brans_grup_islem === 'on',
+            // Kasa
             kasa_gor: req.body.perm_kasa_gor === 'on',
-            kasa_islem: req.body.perm_kasa_islem === 'on'
+            kasa_islem: req.body.perm_kasa_islem === 'on',
+            // Envanter
+            envanter_gor: req.body.perm_envanter_gor === 'on',
+            envanter_islem: req.body.perm_envanter_islem === 'on',
+            // Başvuru
+            basvuru_gor: req.body.perm_basvuru_gor === 'on',
+            basvuru_islem: req.body.perm_basvuru_islem === 'on',
+            // WhatsApp
+            whatsapp_gor: req.body.perm_whatsapp_gor === 'on',
+            whatsapp_islem: req.body.perm_whatsapp_islem === 'on'
         });
 
         await db.execute(`
-            INSERT INTO kullanicilar (ad_soyad, kullanici_adi, sifre, sube_id, rol, yetkiler, durum) 
+            INSERT INTO kullanicilar (ad_soyad, kullanici_adi, sifre, sube_id, rol, yetkiler, durum)
             VALUES (?, ?, ?, ?, ?, ?, 1)
         `, [ad_soyad, kullanici_adi, hashSifre, sube_id || null, rol, yetkiler]);
 
@@ -527,15 +547,35 @@ exports.kullaniciDuzenle = async (req, res) => {
 
     try {
         const yetkiler = JSON.stringify({
+            // Dashboard
+            dashboard: req.body.perm_dashboard === 'on',
+            // Öğrenci Yönetimi
+            ogrenci_liste: req.body.perm_ogrenci_liste === 'on',
+            ogrenci_profil: req.body.perm_ogrenci_profil === 'on',
             ogrenci_ekle: req.body.perm_ogrenci_ekle === 'on',
             ogrenci_duzenle: req.body.perm_ogrenci_duzenle === 'on',
             ogrenci_sil: req.body.perm_ogrenci_sil === 'on',
-            ogrenci_profil: req.body.perm_ogrenci_profil === 'on',
-            yoklama: req.body.perm_yoklama === 'on',
-            ders_programi: req.body.perm_ders_programi === 'on',
-            brans_grup: req.body.perm_brans_grup === 'on',
+            // Yoklama
+            yoklama_gor: req.body.perm_yoklama_gor === 'on',
+            yoklama_islem: req.body.perm_yoklama_islem === 'on',
+            // Ders Programı
+            ders_programi_gor: req.body.perm_ders_programi_gor === 'on',
+            ders_programi_islem: req.body.perm_ders_programi_islem === 'on',
+            // Branş/Grup
+            brans_grup_gor: req.body.perm_brans_grup_gor === 'on',
+            brans_grup_islem: req.body.perm_brans_grup_islem === 'on',
+            // Kasa
             kasa_gor: req.body.perm_kasa_gor === 'on',
-            kasa_islem: req.body.perm_kasa_islem === 'on'
+            kasa_islem: req.body.perm_kasa_islem === 'on',
+            // Envanter
+            envanter_gor: req.body.perm_envanter_gor === 'on',
+            envanter_islem: req.body.perm_envanter_islem === 'on',
+            // Başvuru
+            basvuru_gor: req.body.perm_basvuru_gor === 'on',
+            basvuru_islem: req.body.perm_basvuru_islem === 'on',
+            // WhatsApp
+            whatsapp_gor: req.body.perm_whatsapp_gor === 'on',
+            whatsapp_islem: req.body.perm_whatsapp_islem === 'on'
         });
 
         let sql = `UPDATE kullanicilar SET ad_soyad=?, kullanici_adi=?, sube_id=?, rol=?, yetkiler=?`;

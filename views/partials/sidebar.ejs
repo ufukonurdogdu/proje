@@ -192,18 +192,18 @@
         <div class="menu-category">Operasyon</div>
         
         <!-- ÖĞRENCİ YETKİSİ -->
-        <% if (user.rol === 'yonetici' || (user.yetkiler && (user.yetkiler.ogrenci_ekle || user.yetkiler.ogrenci_profil))) { %>
-            <% if (user.rol === 'yonetici' || user.yetkiler.ogrenci_ekle) { %>
+        <% if (user.rol === 'yonetici' || (user.yetkiler && (user.yetkiler.ogrenci_ekle || user.yetkiler.ogrenci_liste || user.yetkiler.ogrenci_profil))) { %>
+            <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ogrenci_ekle)) { %>
                 <a href="/api/ogrenci/ekle" class="nav-link <%= path.includes('/ogrenci/ekle') ? 'active' : '' %>">
                     <i class="fa-solid fa-user-plus"></i> Yeni Öğrenci
                 </a>
             <% } %>
-            <% if (user.rol === 'yonetici' || user.yetkiler.ogrenci_profil) { %>
+            <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ogrenci_liste)) { %>
                 <a href="/api/ogrenci/liste" class="nav-link <%= path.includes('/ogrenci/liste') ? 'active' : '' %>">
                     <i class="fa-solid fa-user-graduate"></i> Öğrenci Listesi
                 </a>
             <% } %>
-            <% if (user.rol === 'yonetici') { %>
+            <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.basvuru_gor)) { %>
                 <a href="/api/admin/basvurular" class="nav-link <%= path.includes('/basvuru') ? 'active' : '' %>">
                     <i class="fa-solid fa-inbox"></i> Başvurular
                 </a>
@@ -211,11 +211,11 @@
         <% } %>
 
         <!-- YOKLAMA YETKİSİ -->
-        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.yoklama)) { %>
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.yoklama_gor)) { %>
             <a href="/api/yoklama" class="nav-link <%= path.includes('/yoklama') ? 'active' : '' %>">
                 <i class="fa-solid fa-clipboard-check"></i> Yoklama Sistemi
             </a>
-		
+
             <a href="/api/ozel-ders-yoklama" class="nav-link <%= path.includes('/ozel-ders-yoklama') ? 'active' : '' %>">
                 <i class="fa-solid fa-graduation-cap"></i> Özel Ders Yoklama
             </a>
@@ -229,14 +229,14 @@
         <% } %>
 
         <!-- DERS PROGRAMI YETKİSİ -->
-        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ders_programi)) { %>
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ders_programi_gor)) { %>
             <a href="/api/ders/program" class="nav-link <%= path.includes('/ders/program') ? 'active' : '' %>">
                 <i class="fa-regular fa-calendar-check"></i> Ders Programı
             </a>
         <% } %>
-        
-        <!-- DEPO & ENVANTER -->
-        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ders_programi)) { %>
+
+        <!-- DEPO & ENVANTER YETKİSİ -->
+        <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.envanter_gor)) { %>
             <a href="/api/envanter" class="nav-link <%= path.includes('/envanter') ? 'active' : '' %>">
                 <i class="fa-solid fa-boxes-stacked"></i> Depo & Envanter
             </a>
@@ -260,8 +260,8 @@
             <a href="/api/admin/website/canli-destek" class="nav-link netchat-link <%= path.includes('/canli-destek') ? 'active' : '' %>">
                 <i class="fa-solid fa-headset"></i> netChat
             </a>
-        <% } else { %>
-            <!-- Personel için WhatsApp -->
+        <% } else if (user.yetkiler && user.yetkiler.whatsapp_gor) { %>
+            <!-- Personel için WhatsApp (Yetkili) -->
             <div class="menu-category">WhatsApp</div>
             <a href="/api/whatsapp/toplu-islemler" class="nav-link whatsapp-link <%= path.includes('/whatsapp/toplu-islemler') ? 'active' : '' %>">
                 <i class="fa-solid fa-paper-plane"></i> Toplu İşlemler
@@ -279,7 +279,7 @@
             </a>
         <% } %>
 
-        <!-- YÖNETİM (Sadece Yönetici) -->
+        <!-- YÖNETİM -->
         <% if (user.rol === 'yonetici') { %>
             <div class="menu-category">Yönetim</div>
             <a href="/api/admin/subeler" class="nav-link <%= path.includes('/admin/sube') ? 'active' : '' %>">
@@ -293,6 +293,12 @@
             </a>
             <a href="/api/admin/ayarlar" class="nav-link <%= path.includes('/admin/ayarlar') ? 'active' : '' %>">
                 <i class="fa-solid fa-sliders"></i> Sistem Ayarları
+            </a>
+        <% } else if (user.yetkiler && user.yetkiler.brans_grup_gor) { %>
+            <!-- Personel için Branş & Gruplar (Yetkili) -->
+            <div class="menu-category">Yönetim</div>
+            <a href="/api/admin/branslar" class="nav-link <%= path.includes('/admin/brans') ? 'active' : '' %>">
+                <i class="fa-solid fa-layer-group"></i> Branş & Gruplar
             </a>
         <% } %>
 
@@ -312,20 +318,36 @@
         <span>Anasayfa</span>
     </a>
 
-    <!-- 2. YOKLAMA -->
-    <a href="/api/yoklama" class="mobile-nav-item <%= path.includes('/yoklama') ? 'active' : '' %>">
-        <i class="fa-solid fa-clipboard-user"></i>
-        <span>Yoklama</span>
-    </a>
+    <!-- 2. YOKLAMA (Yetkiye göre) -->
+    <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.yoklama_gor)) { %>
+        <a href="/api/yoklama" class="mobile-nav-item <%= path.includes('/yoklama') ? 'active' : '' %>">
+            <i class="fa-solid fa-clipboard-user"></i>
+            <span>Yoklama</span>
+        </a>
+    <% } else if (user.yetkiler && user.yetkiler.ogrenci_liste) { %>
+        <a href="/api/ogrenci/liste" class="mobile-nav-item <%= path.includes('/ogrenci/liste') ? 'active' : '' %>">
+            <i class="fa-solid fa-users"></i>
+            <span>Öğrenciler</span>
+        </a>
+    <% } else { %>
+        <a href="/api/ders/program" class="mobile-nav-item <%= path.includes('/ders') ? 'active' : '' %>">
+            <i class="fa-regular fa-calendar"></i>
+            <span>Program</span>
+        </a>
+    <% } %>
 
     <!-- 3. HIZLI İŞLEM (ORTA) -->
     <% if (user.rol === 'yonetici' || (user.yetkiler && user.yetkiler.ogrenci_ekle)) { %>
         <a href="/api/ogrenci/ekle" class="mobile-fab">
             <i class="fa-solid fa-plus"></i>
         </a>
-    <% } else { %>
+    <% } else if (user.yetkiler && user.yetkiler.ogrenci_liste) { %>
         <a href="/api/ogrenci/liste" class="mobile-fab">
             <i class="fa-solid fa-users"></i>
+        </a>
+    <% } else { %>
+        <a href="/" class="mobile-fab">
+            <i class="fa-solid fa-home"></i>
         </a>
     <% } %>
 
@@ -334,6 +356,16 @@
         <a href="/api/kasa" class="mobile-nav-item <%= path.includes('/kasa') ? 'active' : '' %>">
             <i class="fa-solid fa-wallet"></i>
             <span>Kasa</span>
+        </a>
+    <% } else if (user.yetkiler && user.yetkiler.ders_programi_gor) { %>
+        <a href="/api/ders/program" class="mobile-nav-item <%= path.includes('/ders') ? 'active' : '' %>">
+            <i class="fa-regular fa-calendar"></i>
+            <span>Program</span>
+        </a>
+    <% } else if (user.yetkiler && user.yetkiler.envanter_gor) { %>
+        <a href="/api/envanter" class="mobile-nav-item <%= path.includes('/envanter') ? 'active' : '' %>">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span>Envanter</span>
         </a>
     <% } else { %>
         <a href="/api/ders/program" class="mobile-nav-item <%= path.includes('/ders') ? 'active' : '' %>">

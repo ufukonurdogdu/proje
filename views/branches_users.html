@@ -914,13 +914,13 @@
                                     <% } %>
                                 </div>
                             </div>
-                            <% if(k.rol === 'personel' && k.yetkiler) { 
-                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler; 
+                            <% if(k.rol === 'personel' && k.yetkiler) {
+                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler;
                             %>
                                 <div class="mobile-user-perms">
                                     <span class="mobile-perm-badge <%= y.ogrenci_ekle ? 'active' : '' %>">Öğrenci Ekle</span>
                                     <span class="mobile-perm-badge <%= y.kasa_gor ? 'active' : '' %>">Kasa Gör</span>
-                                    <span class="mobile-perm-badge <%= y.yoklama ? 'active' : '' %>">Yoklama</span>
+                                    <span class="mobile-perm-badge <%= y.yoklama_gor ? 'active' : '' %>">Yoklama</span>
                                 </div>
                             <% } %>
                         </div>
@@ -1013,13 +1013,13 @@
                             <div class="u-name"><%= k.ad_soyad %></div>
                             <div class="u-username">@<%= k.kullanici_adi %> • <%= k.sube_adi || 'Merkez' %></div>
                             
-                            <% if(k.rol === 'personel' && k.yetkiler) { 
-                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler; 
+                            <% if(k.rol === 'personel' && k.yetkiler) {
+                                const y = typeof k.yetkiler === 'string' ? JSON.parse(k.yetkiler) : k.yetkiler;
                             %>
                                 <div class="u-perms-mini">
                                     <div class="perm-dot <%= y.ogrenci_ekle ? 'perm-active' : '' %>" title="Öğrenci Ekle"></div>
                                     <div class="perm-dot <%= y.kasa_gor ? 'perm-active' : '' %>" title="Kasa Gör"></div>
-                                    <div class="perm-dot <%= y.yoklama ? 'perm-active' : '' %>" title="Yoklama"></div>
+                                    <div class="perm-dot <%= y.yoklama_gor ? 'perm-active' : '' %>" title="Yoklama"></div>
                                 </div>
                                 <div style="font-size: 10px; color: #94a3b8; margin-top: 3px;">Yetkiler Tanımlı</div>
                             <% } %>
@@ -1070,25 +1070,60 @@
                 </select>
 
                 <div id="yetkiAlaniEkle" class="permissions-box">
-                    <div class="perm-category">Öğrenci İşlemleri</div>
+                    <div class="perm-category">Dashboard</div>
                     <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_dashboard" checked><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Öğrenci Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Liste Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_liste" checked onchange="toggleDependents(this, ['perm_ogrenci_ekle','perm_ogrenci_duzenle','perm_ogrenci_sil','perm_ogrenci_profil'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Profil Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_profil" checked><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Ekleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_ekle" checked><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Düzenleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_duzenle" checked><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Silme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_sil"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Profil Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_profil" checked><span class="slider"></span></label></div>
                     </div>
 
-                    <div class="perm-category">Akademik & Operasyon</div>
+                    <div class="perm-category">Yoklama</div>
                     <div class="perm-grid">
-                        <div class="toggle-row"><span>Yoklama</span> <label class="switch"><input type="checkbox" name="perm_yoklama" checked><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Ders Programı</span> <label class="switch"><input type="checkbox" name="perm_ders_programi"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Branş/Grup Yönetimi</span> <label class="switch"><input type="checkbox" name="perm_brans_grup"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_yoklama_gor" checked onchange="toggleDependents(this, ['perm_yoklama_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Kaydet)</span> <label class="switch"><input type="checkbox" name="perm_yoklama_islem" checked><span class="slider"></span></label></div>
                     </div>
 
-                    <div class="perm-category">Finansal İşlemler</div>
+                    <div class="perm-category">Ders Programı</div>
                     <div class="perm-grid">
-                        <div class="toggle-row"><span>Kasa Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_kasa_gor"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Kasa İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_kasa_islem"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ders_programi_gor" onchange="toggleDependents(this, ['perm_ders_programi_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_ders_programi_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Branş/Grup Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_brans_grup_gor" onchange="toggleDependents(this, ['perm_brans_grup_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_brans_grup_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Kasa/Finans</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_kasa_gor" onchange="toggleDependents(this, ['perm_kasa_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_kasa_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Envanter/Depo</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_envanter_gor" onchange="toggleDependents(this, ['perm_envanter_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_envanter_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Başvuru Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_basvuru_gor" onchange="toggleDependents(this, ['perm_basvuru_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Onayla/Reddet)</span> <label class="switch"><input type="checkbox" name="perm_basvuru_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">WhatsApp</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_whatsapp_gor" onchange="toggleDependents(this, ['perm_whatsapp_islem'], 'yetkiAlaniEkle')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Mesaj Gönder)</span> <label class="switch"><input type="checkbox" name="perm_whatsapp_islem"><span class="slider"></span></label></div>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">Kaydet</button>
@@ -1117,25 +1152,60 @@
                 </select>
 
                 <div id="yetkiAlaniEdit" class="permissions-box">
-                    <div class="perm-category">Öğrenci İşlemleri</div>
+                    <div class="perm-category">Dashboard</div>
                     <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_dashboard" id="p_dashboard"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Öğrenci Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Liste Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_liste" id="p_ogrenci_liste" onchange="toggleDependents(this, ['perm_ogrenci_ekle','perm_ogrenci_duzenle','perm_ogrenci_sil','perm_ogrenci_profil'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Profil Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_profil" id="p_ogrenci_profil"><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Ekleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_ekle" id="p_ogrenci_ekle"><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Düzenleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_duzenle" id="p_ogrenci_duzenle"><span class="slider"></span></label></div>
                         <div class="toggle-row"><span>Silme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_sil" id="p_ogrenci_sil"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Profil Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ogrenci_profil" id="p_ogrenci_profil"><span class="slider"></span></label></div>
                     </div>
 
-                    <div class="perm-category">Akademik & Operasyon</div>
+                    <div class="perm-category">Yoklama</div>
                     <div class="perm-grid">
-                        <div class="toggle-row"><span>Yoklama</span> <label class="switch"><input type="checkbox" name="perm_yoklama" id="p_yoklama"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Ders Programı</span> <label class="switch"><input type="checkbox" name="perm_ders_programi" id="p_ders_programi"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Branş/Grup Yönetimi</span> <label class="switch"><input type="checkbox" name="perm_brans_grup" id="p_brans_grup"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_yoklama_gor" id="p_yoklama_gor" onchange="toggleDependents(this, ['perm_yoklama_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Kaydet)</span> <label class="switch"><input type="checkbox" name="perm_yoklama_islem" id="p_yoklama_islem"><span class="slider"></span></label></div>
                     </div>
 
-                    <div class="perm-category">Finansal İşlemler</div>
+                    <div class="perm-category">Ders Programı</div>
                     <div class="perm-grid">
-                        <div class="toggle-row"><span>Kasa Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_kasa_gor" id="p_kasa_gor"><span class="slider"></span></label></div>
-                        <div class="toggle-row"><span>Kasa İşlem</span> <label class="switch"><input type="checkbox" name="perm_kasa_islem" id="p_kasa_islem"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_ders_programi_gor" id="p_ders_programi_gor" onchange="toggleDependents(this, ['perm_ders_programi_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_ders_programi_islem" id="p_ders_programi_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Branş/Grup Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_brans_grup_gor" id="p_brans_grup_gor" onchange="toggleDependents(this, ['perm_brans_grup_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_brans_grup_islem" id="p_brans_grup_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Kasa/Finans</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_kasa_gor" id="p_kasa_gor" onchange="toggleDependents(this, ['perm_kasa_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_kasa_islem" id="p_kasa_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Envanter/Depo</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_envanter_gor" id="p_envanter_gor" onchange="toggleDependents(this, ['perm_envanter_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Ekle/Sil)</span> <label class="switch"><input type="checkbox" name="perm_envanter_islem" id="p_envanter_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">Başvuru Yönetimi</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_basvuru_gor" id="p_basvuru_gor" onchange="toggleDependents(this, ['perm_basvuru_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Onayla/Reddet)</span> <label class="switch"><input type="checkbox" name="perm_basvuru_islem" id="p_basvuru_islem"><span class="slider"></span></label></div>
+                    </div>
+
+                    <div class="perm-category">WhatsApp</div>
+                    <div class="perm-grid">
+                        <div class="toggle-row"><span>Görüntüleme</span> <label class="switch"><input type="checkbox" name="perm_whatsapp_gor" id="p_whatsapp_gor" onchange="toggleDependents(this, ['perm_whatsapp_islem'], 'yetkiAlaniEdit')"><span class="slider"></span></label></div>
+                        <div class="toggle-row"><span>İşlem (Mesaj Gönder)</span> <label class="switch"><input type="checkbox" name="perm_whatsapp_islem" id="p_whatsapp_islem"><span class="slider"></span></label></div>
                     </div>
                 </div>
                 <button type="submit" class="btn-submit">Güncelle</button>
@@ -1242,6 +1312,24 @@
             openModal('modalEdit');
         }
 
+        // Bağımlı yetkileri aç/kapat
+        function toggleDependents(checkbox, dependentNames, containerId) {
+            const container = document.getElementById(containerId);
+            dependentNames.forEach(name => {
+                const dep = container.querySelector('input[name="' + name + '"]');
+                if (dep) {
+                    if (!checkbox.checked) {
+                        dep.checked = false;
+                        dep.disabled = true;
+                        dep.closest('.toggle-row').style.opacity = '0.5';
+                    } else {
+                        dep.disabled = false;
+                        dep.closest('.toggle-row').style.opacity = '1';
+                    }
+                }
+            });
+        }
+
         function fillEditForm(user) {
             document.getElementById('editId').value = user.id;
             document.getElementById('editAd').value = user.ad_soyad;
@@ -1251,17 +1339,51 @@
 
             if (user.yetkiler && user.rol === 'personel') {
                 const y = (typeof user.yetkiler === 'string') ? JSON.parse(user.yetkiler) : user.yetkiler;
+
+                // Dashboard
+                document.getElementById('p_dashboard').checked = !!y.dashboard;
+
+                // Öğrenci Yönetimi
+                document.getElementById('p_ogrenci_liste').checked = !!y.ogrenci_liste;
+                document.getElementById('p_ogrenci_profil').checked = !!y.ogrenci_profil;
                 document.getElementById('p_ogrenci_ekle').checked = !!y.ogrenci_ekle;
                 document.getElementById('p_ogrenci_duzenle').checked = !!y.ogrenci_duzenle;
                 document.getElementById('p_ogrenci_sil').checked = !!y.ogrenci_sil;
-                document.getElementById('p_ogrenci_profil').checked = !!y.ogrenci_profil;
-                document.getElementById('p_yoklama').checked = !!y.yoklama;
-                document.getElementById('p_ders_programi').checked = !!y.ders_programi;
-                document.getElementById('p_brans_grup').checked = !!y.brans_grup;
+
+                // Yoklama
+                document.getElementById('p_yoklama_gor').checked = !!y.yoklama_gor;
+                document.getElementById('p_yoklama_islem').checked = !!y.yoklama_islem;
+
+                // Ders Programı
+                document.getElementById('p_ders_programi_gor').checked = !!y.ders_programi_gor;
+                document.getElementById('p_ders_programi_islem').checked = !!y.ders_programi_islem;
+
+                // Branş/Grup
+                document.getElementById('p_brans_grup_gor').checked = !!y.brans_grup_gor;
+                document.getElementById('p_brans_grup_islem').checked = !!y.brans_grup_islem;
+
+                // Kasa
                 document.getElementById('p_kasa_gor').checked = !!y.kasa_gor;
                 document.getElementById('p_kasa_islem').checked = !!y.kasa_islem;
-                
+
+                // Envanter
+                document.getElementById('p_envanter_gor').checked = !!y.envanter_gor;
+                document.getElementById('p_envanter_islem').checked = !!y.envanter_islem;
+
+                // Başvuru
+                document.getElementById('p_basvuru_gor').checked = !!y.basvuru_gor;
+                document.getElementById('p_basvuru_islem').checked = !!y.basvuru_islem;
+
+                // WhatsApp
+                document.getElementById('p_whatsapp_gor').checked = !!y.whatsapp_gor;
+                document.getElementById('p_whatsapp_islem').checked = !!y.whatsapp_islem;
+
                 document.getElementById('yetkiAlaniEdit').style.display = 'block';
+
+                // Bağımlılıkları kontrol et
+                const listeCheck = document.getElementById('p_ogrenci_liste');
+                toggleDependents(listeCheck, ['perm_ogrenci_ekle','perm_ogrenci_duzenle','perm_ogrenci_sil','perm_ogrenci_profil'], 'yetkiAlaniEdit');
+
             } else {
                 document.getElementById('yetkiAlaniEdit').style.display = 'none';
             }
@@ -1360,6 +1482,25 @@
                 closeModal('modalSube');
                 closeModal('modalKullanici');
                 closeModal('modalEdit');
+            }
+        });
+
+        // =====================================================
+        // SAYFA YÜKLENDİĞİNDE URL PARAMETRELERİNİ KONTROL ET
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get('success')) {
+                showResultModal(decodeURIComponent(urlParams.get('success')), 'success');
+                // URL'den parametreleri temizle
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (urlParams.get('error')) {
+                showResultModal(decodeURIComponent(urlParams.get('error')), 'error');
+                // URL'den parametreleri temizle
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
     </script>

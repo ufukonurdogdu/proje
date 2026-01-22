@@ -924,12 +924,52 @@
             document.getElementById('resultModal').classList.remove('show');
         }
 
+        // Result Modal Göster
+        function showResultModal(message, type = 'success') {
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMessage');
+            const buttons = document.getElementById('resultButtons');
+
+            icon.className = 'result-icon ' + type;
+
+            if (type === 'success') {
+                icon.innerHTML = '<i class="fas fa-check"></i>';
+                title.textContent = 'Başarılı!';
+                buttons.innerHTML = '<button class="result-btn success full-width" onclick="closeResultModal()">Tamam</button>';
+            } else if (type === 'error') {
+                icon.innerHTML = '<i class="fas fa-times"></i>';
+                title.textContent = 'Hata!';
+                buttons.innerHTML = '<button class="result-btn confirm-delete full-width" onclick="closeResultModal()">Tamam</button>';
+            }
+
+            msg.textContent = message;
+            document.getElementById('resultModal').classList.add('show');
+        }
+
         // ESC ile kapatma
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeResultModal();
                 closeModal('modalBrans');
                 closeModal('modalGrup');
+            }
+        });
+
+        // =====================================================
+        // SAYFA YÜKLENDİĞİNDE URL PARAMETRELERİNİ KONTROL ET
+        // =====================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get('success')) {
+                showResultModal(decodeURIComponent(urlParams.get('success')), 'success');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            if (urlParams.get('error')) {
+                showResultModal(decodeURIComponent(urlParams.get('error')), 'error');
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
     </script>
